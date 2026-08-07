@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\LeaveController;
 use App\Http\Controllers\Api\ApprovalController;
 use App\Http\Controllers\Api\ShiftController;
 use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\Api\ClaimController;
+use App\Http\Controllers\Api\PayslipController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -39,6 +41,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('approvals')->group(function () {
         Route::get('/pending', [ApprovalController::class, 'pending']);
         Route::post('/{instance}/action', [ApprovalController::class, 'action']);
+    });
+
+    Route::prefix('claims')->group(function () {
+        Route::get('/categories', [ClaimController::class, 'categories']);
+        Route::get('/history', [ClaimController::class, 'history']);
+        Route::post('/submit', [ClaimController::class, 'submit']);
+    });
+
+    Route::prefix('payslips')->group(function () {
+        Route::get('/', [PayslipController::class, 'history']);
+        Route::get('/{payslip}', [PayslipController::class, 'show']);
+        Route::get('/{payslip}/download', [PayslipController::class, 'download']);
     });
 
     Route::get('/shifts/upcoming', [ShiftController::class, 'upcoming']);
