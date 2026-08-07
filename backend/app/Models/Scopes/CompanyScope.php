@@ -15,7 +15,7 @@ class CompanyScope implements Scope
 {
     public function apply(Builder $builder, Model $model): void
     {
-        if (Auth::check() && Auth::user()->company_id && !Auth::user()->is_super_admin) {
+        if (Auth::hasUser() && Auth::user()->company_id && !Auth::user()->is_super_admin) {
             $builder->where($model->getTable() . '.company_id', Auth::user()->company_id);
         }
     }
