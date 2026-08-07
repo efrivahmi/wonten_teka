@@ -8,12 +8,12 @@ use Illuminate\Support\Carbon;
 
 class AttendanceTrendChart extends ChartWidget
 {
-    protected static ?string $heading = 'Attendance Trend (Last 7 Days)';
+    protected ?string $heading = 'Attendance Trend (Last 7 Days)';
     
     protected static ?int $sort = 3;
     
     // Polling interval
-    protected string | int | array $pollingInterval = '30s';
+    protected ?string $pollingInterval = '30s';
 
     protected function getData(): array
     {

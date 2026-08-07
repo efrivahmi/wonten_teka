@@ -14,7 +14,7 @@ class PendingApprovalsWidget extends BaseWidget
     protected static ?int $sort = 2;
     
     // Polling interval
-    protected string | int | array $pollingInterval = '15s';
+    protected ?string $pollingInterval = '15s';
     
     protected int | string | array $columnSpan = 'full';
 

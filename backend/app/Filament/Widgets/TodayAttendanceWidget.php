@@ -13,7 +13,7 @@ class TodayAttendanceWidget extends BaseWidget
     protected static ?int $sort = 1;
     
     // Polling interval for realtime-ish feel
-    protected string | int | array $pollingInterval = '10s';
+    protected ?string $pollingInterval = '10s';
 
     protected function getStats(): array
     {
