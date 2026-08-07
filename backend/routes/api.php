@@ -23,4 +23,24 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/check-out', [\App\Http\Controllers\Api\AttendanceController::class, 'checkOut']);
         Route::get('/history', [\App\Http\Controllers\Api\AttendanceController::class, 'history']);
     });
+
+    Route::prefix('leave')->group(function () {
+        Route::get('/types', [\App\Http\Controllers\Api\LeaveController::class, 'types']);
+        Route::get('/balances', [\App\Http\Controllers\Api\LeaveController::class, 'balances']);
+        Route::get('/history', [\App\Http\Controllers\Api\LeaveController::class, 'history']);
+        Route::post('/request', [\App\Http\Controllers\Api\LeaveController::class, 'request']);
+    });
+
+    Route::prefix('approvals')->group(function () {
+        Route::get('/pending', [\App\Http\Controllers\Api\ApprovalController::class, 'pending']);
+        Route::post('/{instance}/action', [\App\Http\Controllers\Api\ApprovalController::class, 'action']);
+    });
+
+    Route::get('/shifts/upcoming', [\App\Http\Controllers\Api\ShiftController::class, 'upcoming']);
+    Route::get('/calendar', [\App\Http\Controllers\Api\CompanyController::class, 'calendar']);
+    
+    Route::prefix('announcements')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\CompanyController::class, 'announcements']);
+        Route::post('/{announcement}/acknowledge', [\App\Http\Controllers\Api\CompanyController::class, 'acknowledgeAnnouncement']);
+    });
 });
