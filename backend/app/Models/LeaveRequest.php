@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use App\Models\Traits\Approvable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LeaveRequest extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToCompany;
+    use HasFactory, SoftDeletes, BelongsToCompany, Approvable;
 
     protected $fillable = [
         'company_id', 'employee_id', 'leave_type_id', 'start_date', 'end_date',
@@ -34,11 +35,6 @@ class LeaveRequest extends Model
     public function leaveType(): BelongsTo
     {
         return $this->belongsTo(LeaveType::class);
-    }
-
-    public function approvalInstance(): MorphOne
-    {
-        return $this->morphOne(ApprovalInstance::class, 'approvable');
     }
 
     public function scopePending($query)

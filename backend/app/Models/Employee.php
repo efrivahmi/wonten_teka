@@ -166,6 +166,11 @@ class Employee extends Model
         return $this->hasMany(PersonalTask::class);
     }
 
+    public function biometric(): HasOne
+    {
+        return $this->hasOne(EmployeeBiometric::class);
+    }
+
     // Scopes
     public function scopeActive($query)
     {

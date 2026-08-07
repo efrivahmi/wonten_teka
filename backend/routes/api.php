@@ -16,4 +16,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/register', [DeviceController::class, 'register']);
         Route::get('/status', [DeviceController::class, 'status']);
     });
+
+    Route::prefix('attendance')->group(function () {
+        Route::post('/enroll-face', [\App\Http\Controllers\Api\AttendanceController::class, 'enrollFace']);
+        Route::post('/check-in', [\App\Http\Controllers\Api\AttendanceController::class, 'checkIn']);
+        Route::post('/check-out', [\App\Http\Controllers\Api\AttendanceController::class, 'checkOut']);
+        Route::get('/history', [\App\Http\Controllers\Api\AttendanceController::class, 'history']);
+    });
 });

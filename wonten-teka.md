@@ -310,16 +310,16 @@ Each feature folder follows `data / domain / presentation` per Clean Architectur
 
 ## 11. Development roadmap (phased)
 
-| Phase | Scope | Rough duration |
-|---|---|---|
-| 0 — Foundation | Project setup, design system, auth, multi-tenant data model, CI/CD | 2–3 weeks |
-| 1 — Attendance MVP | Device binding, face enrollment/verification, anti-fake GPS check-in, basic attendance history, push notifications | 4–6 weeks |
-| 2 — Workforce management | Shift scheduling, leave + multilevel approval, company calendar, urgent broadcast | 4–5 weeks |
-| 3 — Payroll & finance | Payroll engine, BPJS/PPh 21 engine, salary slip PDFs, claims/reimbursement | 5–6 weeks |
-| 4 — Dashboard & personal scheduler | Realtime admin dashboard widgets, personal habit scheduler, exports/reporting | 3–4 weeks |
-| 5 — Hardening & launch | Security audit/pentest, low-end device performance pass, UAT, store submission | 2–3 weeks |
+| Phase | Scope | Rough duration | Status |
+|---|---|---|---|
+| 0 — Foundation | Project setup, design system, auth, multi-tenant data model, CI/CD | 2–3 weeks | ✅ **DONE (Backend)** |
+| 1 — Attendance MVP | Device binding, face enrollment/verification, anti-fake GPS check-in, basic attendance history, push notifications | 4–6 weeks | ✅ **DONE (Backend API)** |
+| 2 — Workforce management | Shift scheduling, leave + multilevel approval, company calendar, urgent broadcast | 4–5 weeks | ⏳ Pending |
+| 3 — Payroll & finance | Payroll engine, BPJS/PPh 21 engine, salary slip PDFs, claims/reimbursement | 5–6 weeks | ⏳ Pending |
+| 4 — Dashboard & personal scheduler | Realtime admin dashboard widgets, personal habit scheduler, exports/reporting | 3–4 weeks | ⏳ Pending |
+| 5 — Hardening & launch | Security audit/pentest, low-end device performance pass, UAT, store submission | 2–3 weeks | ⏳ Pending |
 
-Total: roughly **5–6 months** for a small dedicated team. If you're building this solo or near-solo, treat Phase 1 as a shippable MVP on its own before taking on payroll's compliance complexity — attendance alone is already a complete, sellable product.
+Total: roughly **5–6 months** for a small dedicated team. We have successfully completed the Backend Foundation and Attendance API! The next step is either building the Flutter mobile app for Phase 1, or continuing the Backend for Phase 2.
 
 **Baseline team:** 1–2 Flutter developers, 1–2 backend developers, 1 UI/UX designer, 1 QA/PM (roles can overlap on a small team).
 
