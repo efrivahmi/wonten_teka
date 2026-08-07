@@ -44,7 +44,7 @@ class ApprovalService
     /**
      * Approve the current step of an instance.
      */
-    public function approve(ApprovalInstance $instance, User $approver, string $comment = null): bool
+    public function approve(ApprovalInstance $instance, User $approver, ?string $comment = null): bool
     {
         if ($instance->overall_status !== 'pending') {
             throw new \Exception("Approval instance is already finalized.");
