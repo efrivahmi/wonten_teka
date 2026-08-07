@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\ShiftController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\ClaimController;
 use App\Http\Controllers\Api\PayslipController;
+use App\Http\Controllers\Api\PersonalTaskController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -53,6 +54,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [PayslipController::class, 'history']);
         Route::get('/{payslip}', [PayslipController::class, 'show']);
         Route::get('/{payslip}/download', [PayslipController::class, 'download']);
+    });
+
+    Route::prefix('tasks')->group(function () {
+        Route::get('/', [PersonalTaskController::class, 'index']);
+        Route::post('/', [PersonalTaskController::class, 'store']);
+        Route::post('/{task}/complete', [PersonalTaskController::class, 'complete']);
     });
 
     Route::get('/shifts/upcoming', [ShiftController::class, 'upcoming']);
