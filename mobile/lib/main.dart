@@ -89,21 +89,30 @@ class WontenTekaApp extends StatelessWidget {
             if (state is AuthUnauthenticated) {
               appRouter.go('/login');
             } else if (state is AuthAuthenticated) {
-              // 1. Force Face Enrollment Check
-              final isFaceEnrolled = state.user.employee?.faceEnrolled ?? false;
-              if (!isFaceEnrolled) {
-                appRouter.go('/face-enrollment');
-                return;
-              }
+              // 0. Force Device Binding Check
+              final secureStorage = SecureStorage();
+              secureStorage.read('is_device_bound').then((value) {
+                if (value != 'true') {
+                  appRouter.go('/device-binding');
+                  return;
+                }
 
-              // 2. Role-based Dashboard Routing
-              if (state.user.isAdmin) {
-                appRouter.go('/admin/dashboard');
-              } else if (state.user.isManager) {
-                appRouter.go('/manager/dashboard');
-              } else {
-                appRouter.go('/app/home');
-              }
+                // 1. Force Face Enrollment Check
+                final isFaceEnrolled = state.user.employee?.faceEnrolled ?? false;
+                if (!isFaceEnrolled) {
+                  appRouter.go('/face-enrollment');
+                  return;
+                }
+
+                // 2. Role-based Dashboard Routing
+                if (state.user.isAdmin) {
+                  appRouter.go('/admin/dashboard');
+                } else if (state.user.isManager) {
+                  appRouter.go('/manager/dashboard');
+                } else {
+                  appRouter.go('/app/home');
+                }
+              });
             }
           },
           child: ScreenUtilInit(

@@ -46,12 +46,19 @@ import '../features/calendar/presentation/screens/event_detail_screen.dart';
 import '../features/calendar/presentation/screens/announcements_screen.dart';
 import '../features/calendar/presentation/screens/announcement_detail_screen.dart';
 
-// Profile, Settings, Notifications
+// Profile, Settings, Notifications, Directory, Face Update
 import '../features/profile/presentation/screens/user_profile_screen.dart';
 import '../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../features/profile/presentation/screens/settings_screen.dart';
 import '../features/profile/presentation/screens/help_support_screen.dart';
 import '../features/notifications/presentation/screens/notifications_screen.dart';
+import '../features/profile/presentation/screens/company_directory_screen.dart';
+import '../features/profile/presentation/screens/face_update_screen.dart';
+
+// Overtime
+import '../features/overtime/presentation/screens/overtime_list_screen.dart';
+import '../features/overtime/presentation/screens/overtime_form_screen.dart';
+import '../features/overtime/presentation/screens/overtime_detail_screen.dart';
 
 // Admin & Manager
 import '../features/admin/presentation/screens/admin_dashboard_screen.dart';
@@ -124,6 +131,13 @@ final appRouter = GoRouter(
     GoRoute(path: '/app/settings', builder: (_, __) => const SettingsScreen()),
     GoRoute(path: '/app/help', builder: (_, __) => const HelpSupportScreen()),
     GoRoute(path: '/app/profile/edit', builder: (_, __) => const EditProfileScreen()),
+    GoRoute(path: '/app/profile/face-update', builder: (_, __) => const FaceUpdateScreen()),
+    GoRoute(path: '/app/directory', builder: (_, __) => const CompanyDirectoryScreen()),
+
+    // Overtime
+    GoRoute(path: '/app/overtime', builder: (_, __) => const OvertimeListScreen()),
+    GoRoute(path: '/app/overtime/new', builder: (_, __) => const OvertimeFormScreen()),
+    GoRoute(path: '/app/overtime/detail', builder: (_, __) => const OvertimeDetailScreen()),
 
     // Admin & Manager routes
     GoRoute(path: '/admin/dashboard', builder: (_, __) => const AdminDashboardScreen()),

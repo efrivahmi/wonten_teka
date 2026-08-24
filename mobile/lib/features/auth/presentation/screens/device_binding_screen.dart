@@ -141,8 +141,12 @@ class DeviceBindingScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 52.h,
                 child: ElevatedButton(
-                  onPressed: () {
-                    context.go('/face-enrollment');
+                  onPressed: () async {
+                    final secureStorage = SecureStorage();
+                    await secureStorage.write('is_device_bound', 'true');
+                    if (context.mounted) {
+                      context.go('/face-enrollment');
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryContainer,
