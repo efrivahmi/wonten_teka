@@ -12,8 +12,21 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   google_fonts: ^6.2.1
+  intl: ^0.19.0
   flutter_screenutil: ^5.9.0
   go_router: ^14.2.1
+  geolocator: ^13.0.1
+  lottie: ^3.1.2
+  image_picker: ^1.1.2
+  camera: ^0.10.5+9
+  google_mlkit_face_detection: ^0.12.0
+  # Networking & State Management
+  dio: ^5.4.0
+  flutter_bloc: ^8.1.0
+  equatable: ^2.0.0
+  flutter_secure_storage: ^9.0.0
+  json_annotation: ^4.8.0
+  flutter_animate: ^4.5.0
 
 dev_dependencies:
   flutter_test:

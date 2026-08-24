@@ -7,6 +7,7 @@ use App\Models\AttendanceLog;
 use App\Models\EmployeeBiometric;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class AttendanceController extends Controller
@@ -86,6 +87,7 @@ class AttendanceController extends Controller
             'face_match_score' => 'required|numeric',
             'device_id' => 'required|string',
             'flags' => 'nullable|array',
+            'photo' => 'nullable|image|max:10240', // 10MB max
         ]);
 
         if ($validator->fails()) {
@@ -130,16 +132,21 @@ class AttendanceController extends Controller
             return response()->json(['message' => 'Already checked in today.'], 422);
         }
 
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('attendance', 'public');
+        }
+
         $attendance = AttendanceLog::create([
             'employee_id' => $employee->id,
             'company_id' => $company->id,
             'check_in_at' => now(),
-            'check_in_gps' => [
-                'latitude' => $request->latitude,
-                'longitude' => $request->longitude,
-            ],
-            'face_match_score' => $request->face_match_score,
+            'check_in_latitude' => $request->latitude,
+            'check_in_longitude' => $request->longitude,
+            'check_in_face_score' => $request->face_match_score,
             'device_id' => $request->device_id,
+            'check_in_photo_url' => $photoPath,
+            'photo_path' => $photoPath,
             'flags' => $flags,
             'status' => $status,
         ]);

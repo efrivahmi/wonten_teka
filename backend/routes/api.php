@@ -14,6 +14,15 @@ use App\Http\Controllers\Api\ClaimController;
 use App\Http\Controllers\Api\PayslipController;
 use App\Http\Controllers\Api\PersonalTaskController;
 
+// Simple root API route for sanity check
+Route::get('/', function () {
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Wonten Teka API is running and ready for connections!',
+        'version' => '1.0.0',
+        'timestamp' => now()->toIso8601String(),
+    ]);
+});
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {

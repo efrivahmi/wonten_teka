@@ -1,0 +1,264 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/info_card.dart';
+import '../../../../core/widgets/status_badge.dart';
+import '../../bloc/leave_cubit.dart';
+
+class LeaveRequestsScreen extends StatefulWidget {
+  const LeaveRequestsScreen({Key? key}) : super(key: key);
+
+  @override
+  State<LeaveRequestsScreen> createState() => _LeaveRequestsScreenState();
+}
+
+class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<LeaveCubit>().loadAll();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.surfaceContainerLow,
+      appBar: AppBar(
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        scrolledUnderElevation: 1,
+        title: Text(
+          'Cuti Saya',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            color: AppColors.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/app/leave/new'),
+        backgroundColor: AppColors.primaryContainer,
+        foregroundColor: AppColors.onPrimary,
+        icon: const Icon(Icons.add),
+        label: const Text('Ajukan Cuti'),
+      ),
+      body: BlocBuilder<LeaveCubit, LeaveState>(
+        builder: (context, state) {
+          if (state is LeaveLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is LeaveError) {
+            return Center(child: Text(state.message, style: TextStyle(color: AppColors.error)));
+          } else if (state is LeaveLoaded) {
+            return SingleChildScrollView(
+              padding: EdgeInsets.all(16.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Leave Balance Cards
+                  if (state.balances.isNotEmpty) ...[
+                    Row(
+                      children: state.balances.take(2).map((balance) {
+                        return Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.only(right: 8.w),
+                            child: _LeaveBalanceCard(
+                              label: balance.leaveType?.name ?? 'Cuti',
+                              used: balance.used,
+                              total: balance.allocated,
+                              color: AppColors.infoCerulean,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    SizedBox(height: 24.h),
+                  ],
+
+                  // History Header
+                  Text(
+                    'Riwayat Pengajuan',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: AppColors.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 12.h),
+
+                  // Request List
+                  if (state.history.isEmpty)
+                    const Center(child: Text('Belum ada riwayat cuti'))
+                  else
+                    ...state.history.map((request) {
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: 12.h),
+                        child: _LeaveRequestItem(
+                          type: request.leaveType?.name ?? 'Cuti',
+                          dateRange: '${DateFormat('dd MMM yyyy').format(request.startDate)} - ${DateFormat('dd MMM yyyy').format(request.endDate)}',
+                          reason: request.reason,
+                          status: request.status,
+                        ),
+                      );
+                    }).toList(),
+                ],
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+  }
+}
+
+class _LeaveBalanceCard extends StatelessWidget {
+  final String label;
+  final int used;
+  final int total;
+  final Color color;
+
+  const _LeaveBalanceCard({
+    required this.label,
+    required this.used,
+    required this.total,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final remaining = total - used;
+    final progress = total > 0 ? used / total : 0.0;
+
+    return InfoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: AppColors.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Text(
+                  '$remaining sisa',
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4.r),
+            child: LinearProgressIndicator(
+              value: progress,
+              backgroundColor: AppColors.surfaceContainerHigh,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+              minHeight: 6.h,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            '$used dari $total hari digunakan',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LeaveRequestItem extends StatelessWidget {
+  final String type;
+  final String dateRange;
+  final String reason;
+  final String status;
+
+  const _LeaveRequestItem({
+    required this.type,
+    required this.dateRange,
+    required this.reason,
+    required this.status,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InfoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                type,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: AppColors.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              _buildBadge(),
+            ],
+          ),
+          SizedBox(height: 8.h),
+          Row(
+            children: [
+              Icon(Icons.calendar_today, size: 14.w, color: AppColors.onSurfaceVariant),
+              SizedBox(width: 6.w),
+              Text(
+                dateRange,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            reason,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadge() {
+    switch (status.toLowerCase()) {
+      case 'approved':
+        return StatusBadge.approved();
+      case 'pending':
+        return StatusBadge.pending();
+      case 'rejected':
+        return StatusBadge.rejected();
+      default:
+        return StatusBadge.pending();
+    }
+  }
+}
