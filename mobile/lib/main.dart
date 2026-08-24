@@ -27,8 +27,13 @@ import 'features/schedule/bloc/shift_cubit.dart';
 import 'features/company/bloc/company_cubit.dart';
 import 'features/schedule/bloc/task_cubit.dart';
 
-void main() {
+import 'package:intl/date_symbol_data_local.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize locale data for date formatting (prevents LocaleDataException)
+  await initializeDateFormatting('id_ID', null);
   
   final secureStorage = SecureStorage();
   final apiClient = ApiClient(storage: secureStorage);
@@ -84,7 +89,21 @@ class WontenTekaApp extends StatelessWidget {
             if (state is AuthUnauthenticated) {
               appRouter.go('/login');
             } else if (state is AuthAuthenticated) {
-              appRouter.go('/app/home');
+              // 1. Force Face Enrollment Check
+              final isFaceEnrolled = state.user.employee?.faceEnrolled ?? false;
+              if (!isFaceEnrolled) {
+                appRouter.go('/face-enrollment');
+                return;
+              }
+
+              // 2. Role-based Dashboard Routing
+              if (state.user.isAdmin) {
+                appRouter.go('/admin/dashboard');
+              } else if (state.user.isManager) {
+                appRouter.go('/manager/dashboard');
+              } else {
+                appRouter.go('/app/home');
+              }
             }
           },
           child: ScreenUtilInit(

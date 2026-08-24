@@ -12,10 +12,19 @@ class ApiClient {
   late final Dio _dio;
   final SecureStorage _storage;
 
-  /// Default base URL points to Android emulator → host machine localhost.
-  /// Change this to your actual server URL in production.
-  static const String _defaultBaseUrl = 'http://127.0.0.1:8000/api';
+  /// Production server URL (AWS EC2 with Nginx).
+  static const String _productionBaseUrl =
+      'http://www.great-symbols-begin-freely.st.a.dcdg.xyz/api';
 
+  /// Local development URL (via USB `adb reverse tcp:8000 tcp:8000`).
+  static const String _localBaseUrl = 'http://127.0.0.1:8000/api';
+
+  /// Set to `true` to use the production AWS server,
+  /// or `false` to use local `php artisan serve`.
+  static const bool _useProduction = true;
+
+  static String get _defaultBaseUrl =>
+      _useProduction ? _productionBaseUrl : _localBaseUrl;
   ApiClient({
     required SecureStorage storage,
     String? baseUrl,

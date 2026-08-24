@@ -26,4 +26,21 @@ class CompanyRepository {
   Future<void> acknowledgeAnnouncement(int announcementId) async {
     await _api.post('/announcements/$announcementId/acknowledge');
   }
+
+  Future<Map<String, dynamic>> getGeofence() async {
+    final response = await _api.get('/company/geofence');
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<void> updateGeofence({
+    required double latitude,
+    required double longitude,
+    required double radius,
+  }) async {
+    await _api.put('/company/geofence', data: {
+      'latitude': latitude,
+      'longitude': longitude,
+      'geofence_radius_meters': radius,
+    });
+  }
 }
