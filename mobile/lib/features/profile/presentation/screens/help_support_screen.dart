@@ -5,7 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/info_card.dart';
 
 class HelpSupportScreen extends StatelessWidget {
-  const HelpSupportScreen({Key? key}) : super(key: key);
+  const HelpSupportScreen({super.key});
   @override
   Widget build(BuildContext context) {
     final faqs = [

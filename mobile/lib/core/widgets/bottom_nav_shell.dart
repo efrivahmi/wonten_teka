@@ -9,9 +9,9 @@ class BottomNavShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
   const BottomNavShell({
-    Key? key,
+    super.key,
     required this.navigationShell,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,13 +23,14 @@ class BottomNavShell extends StatelessWidget {
           borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
           ],
           border: Border(
-            top: BorderSide(color: AppColors.outlineVariant.withOpacity(0.5)),
+            top: BorderSide(
+                color: AppColors.outlineVariant.withValues(alpha: 0.5)),
           ),
         ),
         child: SafeArea(
@@ -93,9 +94,7 @@ class _NavItem extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
         decoration: BoxDecoration(
-          color: isActive
-              ? AppColors.primaryFixed
-              : Colors.transparent,
+          color: isActive ? AppColors.primaryFixed : Colors.transparent,
           borderRadius: BorderRadius.circular(20.r),
         ),
         child: Column(
@@ -110,7 +109,8 @@ class _NavItem extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: isActive ? AppColors.primary : AppColors.onSurfaceVariant,
+                color:
+                    isActive ? AppColors.primary : AppColors.onSurfaceVariant,
                 fontSize: 11.sp,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.5,

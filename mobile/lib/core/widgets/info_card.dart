@@ -11,12 +11,12 @@ class InfoCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const InfoCard({
-    Key? key,
+    super.key,
     required this.child,
     this.padding,
     this.borderLeftColor,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,10 +32,11 @@ class InfoCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(12.r),
             border: borderLeftColor != null
                 ? Border(left: BorderSide(color: borderLeftColor!, width: 4.w))
-                : Border.all(color: AppColors.outlineVariant.withOpacity(0.5)),
+                : Border.all(
+                    color: AppColors.outlineVariant.withValues(alpha: 0.5)),
             boxShadow: [
               BoxShadow(
-                color: AppColors.onSurface.withOpacity(0.04),
+                color: AppColors.onSurface.withValues(alpha: 0.04),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),

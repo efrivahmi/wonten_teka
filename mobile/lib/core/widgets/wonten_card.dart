@@ -7,11 +7,11 @@ class WontenCard extends StatelessWidget {
   final Color? backgroundColor;
 
   const WontenCard({
-    Key? key,
+    super.key,
     required this.child,
     this.padding = const EdgeInsets.all(24.0),
     this.backgroundColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,8 @@ class WontenCard extends StatelessWidget {
             24.0), // Large containers have higher roundness
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04), // Level 2: active cards soft diffused shadow
+            color: Colors.black.withValues(
+                alpha: 0.04), // Level 2: active cards soft diffused shadow
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),

@@ -5,7 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/info_card.dart';
 
 class PayslipDetailScreen extends StatelessWidget {
-  const PayslipDetailScreen({Key? key}) : super(key: key);
+  const PayslipDetailScreen({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,17 +28,17 @@ class PayslipDetailScreen extends StatelessWidget {
         Text('Pendapatan', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: AppColors.successEmerald)),
         SizedBox(height: 8.h),
         InfoCard(borderLeftColor: AppColors.successEmerald, child: Column(children: [
-          _Row(label: 'Gaji Pokok', value: 'Rp 10.000.000'),
-          Divider(height: 16.h, color: AppColors.outlineVariant.withOpacity(0.3)),
-          _Row(label: 'Tunjangan Makan', value: 'Rp 1.500.000'),
-          Divider(height: 16.h, color: AppColors.outlineVariant.withOpacity(0.3)),
-          _Row(label: 'Tunjangan Transport', value: 'Rp 1.000.000'),
-          Divider(height: 16.h, color: AppColors.outlineVariant.withOpacity(0.3)),
-          _Row(label: 'Lembur', value: 'Rp 750.000'),
-          Divider(height: 16.h, color: AppColors.outlineVariant.withOpacity(0.3)),
-          _Row(label: 'Reimbursement', value: 'Rp 150.000', isBold: false),
-          Divider(height: 16.h, color: AppColors.outlineVariant.withOpacity(0.3)),
-          _Row(label: 'Total Pendapatan', value: 'Rp 13.400.000', isBold: true),
+          const _Row(label: 'Gaji Pokok', value: 'Rp 10.000.000'),
+          Divider(height: 16.h, color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+          const _Row(label: 'Tunjangan Makan', value: 'Rp 1.500.000'),
+          Divider(height: 16.h, color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+          const _Row(label: 'Tunjangan Transport', value: 'Rp 1.000.000'),
+          Divider(height: 16.h, color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+          const _Row(label: 'Lembur', value: 'Rp 750.000'),
+          Divider(height: 16.h, color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+          const _Row(label: 'Reimbursement', value: 'Rp 150.000', isBold: false),
+          Divider(height: 16.h, color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+          const _Row(label: 'Total Pendapatan', value: 'Rp 13.400.000', isBold: true),
         ])),
         SizedBox(height: 24.h),
 
@@ -46,17 +46,17 @@ class PayslipDetailScreen extends StatelessWidget {
         Text('Potongan', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: AppColors.errorCrimson)),
         SizedBox(height: 8.h),
         InfoCard(borderLeftColor: AppColors.errorCrimson, child: Column(children: [
-          _Row(label: 'PPh 21 (TER)', value: '- Rp 450.000'),
-          Divider(height: 16.h, color: AppColors.outlineVariant.withOpacity(0.3)),
-          _Row(label: 'BPJS Kesehatan (1%)', value: '- Rp 100.000'),
-          Divider(height: 16.h, color: AppColors.outlineVariant.withOpacity(0.3)),
-          _Row(label: 'BPJS JHT (2%)', value: '- Rp 200.000'),
-          Divider(height: 16.h, color: AppColors.outlineVariant.withOpacity(0.3)),
-          _Row(label: 'BPJS JP (1%)', value: '- Rp 100.000'),
-          Divider(height: 16.h, color: AppColors.outlineVariant.withOpacity(0.3)),
-          _Row(label: 'Tapera (2.5%)', value: '- Rp 100.000'),
-          Divider(height: 16.h, color: AppColors.outlineVariant.withOpacity(0.3)),
-          _Row(label: 'Total Potongan', value: '- Rp 950.000', isBold: true),
+          const _Row(label: 'PPh 21 (TER)', value: '- Rp 450.000'),
+          Divider(height: 16.h, color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+          const _Row(label: 'BPJS Kesehatan (1%)', value: '- Rp 100.000'),
+          Divider(height: 16.h, color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+          const _Row(label: 'BPJS JHT (2%)', value: '- Rp 200.000'),
+          Divider(height: 16.h, color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+          const _Row(label: 'BPJS JP (1%)', value: '- Rp 100.000'),
+          Divider(height: 16.h, color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+          const _Row(label: 'Tapera (2.5%)', value: '- Rp 100.000'),
+          Divider(height: 16.h, color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+          const _Row(label: 'Total Potongan', value: '- Rp 950.000', isBold: true),
         ])),
       ])),
     );

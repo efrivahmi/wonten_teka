@@ -5,14 +5,15 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:flutter/foundation.dart';
 
 class CameraPreviewWidget extends StatefulWidget {
-  final Function(bool isFaceDetected, bool isProperlyPositioned) onFaceValidationChanged;
+  final Function(bool isFaceDetected, bool isProperlyPositioned)
+      onFaceValidationChanged;
   final Function(XFile? file)? onPhotoCaptured;
 
   const CameraPreviewWidget({
-    Key? key,
+    super.key,
     required this.onFaceValidationChanged,
     this.onPhotoCaptured,
-  }) : super(key: key);
+  });
 
   @override
   State<CameraPreviewWidget> createState() => CameraPreviewWidgetState();
@@ -48,7 +49,9 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget> {
         frontCamera,
         ResolutionPreset.medium,
         enableAudio: false,
-        imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
+        imageFormatGroup: Platform.isAndroid
+            ? ImageFormatGroup.nv21
+            : ImageFormatGroup.bgra8888,
       );
 
       await _cameraController!.initialize();
@@ -68,7 +71,8 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget> {
     }
   }
 
-  Future<void> _processCameraImage(CameraImage image, CameraDescription camera) async {
+  Future<void> _processCameraImage(
+      CameraImage image, CameraDescription camera) async {
     try {
       final WriteBuffer allBytes = WriteBuffer();
       for (final Plane plane in image.planes) {
@@ -76,11 +80,16 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget> {
       }
       final bytes = allBytes.done().buffer.asUint8List();
 
-      final Size imageSize = Size(image.width.toDouble(), image.height.toDouble());
-      
-      final imageRotation = InputImageRotationValue.fromRawValue(camera.sensorOrientation) ?? InputImageRotation.rotation0deg;
-      final inputImageFormat = InputImageFormatValue.fromRawValue(image.format.raw) ?? InputImageFormat.nv21;
-      
+      final Size imageSize =
+          Size(image.width.toDouble(), image.height.toDouble());
+
+      final imageRotation =
+          InputImageRotationValue.fromRawValue(camera.sensorOrientation) ??
+              InputImageRotation.rotation0deg;
+      final inputImageFormat =
+          InputImageFormatValue.fromRawValue(image.format.raw) ??
+              InputImageFormat.nv21;
+
       final metadata = InputImageMetadata(
         size: imageSize,
         rotation: imageRotation,
@@ -94,17 +103,17 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget> {
       );
 
       final faces = await _faceDetector.processImage(inputImage);
-      
+
       if (faces.length == 1) {
         final face = faces.first;
         // Simple positioning check: face is reasonably large in the frame
         final faceArea = face.boundingBox.width * face.boundingBox.height;
         final imageArea = image.width * image.height;
-        
+
         bool isProper = false;
         // Ensure the face takes up a reasonable percentage of the screen
         if (faceArea / imageArea > 0.05) {
-            isProper = true;
+          isProper = true;
         }
 
         widget.onFaceValidationChanged(true, isProper);
@@ -123,7 +132,7 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget> {
       try {
         // Stop stream before taking picture to avoid crashes on some devices
         if (_cameraController!.value.isStreamingImages) {
-            await _cameraController!.stopImageStream();
+          await _cameraController!.stopImageStream();
         }
         final XFile file = await _cameraController!.takePicture();
         if (widget.onPhotoCaptured != null) {

@@ -5,7 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/info_card.dart';
 
 class FaceUpdateScreen extends StatelessWidget {
-  const FaceUpdateScreen({Key? key}) : super(key: key);
+  const FaceUpdateScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +45,7 @@ class FaceUpdateScreen extends StatelessWidget {
               child: Container(
                 width: 150.w,
                 height: 150.w,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppColors.primaryContainer,
                   shape: BoxShape.circle,
                 ),

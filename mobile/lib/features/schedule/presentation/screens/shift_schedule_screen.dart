@@ -25,10 +25,12 @@ class _ShiftScheduleScreenState extends State<ShiftScheduleScreen> {
 
   Color _getShiftColor(String name) {
     final lower = name.toLowerCase();
-    if (lower.contains('libur') || lower.contains('off'))
+    if (lower.contains('libur') || lower.contains('off')) {
       return AppColors.onSurfaceVariant;
-    if (lower.contains('siang') || lower.contains('malam'))
+    }
+    if (lower.contains('siang') || lower.contains('malam')) {
       return AppColors.warningAmber;
+    }
     return AppColors.successEmerald;
   }
 
@@ -55,7 +57,7 @@ class _ShiftScheduleScreenState extends State<ShiftScheduleScreen> {
           } else if (state is ShiftError) {
             return Center(
                 child: Text(state.message,
-                    style: TextStyle(color: AppColors.error)));
+                    style: const TextStyle(color: AppColors.error)));
           } else if (state is ShiftLoaded) {
             return SingleChildScrollView(
                 padding: EdgeInsets.all(16.w),
@@ -134,7 +136,7 @@ class _ShiftScheduleScreenState extends State<ShiftScheduleScreen> {
                                         padding: EdgeInsets.symmetric(
                                             horizontal: 12.w, vertical: 4.h),
                                         decoration: BoxDecoration(
-                                            color: color.withOpacity(0.1),
+                                            color: color.withValues(alpha: 0.1),
                                             borderRadius:
                                                 BorderRadius.circular(8.r)),
                                         child: Text(s.shiftTemplate?.name ?? 'Shift',
@@ -145,7 +147,7 @@ class _ShiftScheduleScreenState extends State<ShiftScheduleScreen> {
                                       ),
                                     ]),
                               ));
-                        }).toList(),
+                        }),
                     ]));
           }
           return const SizedBox.shrink();

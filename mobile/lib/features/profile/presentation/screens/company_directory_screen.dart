@@ -5,7 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/info_card.dart';
 
 class CompanyDirectoryScreen extends StatefulWidget {
-  const CompanyDirectoryScreen({Key? key}) : super(key: key);
+  const CompanyDirectoryScreen({super.key});
 
   @override
   State<CompanyDirectoryScreen> createState() => _CompanyDirectoryScreenState();

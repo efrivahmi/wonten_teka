@@ -9,7 +9,7 @@ import '../../../../core/widgets/status_badge.dart';
 import '../../bloc/leave_cubit.dart';
 
 class LeaveRequestsScreen extends StatefulWidget {
-  const LeaveRequestsScreen({Key? key}) : super(key: key);
+  const LeaveRequestsScreen({super.key});
 
   @override
   State<LeaveRequestsScreen> createState() => _LeaveRequestsScreenState();
@@ -35,9 +35,9 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
         title: Text(
           'Cuti Saya',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            color: AppColors.primary,
-            fontWeight: FontWeight.bold,
-          ),
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+              ),
         ),
         centerTitle: true,
       ),
@@ -53,7 +53,9 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
           if (state is LeaveLoading) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is LeaveError) {
-            return Center(child: Text(state.message, style: TextStyle(color: AppColors.error)));
+            return Center(
+                child: Text(state.message,
+                    style: const TextStyle(color: AppColors.error)));
           } else if (state is LeaveLoaded) {
             return SingleChildScrollView(
               padding: EdgeInsets.all(16.w),
@@ -84,9 +86,9 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                   Text(
                     'Riwayat Pengajuan',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: AppColors.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
+                          color: AppColors.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                   SizedBox(height: 12.h),
 
@@ -99,12 +101,13 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                         padding: EdgeInsets.only(bottom: 12.h),
                         child: _LeaveRequestItem(
                           type: request.leaveType?.name ?? 'Cuti',
-                          dateRange: '${DateFormat('dd MMM yyyy').format(request.startDate)} - ${DateFormat('dd MMM yyyy').format(request.endDate)}',
+                          dateRange:
+                              '${DateFormat('dd MMM yyyy').format(request.startDate)} - ${DateFormat('dd MMM yyyy').format(request.endDate)}',
                           reason: request.reason,
                           status: request.status,
                         ),
                       );
-                    }).toList(),
+                    }),
                 ],
               ),
             );
@@ -145,9 +148,9 @@ class _LeaveBalanceCard extends StatelessWidget {
                 child: Text(
                   label,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: AppColors.onSurface,
-                    fontWeight: FontWeight.w600,
-                  ),
+                        color: AppColors.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -155,7 +158,7 @@ class _LeaveBalanceCard extends StatelessWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8.r),
                 ),
                 child: Text(
@@ -183,8 +186,8 @@ class _LeaveBalanceCard extends StatelessWidget {
           Text(
             '$used dari $total hari digunakan',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.onSurfaceVariant,
-            ),
+                  color: AppColors.onSurfaceVariant,
+                ),
           ),
         ],
       ),
@@ -217,9 +220,9 @@ class _LeaveRequestItem extends StatelessWidget {
               Text(
                 type,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: AppColors.onSurface,
-                  fontWeight: FontWeight.w600,
-                ),
+                      color: AppColors.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
               _buildBadge(),
             ],
@@ -227,13 +230,14 @@ class _LeaveRequestItem extends StatelessWidget {
           SizedBox(height: 8.h),
           Row(
             children: [
-              Icon(Icons.calendar_today, size: 14.w, color: AppColors.onSurfaceVariant),
+              Icon(Icons.calendar_today,
+                  size: 14.w, color: AppColors.onSurfaceVariant),
               SizedBox(width: 6.w),
               Text(
                 dateRange,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.onSurfaceVariant,
-                ),
+                      color: AppColors.onSurfaceVariant,
+                    ),
               ),
             ],
           ),
@@ -241,8 +245,8 @@ class _LeaveRequestItem extends StatelessWidget {
           Text(
             reason,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.onSurfaceVariant,
-            ),
+                  color: AppColors.onSurfaceVariant,
+                ),
           ),
         ],
       ),

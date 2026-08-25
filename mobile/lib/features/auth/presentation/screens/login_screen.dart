@@ -6,7 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../bloc/auth_bloc.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -30,11 +30,11 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleLogin() {
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
-        AuthLoginRequested(
-          email: _usernameController.text.trim(),
-          password: _passwordController.text,
-        ),
-      );
+            AuthLoginRequested(
+              email: _usernameController.text.trim(),
+              password: _passwordController.text,
+            ),
+          );
     }
   }
 
@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
               width: 300.w,
               height: 300.w,
               decoration: BoxDecoration(
-                color: AppColors.primaryContainer.withOpacity(0.15),
+                color: AppColors.primaryContainer.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
             ),
@@ -64,12 +64,12 @@ class _LoginScreenState extends State<LoginScreen> {
               width: 350.w,
               height: 350.w,
               decoration: BoxDecoration(
-                color: AppColors.secondaryContainer.withOpacity(0.15),
+                color: AppColors.secondaryContainer.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
             ),
           ),
-          
+
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -97,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: AppColors.primary,
                         ),
                         SizedBox(height: 32.h),
-                        
+
                         // Login Card
                         Container(
                           padding: EdgeInsets.all(24.w),
@@ -105,11 +105,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: AppColors.surfaceContainerLowest,
                             borderRadius: BorderRadius.circular(24.r),
                             border: Border.all(
-                              color: AppColors.outlineVariant.withOpacity(0.3),
+                              color: AppColors.outlineVariant
+                                  .withValues(alpha: 0.3),
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.onSurface.withOpacity(0.05),
+                                color:
+                                    AppColors.onSurface.withValues(alpha: 0.05),
                                 blurRadius: 24,
                                 spreadRadius: 4,
                               ),
@@ -122,33 +124,42 @@ class _LoginScreenState extends State<LoginScreen> {
                               children: [
                                 Text(
                                   'Masuk',
-                                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .displaySmall
+                                      ?.copyWith(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                   textAlign: TextAlign.center,
                                 ),
                                 SizedBox(height: 8.h),
                                 Text(
                                   'Selamat datang di Wonten Teka. Silakan masuk untuk memulai absensi.',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: AppColors.onSurfaceVariant,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color: AppColors.onSurfaceVariant,
+                                      ),
                                   textAlign: TextAlign.center,
                                 ),
                                 SizedBox(height: 32.h),
-                                
+
                                 // Company ID (Hidden or optional for MVP depending on backend, backend only requires email/pass/device_name)
                                 // We keep it in UI for design fidelity but don't strictly pass to AuthController unless modified.
-                                
+
                                 // Email/Username
                                 Text(
                                   'EMAIL / USERNAME',
-                                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color: AppColors.onSurfaceVariant,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 1.2,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelSmall
+                                      ?.copyWith(
+                                        color: AppColors.onSurfaceVariant,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 1.2,
+                                      ),
                                 ),
                                 SizedBox(height: 8.h),
                                 TextFormField(
@@ -166,7 +177,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12.r),
                                       borderSide: BorderSide(
-                                        color: AppColors.outlineVariant.withOpacity(0.5),
+                                        color: AppColors.outlineVariant
+                                            .withValues(alpha: 0.5),
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
@@ -176,19 +188,23 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                     ),
                                   ),
-                                  validator: (value) => 
-                                      value?.isEmpty ?? true ? 'Wajib diisi' : null,
+                                  validator: (value) => value?.isEmpty ?? true
+                                      ? 'Wajib diisi'
+                                      : null,
                                 ),
                                 SizedBox(height: 16.h),
-                                
+
                                 // Password
                                 Text(
                                   'PASSWORD',
-                                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color: AppColors.onSurfaceVariant,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 1.2,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelSmall
+                                      ?.copyWith(
+                                        color: AppColors.onSurfaceVariant,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 1.2,
+                                      ),
                                 ),
                                 SizedBox(height: 8.h),
                                 TextFormField(
@@ -199,7 +215,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                     prefixIcon: const Icon(Icons.lock),
                                     suffixIcon: IconButton(
                                       icon: Icon(
-                                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                        _obscurePassword
+                                            ? Icons.visibility_off
+                                            : Icons.visibility,
                                       ),
                                       onPressed: () {
                                         setState(() {
@@ -217,7 +235,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12.r),
                                       borderSide: BorderSide(
-                                        color: AppColors.outlineVariant.withOpacity(0.5),
+                                        color: AppColors.outlineVariant
+                                            .withValues(alpha: 0.5),
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
@@ -227,10 +246,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                     ),
                                   ),
-                                  validator: (value) => 
-                                      value?.isEmpty ?? true ? 'Wajib diisi' : null,
+                                  validator: (value) => value?.isEmpty ?? true
+                                      ? 'Wajib diisi'
+                                      : null,
                                 ),
-                                
+
                                 SizedBox(height: 8.h),
                                 Align(
                                   alignment: Alignment.centerRight,
@@ -238,46 +258,61 @@ class _LoginScreenState extends State<LoginScreen> {
                                     onPressed: isLoading ? null : () {},
                                     child: Text(
                                       'Lupa Password?',
-                                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                        color: AppColors.primary,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelMedium
+                                          ?.copyWith(
+                                            color: AppColors.primary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
                                   ),
                                 ),
-                                
+
                                 SizedBox(height: 24.h),
                                 SizedBox(
                                   height: 52.h,
                                   child: ElevatedButton(
                                     onPressed: isLoading ? null : _handleLogin,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primaryContainer,
-                                      foregroundColor: AppColors.onPrimaryContainer,
+                                      backgroundColor:
+                                          AppColors.primaryContainer,
+                                      foregroundColor:
+                                          AppColors.onPrimaryContainer,
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12.r),
+                                        borderRadius:
+                                            BorderRadius.circular(12.r),
                                       ),
                                       elevation: 2,
-                                      shadowColor: AppColors.primaryContainer.withOpacity(0.5),
+                                      shadowColor: AppColors.primaryContainer
+                                          .withValues(alpha: 0.5),
                                     ),
                                     child: isLoading
                                         ? const SizedBox(
                                             height: 24,
                                             width: 24,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2),
                                           )
                                         : Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
                                               Text(
                                                 'Masuk',
-                                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                                  color: AppColors.onPrimaryContainer,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleMedium
+                                                    ?.copyWith(
+                                                      color: AppColors
+                                                          .onPrimaryContainer,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
                                               ),
                                               SizedBox(width: 8.w),
-                                              Icon(Icons.arrow_forward, size: 20.w),
+                                              Icon(Icons.arrow_forward,
+                                                  size: 20.w),
                                             ],
                                           ),
                                   ),
@@ -286,13 +321,15 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-                        
+
                         SizedBox(height: 24.h),
                         Text(
                           'Sistem Absensi Digital © 2024',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.onSurfaceVariant.withOpacity(0.6),
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.onSurfaceVariant
+                                        .withValues(alpha: 0.6),
+                                  ),
                         ),
                       ],
                     );

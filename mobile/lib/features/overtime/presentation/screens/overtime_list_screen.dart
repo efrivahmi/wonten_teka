@@ -5,7 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/info_card.dart';
 
 class OvertimeListScreen extends StatelessWidget {
-  const OvertimeListScreen({Key? key}) : super(key: key);
+  const OvertimeListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +30,7 @@ class OvertimeListScreen extends StatelessWidget {
         onPressed: () => context.push('/app/overtime/new'),
         backgroundColor: AppColors.primaryContainer,
         icon: const Icon(Icons.add, color: AppColors.onPrimaryContainer),
-        label: Text(
+        label: const Text(
           'Ajukan Lembur',
           style: TextStyle(
             color: AppColors.onPrimaryContainer,
@@ -78,7 +78,7 @@ class OvertimeListScreen extends StatelessWidget {
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                       decoration: BoxDecoration(
-                        color: colors[index].withOpacity(0.1),
+                        color: colors[index].withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20.r),
                       ),
                       child: Text(

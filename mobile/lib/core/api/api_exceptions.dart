@@ -16,16 +16,17 @@ class ApiException implements Exception {
 
 /// 401 — Sanctum token expired or invalid.
 class UnauthorizedException extends ApiException {
-  const UnauthorizedException({String message = 'Session expired. Please login again.'})
-      : super(message: message, statusCode: 401);
+  const UnauthorizedException(
+      {super.message = 'Session expired. Please login again.'})
+      : super(statusCode: 401);
 }
 
 /// 422 — Laravel validation errors.
 class ValidationException extends ApiException {
   const ValidationException({
-    required Map<String, dynamic> errors,
-    String message = 'Validation failed.',
-  }) : super(message: message, statusCode: 422, errors: errors);
+    required Map<String, dynamic> super.errors,
+    super.message = 'Validation failed.',
+  }) : super(statusCode: 422);
 
   /// Get the first error message for a specific field.
   String? fieldError(String field) {
@@ -49,24 +50,27 @@ class ValidationException extends ApiException {
 
 /// 403 — Forbidden (e.g. employee profile not found).
 class ForbiddenException extends ApiException {
-  const ForbiddenException({String message = 'You do not have permission to perform this action.'})
-      : super(message: message, statusCode: 403);
+  const ForbiddenException(
+      {super.message = 'You do not have permission to perform this action.'})
+      : super(statusCode: 403);
 }
 
 /// 404 — Resource not found.
 class NotFoundException extends ApiException {
-  const NotFoundException({String message = 'Resource not found.'})
-      : super(message: message, statusCode: 404);
+  const NotFoundException({super.message = 'Resource not found.'})
+      : super(statusCode: 404);
 }
 
 /// 500 — Server error.
 class ServerException extends ApiException {
-  const ServerException({String message = 'An unexpected server error occurred.'})
-      : super(message: message, statusCode: 500);
+  const ServerException(
+      {super.message = 'An unexpected server error occurred.'})
+      : super(statusCode: 500);
 }
 
 /// No internet connection or DNS failure.
 class NetworkException extends ApiException {
-  const NetworkException({String message = 'No internet connection. Please check your network.'})
-      : super(message: message, statusCode: null);
+  const NetworkException(
+      {super.message = 'No internet connection. Please check your network.'})
+      : super(statusCode: null);
 }

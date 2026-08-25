@@ -5,7 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/info_card.dart';
 
 class HabitTrackerScreen extends StatelessWidget {
-  const HabitTrackerScreen({Key? key}) : super(key: key);
+  const HabitTrackerScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +47,7 @@ class HabitTrackerScreen extends StatelessWidget {
             Container(
               width: 48.w, height: 48.w,
               decoration: BoxDecoration(
-                color: (h['done'] as bool) ? AppColors.successEmerald.withOpacity(0.1) : AppColors.surfaceContainerHigh,
+                color: (h['done'] as bool) ? AppColors.successEmerald.withValues(alpha: 0.1) : AppColors.surfaceContainerHigh,
                 borderRadius: BorderRadius.circular(12.r)),
               child: Icon(h['icon'] as IconData, color: (h['done'] as bool) ? AppColors.successEmerald : AppColors.onSurfaceVariant, size: 24.w),
             ),

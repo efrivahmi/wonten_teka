@@ -9,7 +9,7 @@ import '../../../../core/widgets/status_badge.dart';
 import '../../bloc/claim_cubit.dart';
 
 class ClaimListScreen extends StatefulWidget {
-  const ClaimListScreen({Key? key}) : super(key: key);
+  const ClaimListScreen({super.key});
 
   @override
   State<ClaimListScreen> createState() => _ClaimListScreenState();
@@ -28,20 +28,24 @@ class _ClaimListScreenState extends State<ClaimListScreen> {
     final lower = category.toLowerCase();
     if (lower.contains('transport')) return Icons.directions_car;
     if (lower.contains('makan')) return Icons.restaurant;
-    if (lower.contains('medis') || lower.contains('kesehatan')) return Icons.local_hospital;
+    if (lower.contains('medis') || lower.contains('kesehatan'))
+      return Icons.local_hospital;
     return Icons.receipt_long;
   }
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final currencyFormatter =
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
     return Scaffold(
       backgroundColor: AppColors.surfaceContainerLow,
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
-        title: Text('Riwayat Klaim', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
+        title: Text('Riwayat Klaim',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppColors.primary, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -56,7 +60,9 @@ class _ClaimListScreenState extends State<ClaimListScreen> {
           if (state is ClaimLoading) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is ClaimError) {
-            return Center(child: Text(state.message, style: TextStyle(color: AppColors.error)));
+            return Center(
+                child: Text(state.message,
+                    style: const TextStyle(color: AppColors.error)));
           } else if (state is ClaimLoaded) {
             if (state.history.isEmpty) {
               return const Center(child: Text('Belum ada riwayat klaim'));
@@ -68,29 +74,50 @@ class _ClaimListScreenState extends State<ClaimListScreen> {
               itemBuilder: (context, i) {
                 final claim = state.history[i];
                 return InfoCard(
-                  onTap: () => context.push('/app/claims/detail'), // Should pass ID
+                  onTap: () =>
+                      context.push('/app/claims/detail'), // Should pass ID
                   child: Row(children: [
                     Container(
                       width: 48.w,
                       height: 48.w,
-                      decoration: BoxDecoration(color: AppColors.primaryFixed, borderRadius: BorderRadius.circular(12.r)),
-                      child: Icon(_getIconForCategory(claim.claimCategory?.name ?? ''), color: AppColors.primary, size: 24.w),
+                      decoration: BoxDecoration(
+                          color: AppColors.primaryFixed,
+                          borderRadius: BorderRadius.circular(12.r)),
+                      child: Icon(
+                          _getIconForCategory(claim.claimCategory?.name ?? ''),
+                          color: AppColors.primary,
+                          size: 24.w),
                     ),
                     SizedBox(width: 16.w),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(claim.claimCategory?.name ?? 'Klaim', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                          Text(claim.claimCategory?.name ?? 'Klaim',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold)),
                           SizedBox(height: 4.h),
-                          Text(DateFormat('dd MMM yyyy').format(claim.expenseDate), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.onSurfaceVariant)),
+                          Text(
+                              DateFormat('dd MMM yyyy')
+                                  .format(claim.expenseDate),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                      color: AppColors.onSurfaceVariant)),
                         ],
                       ),
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(currencyFormatter.format(claim.amount), style: TextStyle(color: AppColors.onSurface, fontWeight: FontWeight.bold, fontSize: 14.sp)),
+                        Text(currencyFormatter.format(claim.amount),
+                            style: TextStyle(
+                                color: AppColors.onSurface,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14.sp)),
                         SizedBox(height: 4.h),
                         claim.status.toLowerCase() == 'approved'
                             ? StatusBadge.approved()

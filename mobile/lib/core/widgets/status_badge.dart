@@ -9,52 +9,52 @@ class StatusBadge extends StatelessWidget {
   final IconData? icon;
 
   const StatusBadge({
-    Key? key,
+    super.key,
     required this.label,
     required this.backgroundColor,
     required this.textColor,
     this.icon,
-  }) : super(key: key);
+  });
 
   // Factory constructors for common statuses
   factory StatusBadge.approved() => const StatusBadge(
-    label: 'Disetujui',
-    backgroundColor: Color(0x1A10B981),
-    textColor: AppColors.successEmerald,
-    icon: Icons.check_circle_outline,
-  );
+        label: 'Disetujui',
+        backgroundColor: Color(0x1A10B981),
+        textColor: AppColors.successEmerald,
+        icon: Icons.check_circle_outline,
+      );
 
   factory StatusBadge.pending() => const StatusBadge(
-    label: 'Menunggu',
-    backgroundColor: Color(0x1AF59E0B),
-    textColor: AppColors.warningAmber,
-    icon: Icons.schedule,
-  );
+        label: 'Menunggu',
+        backgroundColor: Color(0x1AF59E0B),
+        textColor: AppColors.warningAmber,
+        icon: Icons.schedule,
+      );
 
   factory StatusBadge.rejected() => const StatusBadge(
-    label: 'Ditolak',
-    backgroundColor: Color(0x1ADC2626),
-    textColor: AppColors.errorCrimson,
-    icon: Icons.cancel_outlined,
-  );
+        label: 'Ditolak',
+        backgroundColor: Color(0x1ADC2626),
+        textColor: AppColors.errorCrimson,
+        icon: Icons.cancel_outlined,
+      );
 
   factory StatusBadge.onTime() => const StatusBadge(
-    label: 'Tepat Waktu',
-    backgroundColor: Color(0x1A10B981),
-    textColor: AppColors.successEmerald,
-  );
+        label: 'Tepat Waktu',
+        backgroundColor: Color(0x1A10B981),
+        textColor: AppColors.successEmerald,
+      );
 
   factory StatusBadge.late() => const StatusBadge(
-    label: 'Terlambat',
-    backgroundColor: Color(0x1AF59E0B),
-    textColor: AppColors.warningAmber,
-  );
+        label: 'Terlambat',
+        backgroundColor: Color(0x1AF59E0B),
+        textColor: AppColors.warningAmber,
+      );
 
   factory StatusBadge.absent() => const StatusBadge(
-    label: 'Tidak Hadir',
-    backgroundColor: Color(0x1ADC2626),
-    textColor: AppColors.errorCrimson,
-  );
+        label: 'Tidak Hadir',
+        backgroundColor: Color(0x1ADC2626),
+        textColor: AppColors.errorCrimson,
+      );
 
   @override
   Widget build(BuildContext context) {

@@ -20,6 +20,8 @@ dependencies:
   image_picker: ^1.1.2
   camera: ^0.10.5+9
   google_mlkit_face_detection: ^0.12.0
+  device_info_plus: ^10.1.2
+  google_maps_flutter: ^2.5.3
   # Networking & State Management
   dio: ^5.4.0
   flutter_bloc: ^8.1.0

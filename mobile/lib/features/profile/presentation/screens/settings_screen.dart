@@ -5,7 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/info_card.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -16,18 +16,18 @@ class SettingsScreen extends StatelessWidget {
       body: SingleChildScrollView(padding: EdgeInsets.all(16.w), child: Column(children: [
         _Section(title: 'Akun', items: [
           _SettingItem(icon: Icons.lock, title: 'Ubah Password', onTap: () {}),
-          _SettingItem(icon: Icons.fingerprint, title: 'Biometrik Login', trailing: Switch(value: true, onChanged: (_) {}, activeColor: AppColors.primaryContainer)),
-          _SettingItem(icon: Icons.language, title: 'Bahasa', subtitle: 'Indonesia'),
+          _SettingItem(icon: Icons.fingerprint, title: 'Biometrik Login', trailing: Switch(value: true, onChanged: (_) {}, activeThumbColor: AppColors.primaryContainer)),
+          const _SettingItem(icon: Icons.language, title: 'Bahasa', subtitle: 'Indonesia'),
         ]),
         SizedBox(height: 16.h),
         _Section(title: 'Notifikasi', items: [
-          _SettingItem(icon: Icons.notifications, title: 'Push Notification', trailing: Switch(value: true, onChanged: (_) {}, activeColor: AppColors.primaryContainer)),
-          _SettingItem(icon: Icons.alarm, title: 'Pengingat Check-in', trailing: Switch(value: true, onChanged: (_) {}, activeColor: AppColors.primaryContainer)),
-          _SettingItem(icon: Icons.campaign, title: 'Pengumuman', trailing: Switch(value: true, onChanged: (_) {}, activeColor: AppColors.primaryContainer)),
+          _SettingItem(icon: Icons.notifications, title: 'Push Notification', trailing: Switch(value: true, onChanged: (_) {}, activeThumbColor: AppColors.primaryContainer)),
+          _SettingItem(icon: Icons.alarm, title: 'Pengingat Check-in', trailing: Switch(value: true, onChanged: (_) {}, activeThumbColor: AppColors.primaryContainer)),
+          _SettingItem(icon: Icons.campaign, title: 'Pengumuman', trailing: Switch(value: true, onChanged: (_) {}, activeThumbColor: AppColors.primaryContainer)),
         ]),
         SizedBox(height: 16.h),
         _Section(title: 'Tentang', items: [
-          _SettingItem(icon: Icons.info, title: 'Versi Aplikasi', subtitle: '1.0.0'),
+          const _SettingItem(icon: Icons.info, title: 'Versi Aplikasi', subtitle: '1.0.0'),
           _SettingItem(icon: Icons.description, title: 'Kebijakan Privasi', onTap: () {}),
           _SettingItem(icon: Icons.gavel, title: 'Syarat & Ketentuan', onTap: () {}),
         ]),
@@ -42,7 +42,7 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     Padding(padding: EdgeInsets.only(left: 4.w, bottom: 8.h), child: Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600))),
-    InfoCard(child: Column(children: items.expand((w) => [w, if (w != items.last) Divider(height: 1, color: AppColors.outlineVariant.withOpacity(0.3))]).toList())),
+    InfoCard(child: Column(children: items.expand((w) => [w, if (w != items.last) Divider(height: 1, color: AppColors.outlineVariant.withValues(alpha: 0.3))]).toList())),
   ]);
 }
 

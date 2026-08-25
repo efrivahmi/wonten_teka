@@ -16,9 +16,18 @@ class CompanyLoading extends CompanyState {}
 class CompanyLoaded extends CompanyState {
   final List<CalendarEventModel> calendarEvents;
   final List<AnnouncementModel> announcements;
-  const CompanyLoaded({this.calendarEvents = const [], this.announcements = const []});
+  final List<Map<String, dynamic>> attendanceLogs;
+  final List<int> workingDays;
+  
+  const CompanyLoaded({
+    this.calendarEvents = const [], 
+    this.announcements = const [],
+    this.attendanceLogs = const [],
+    this.workingDays = const [1,2,3,4,5],
+  });
+  
   @override
-  List<Object?> get props => [calendarEvents, announcements];
+  List<Object?> get props => [calendarEvents, announcements, attendanceLogs, workingDays];
 }
 
 class CompanyError extends CompanyState {
@@ -35,15 +44,23 @@ class CompanyCubit extends Cubit<CompanyState> {
       : _repo = repository,
         super(CompanyInitial());
 
-  Future<void> loadAll() async {
+  Future<void> loadAll({int? month, int? year}) async {
     emit(CompanyLoading());
     try {
       final results = await Future.wait([
-        _repo.getCalendar(),
+        _repo.getCalendar(month: month, year: year),
         _repo.getAnnouncements(),
       ]);
+      
+      final calendarData = results[0] as Map<String, dynamic>;
+      final events = (calendarData['events'] as List).map((e) => CalendarEventModel.fromJson(e)).toList();
+      final logs = List<Map<String, dynamic>>.from(calendarData['attendance_logs'] ?? []);
+      final wDays = List<int>.from(calendarData['working_days'] ?? [1,2,3,4,5]);
+      
       emit(CompanyLoaded(
-        calendarEvents: (results[0] as dynamic).data as List<CalendarEventModel>,
+        calendarEvents: events,
+        attendanceLogs: logs,
+        workingDays: wDays,
         announcements: (results[1] as dynamic).data as List<AnnouncementModel>,
       ));
     } on ApiException catch (e) {
@@ -74,7 +91,13 @@ class CompanyCubit extends Cubit<CompanyState> {
           }
           return a;
         }).toList();
-        emit(CompanyLoaded(calendarEvents: currentState.calendarEvents, announcements: updatedAnnouncements));
+        
+        emit(CompanyLoaded(
+          calendarEvents: currentState.calendarEvents, 
+          announcements: updatedAnnouncements,
+          attendanceLogs: currentState.attendanceLogs,
+          workingDays: currentState.workingDays,
+        ));
       } catch (_) {
         // Silently fail or emit error, then reload? For now ignore.
       }

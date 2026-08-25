@@ -58,6 +58,7 @@ class WontenTekaApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
+        RepositoryProvider.value(value: apiClient),
         RepositoryProvider(create: (_) => AuthRepository(api: apiClient, storage: secureStorage)),
         RepositoryProvider(create: (_) => AttendanceRepository(api: apiClient)),
         RepositoryProvider(create: (_) => LeaveRepository(api: apiClient)),
@@ -85,14 +86,15 @@ class WontenTekaApp extends StatelessWidget {
           BlocProvider(create: (context) => TaskCubit(repository: context.read<TaskRepository>())),
         ],
         child: BlocListener<AuthBloc, AuthState>(
-          listener: (context, state) {
+          listener: (context, state) async {
             if (state is AuthUnauthenticated) {
               appRouter.go('/login');
             } else if (state is AuthAuthenticated) {
-              // 0. Force Device Binding Check
-              final secureStorage = SecureStorage();
-              secureStorage.read('is_device_bound').then((value) {
-                if (value != 'true') {
+              try {
+                // 0. Force Device Binding Check
+                final storage = SecureStorage();
+                final isDeviceBound = await storage.read('is_device_bound');
+                if (isDeviceBound != 'true') {
                   appRouter.go('/device-binding');
                   return;
                 }
@@ -112,7 +114,10 @@ class WontenTekaApp extends StatelessWidget {
                 } else {
                   appRouter.go('/app/home');
                 }
-              });
+              } catch (e) {
+                // If anything fails during routing checks, go to device binding as safe default
+                appRouter.go('/device-binding');
+              }
             }
           },
           child: ScreenUtilInit(

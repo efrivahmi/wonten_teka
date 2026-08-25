@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class HabitFormScreen extends StatefulWidget {
-  const HabitFormScreen({Key? key}) : super(key: key);
+  const HabitFormScreen({super.key});
   @override
   State<HabitFormScreen> createState() => _HabitFormScreenState();
 }
@@ -33,7 +33,7 @@ class _HabitFormScreenState extends State<HabitFormScreen> {
 
         _label('FREKUENSI'),
         SizedBox(height: 8.h),
-        DropdownButtonFormField<String>(value: _frequency,
+        DropdownButtonFormField<String>(initialValue: _frequency,
           items: _frequencies.map((f) => DropdownMenuItem(value: f, child: Text(f))).toList(),
           onChanged: (v) { if (v != null) setState(() => _frequency = v); }, decoration: _deco('Pilih frekuensi')),
         SizedBox(height: 24.h),
@@ -48,7 +48,7 @@ class _HabitFormScreenState extends State<HabitFormScreen> {
           borderRadius: BorderRadius.circular(12.r),
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-            decoration: BoxDecoration(color: AppColors.surfaceContainerLow, borderRadius: BorderRadius.circular(12.r), border: Border.all(color: AppColors.outlineVariant.withOpacity(0.5))),
+            decoration: BoxDecoration(color: AppColors.surfaceContainerLow, borderRadius: BorderRadius.circular(12.r), border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5))),
             child: Row(children: [
               Icon(Icons.alarm, color: AppColors.onSurfaceVariant, size: 20.w),
               SizedBox(width: 12.w),
@@ -65,7 +65,7 @@ class _HabitFormScreenState extends State<HabitFormScreen> {
           Icons.directions_run, Icons.music_note, Icons.code, Icons.brush,
         ].map((icon) => Container(
           width: 48.w, height: 48.w,
-          decoration: BoxDecoration(color: AppColors.surfaceContainerLow, borderRadius: BorderRadius.circular(12.r), border: Border.all(color: AppColors.outlineVariant.withOpacity(0.5))),
+          decoration: BoxDecoration(color: AppColors.surfaceContainerLow, borderRadius: BorderRadius.circular(12.r), border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5))),
           child: Icon(icon, color: AppColors.onSurfaceVariant, size: 24.w),
         )).toList()),
         SizedBox(height: 32.h),
@@ -81,7 +81,7 @@ class _HabitFormScreenState extends State<HabitFormScreen> {
 
   Widget _label(String t) => Text(t, style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11.sp, fontWeight: FontWeight.w700, letterSpacing: 1.2));
   InputDecoration _deco(String hint) => InputDecoration(hintText: hint, filled: true, fillColor: AppColors.surfaceContainerLow,
-    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: BorderSide(color: AppColors.outlineVariant.withOpacity(0.5))),
-    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: BorderSide(color: AppColors.outlineVariant.withOpacity(0.5))),
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.5))),
+    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.5))),
     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: const BorderSide(color: AppColors.primaryContainer)));
 }

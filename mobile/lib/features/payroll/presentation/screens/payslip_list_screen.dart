@@ -8,7 +8,7 @@ import '../../../../core/widgets/info_card.dart';
 import '../../bloc/payslip_cubit.dart';
 
 class PayslipListScreen extends StatefulWidget {
-  const PayslipListScreen({Key? key}) : super(key: key);
+  const PayslipListScreen({super.key});
 
   @override
   State<PayslipListScreen> createState() => _PayslipListScreenState();
@@ -40,7 +40,7 @@ class _PayslipListScreenState extends State<PayslipListScreen> {
           if (state is PayslipLoading) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is PayslipError) {
-            return Center(child: Text(state.message, style: TextStyle(color: AppColors.error)));
+            return Center(child: Text(state.message, style: const TextStyle(color: AppColors.error)));
           } else if (state is PayslipLoaded) {
             if (state.payslips.isEmpty) {
               return const Center(child: Text('Belum ada slip gaji'));

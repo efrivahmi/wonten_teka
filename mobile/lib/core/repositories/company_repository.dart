@@ -7,12 +7,13 @@ class CompanyRepository {
 
   CompanyRepository({required ApiClient api}) : _api = api;
 
-  Future<PaginatedResponse<CalendarEventModel>> getCalendar({int page = 1}) async {
-    final response = await _api.get('/calendar', queryParameters: {'page': page});
-    return PaginatedResponse.fromJson(
-      response.data as Map<String, dynamic>,
-      CalendarEventModel.fromJson,
-    );
+  Future<Map<String, dynamic>> getCalendar({int? month, int? year}) async {
+    final query = <String, dynamic>{};
+    if (month != null) query['month'] = month;
+    if (year != null) query['year'] = year;
+    
+    final response = await _api.get('/calendar', queryParameters: query);
+    return response.data as Map<String, dynamic>;
   }
 
   Future<PaginatedResponse<AnnouncementModel>> getAnnouncements({int page = 1}) async {

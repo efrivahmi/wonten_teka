@@ -5,7 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/info_card.dart';
 
 class HabitDetailScreen extends StatelessWidget {
-  const HabitDetailScreen({Key? key}) : super(key: key);
+  const HabitDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -70,11 +70,11 @@ class HabitDetailScreen extends StatelessWidget {
 
         // Details
         InfoCard(child: Column(children: [
-          _DetailRow(label: 'Frekuensi', value: 'Setiap Hari'),
-          Divider(height: 20.h, color: AppColors.outlineVariant.withOpacity(0.3)),
-          _DetailRow(label: 'Pengingat', value: '06:00'),
-          Divider(height: 20.h, color: AppColors.outlineVariant.withOpacity(0.3)),
-          _DetailRow(label: 'Dibuat', value: '25 Jun 2025'),
+          const _DetailRow(label: 'Frekuensi', value: 'Setiap Hari'),
+          Divider(height: 20.h, color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+          const _DetailRow(label: 'Pengingat', value: '06:00'),
+          Divider(height: 20.h, color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+          const _DetailRow(label: 'Dibuat', value: '25 Jun 2025'),
         ])),
       ])),
     );

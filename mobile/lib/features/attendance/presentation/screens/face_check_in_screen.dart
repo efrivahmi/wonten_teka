@@ -14,7 +14,7 @@ import '../../bloc/attendance_cubit.dart';
 import '../widgets/camera_preview_widget.dart';
 
 class FaceCheckInScreen extends StatefulWidget {
-  const FaceCheckInScreen({Key? key}) : super(key: key);
+  const FaceCheckInScreen({super.key});
 
   @override
   State<FaceCheckInScreen> createState() => _FaceCheckInScreenState();
@@ -22,7 +22,7 @@ class FaceCheckInScreen extends StatefulWidget {
 
 class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
   final GlobalKey<CameraPreviewWidgetState> _cameraKey = GlobalKey();
-  
+
   String _locationStatus = "Memeriksa Lokasi...";
   bool _isLocationValid = false;
   Position? _currentPosition;
@@ -44,7 +44,8 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      if (mounted) setState(() => _locationStatus = "Layanan lokasi dinonaktifkan");
+      if (mounted)
+        setState(() => _locationStatus = "Layanan lokasi dinonaktifkan");
       return;
     }
 
@@ -56,9 +57,10 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
         return;
       }
     }
-    
+
     if (permission == LocationPermission.deniedForever) {
-      if (mounted) setState(() => _locationStatus = "Izin lokasi ditolak permanen");
+      if (mounted)
+        setState(() => _locationStatus = "Izin lokasi ditolak permanen");
       return;
     }
 
@@ -87,7 +89,7 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
 
   Future<void> _handleCheckIn() async {
     if (_currentPosition == null || !_isFaceProper || _isCapturing) return;
-    
+
     setState(() => _isCapturing = true);
 
     // Capture the photo using the preview widget
@@ -97,18 +99,21 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
   void _onPhotoCaptured(XFile? file) {
     if (file != null) {
       setState(() => _capturedImage = File(file.path));
-      
+
       // Submit the attendance
       context.read<AttendanceCubit>().checkIn(
-        latitude: _currentPosition!.latitude,
-        longitude: _currentPosition!.longitude,
-        deviceId: 'current-device-id', // Would come from DeviceInfo in real app
-        photo: _capturedImage,
-      );
+            latitude: _currentPosition!.latitude,
+            longitude: _currentPosition!.longitude,
+            deviceId:
+                'current-device-id', // Would come from DeviceInfo in real app
+            photo: _capturedImage,
+          );
     } else {
       setState(() => _isCapturing = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal mengambil foto wajah.'), backgroundColor: AppColors.error),
+        const SnackBar(
+            content: Text('Gagal mengambil foto wajah.'),
+            backgroundColor: AppColors.error),
       );
     }
   }
@@ -132,33 +137,37 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
           } else if (state is AttendanceError) {
             setState(() => _isCapturing = false);
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: AppColors.error),
+              SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: AppColors.error),
             );
           }
         },
         builder: (context, state) {
           final isLoading = state is AttendanceLoading || _isCapturing;
-          
+
           return SafeArea(
             child: Column(
               children: [
                 // Header
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
                   child: Column(
                     children: [
                       Text(
                         timeString,
-                        style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                          color: AppColors.primary,
-                        ),
+                        style:
+                            Theme.of(context).textTheme.displayLarge?.copyWith(
+                                  color: AppColors.primary,
+                                ),
                       ),
                       SizedBox(height: 8.h),
                       Text(
                         dateString,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                        ),
+                              color: AppColors.onSurfaceVariant,
+                            ),
                       ),
                     ],
                   ),
@@ -175,12 +184,17 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                       shape: BoxShape.circle,
                       color: AppColors.surfaceContainerHigh,
                       border: Border.all(
-                        color: _isFaceProper ? AppColors.primaryContainer : AppColors.secondary,
+                        color: _isFaceProper
+                            ? AppColors.primaryContainer
+                            : AppColors.secondary,
                         width: 4.w,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: (_isFaceProper ? AppColors.primaryContainer : AppColors.secondary).withOpacity(0.2),
+                          color: (_isFaceProper
+                                  ? AppColors.primaryContainer
+                                  : AppColors.secondary)
+                              .withValues(alpha: 0.2),
                           blurRadius: 24,
                           spreadRadius: 4,
                         ),
@@ -195,7 +209,10 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                               onPhotoCaptured: _onPhotoCaptured,
                             ),
                     ),
-                  ).animate(target: _isFaceProper ? 1 : 0).scale(duration: 300.ms, curve: Curves.easeOutBack, end: const Offset(1.05, 1.05)),
+                  ).animate(target: _isFaceProper ? 1 : 0).scale(
+                      duration: 300.ms,
+                      curve: Curves.easeOutBack,
+                      end: const Offset(1.05, 1.05)),
                 ),
 
                 SizedBox(height: 16.h),
@@ -203,22 +220,27 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                 Text(
                   _isFaceProper
                       ? "Wajah terdeteksi"
-                      : _isFaceDetected 
-                          ? "Posisikan wajah lebih jelas" 
+                      : _isFaceDetected
+                          ? "Posisikan wajah lebih jelas"
                           : "Arahkan wajah ke kamera",
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: _isFaceProper ? AppColors.primary : AppColors.secondary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                        color: _isFaceProper
+                            ? AppColors.primary
+                            : AppColors.secondary,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ).animate(target: _isFaceProper ? 1 : 0).fade().scale(),
 
                 SizedBox(height: 24.h),
 
                 // GPS Indicator
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                   decoration: BoxDecoration(
-                    color: _isLocationValid ? const Color(0xFF10B981).withOpacity(0.1) : AppColors.surfaceContainer,
+                    color: _isLocationValid
+                        ? const Color(0xFF10B981).withValues(alpha: 0.1)
+                        : AppColors.surfaceContainer,
                     borderRadius: BorderRadius.circular(24.r),
                   ),
                   child: Row(
@@ -227,14 +249,18 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                       Icon(
                         Icons.location_on,
                         size: 16.w,
-                        color: _isLocationValid ? const Color(0xFF10B981) : AppColors.secondary,
+                        color: _isLocationValid
+                            ? const Color(0xFF10B981)
+                            : AppColors.secondary,
                       ),
                       SizedBox(width: 8.w),
                       Text(
                         _locationStatus,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: _isLocationValid ? const Color(0xFF10B981) : AppColors.secondary,
-                        ),
+                              color: _isLocationValid
+                                  ? const Color(0xFF10B981)
+                                  : AppColors.secondary,
+                            ),
                       ),
                     ],
                   ),
@@ -249,8 +275,11 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                     width: double.infinity,
                     height: 56.h,
                     child: ElevatedButton(
-                      onPressed: (_isFaceProper && _isLocationValid && !isLoading && _capturedImage == null) 
-                          ? _handleCheckIn 
+                      onPressed: (_isFaceProper &&
+                              _isLocationValid &&
+                              !isLoading &&
+                              _capturedImage == null)
+                          ? _handleCheckIn
                           : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryContainer,

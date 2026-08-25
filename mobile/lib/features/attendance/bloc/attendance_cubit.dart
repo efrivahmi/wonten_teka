@@ -3,7 +3,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/api/api_exceptions.dart';
 import '../../../core/models/attendance_log_model.dart';
-import '../../../core/models/paginated_response.dart';
 import '../../../core/repositories/attendance_repository.dart';
 
 // ── States ─────────────────────────────────────────────────────────────────
@@ -15,13 +14,15 @@ abstract class AttendanceState extends Equatable {
 }
 
 class AttendanceInitial extends AttendanceState {}
+
 class AttendanceLoading extends AttendanceState {}
 
 class AttendanceLoaded extends AttendanceState {
   final List<AttendanceLogModel> logs;
   final int currentPage;
   final bool hasNextPage;
-  const AttendanceLoaded(this.logs, {this.currentPage = 1, this.hasNextPage = false});
+  const AttendanceLoaded(this.logs,
+      {this.currentPage = 1, this.hasNextPage = false});
   @override
   List<Object?> get props => [logs, currentPage];
 }
@@ -60,7 +61,8 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     emit(AttendanceLoading());
     try {
       final result = await _repo.getHistory(page: page);
-      emit(AttendanceLoaded(result.data, currentPage: result.currentPage, hasNextPage: result.hasNextPage));
+      emit(AttendanceLoaded(result.data,
+          currentPage: result.currentPage, hasNextPage: result.hasNextPage));
     } on ApiException catch (e) {
       emit(AttendanceError(e.message));
     } catch (e) {
@@ -100,7 +102,8 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   }) async {
     emit(AttendanceLoading());
     try {
-      final log = await _repo.checkOut(latitude: latitude, longitude: longitude);
+      final log =
+          await _repo.checkOut(latitude: latitude, longitude: longitude);
       emit(CheckOutSuccess(log));
     } on ApiException catch (e) {
       emit(AttendanceError(e.message));

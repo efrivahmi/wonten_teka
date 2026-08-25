@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({Key? key}) : super(key: key);
+  const OnboardingScreen({super.key});
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -17,17 +17,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<Map<String, dynamic>> _onboardingData = [
     {
       'title': 'Manajemen HR Tanpa Ribet',
-      'description': 'Ajukan cuti, klaim, dan pantau slip gaji dalam satu genggaman.',
+      'description':
+          'Ajukan cuti, klaim, dan pantau slip gaji dalam satu genggaman.',
       'icon': Icons.business_center_outlined,
     },
     {
       'title': 'Absensi Wajah Aman',
-      'description': 'Check-in cepat dan akurat dengan teknologi pemindaian wajah terbaru.',
+      'description':
+          'Check-in cepat dan akurat dengan teknologi pemindaian wajah terbaru.',
       'icon': Icons.face_retouching_natural,
     },
     {
       'title': 'Data Pribadi Terlindungi',
-      'description': 'Perangkat Anda terikat langsung dengan akun Anda demi keamanan ekstra.',
+      'description':
+          'Perangkat Anda terikat langsung dengan akun Anda demi keamanan ekstra.',
       'icon': Icons.security,
     },
   ];
@@ -50,14 +53,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    AppColors.primaryFixed.withOpacity(0.5),
+                    AppColors.primaryFixed.withValues(alpha: 0.5),
                     Colors.transparent,
                   ],
                 ),
               ),
             ),
           ),
-          
+
           SafeArea(
             child: Column(
               children: [
@@ -83,7 +86,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 color: AppColors.surfaceContainerLowest,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.onSurface.withOpacity(0.05),
+                                    color: AppColors.onSurface
+                                        .withValues(alpha: 0.05),
                                     blurRadius: 24,
                                     spreadRadius: 4,
                                   ),
@@ -98,19 +102,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             SizedBox(height: 48.h),
                             Text(
                               _onboardingData[index]['title'],
-                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                color: AppColors.onBackground,
-                                letterSpacing: -0.5,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineMedium
+                                  ?.copyWith(
+                                    color: AppColors.onBackground,
+                                    letterSpacing: -0.5,
+                                  ),
                               textAlign: TextAlign.center,
                             ),
                             SizedBox(height: 16.h),
                             Text(
                               _onboardingData[index]['description'],
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: AppColors.onSurfaceVariant,
-                                height: 1.5,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(
+                                    color: AppColors.onSurfaceVariant,
+                                    height: 1.5,
+                                  ),
                               textAlign: TextAlign.center,
                             ),
                           ],
@@ -119,7 +129,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     },
                   ),
                 ),
-                
+
                 // Indicators and Button
                 Container(
                   padding: EdgeInsets.all(24.w),
@@ -129,7 +139,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       end: Alignment.topCenter,
                       colors: [
                         AppColors.background,
-                        AppColors.background.withOpacity(0.0),
+                        AppColors.background.withValues(alpha: 0.0),
                       ],
                     ),
                   ),
@@ -145,8 +155,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             width: _currentPage == index ? 32.w : 8.w,
                             height: 8.h,
                             decoration: BoxDecoration(
-                              color: _currentPage == index 
-                                  ? AppColors.primary 
+                              color: _currentPage == index
+                                  ? AppColors.primary
                                   : AppColors.outlineVariant,
                               borderRadius: BorderRadius.circular(8.r),
                             ),
@@ -175,19 +185,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               borderRadius: BorderRadius.circular(12.r),
                             ),
                             elevation: 4,
-                            shadowColor: AppColors.primary.withOpacity(0.5),
+                            shadowColor:
+                                AppColors.primary.withValues(alpha: 0.5),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                _currentPage == _onboardingData.length - 1 
-                                    ? 'Mulai Sekarang' 
+                                _currentPage == _onboardingData.length - 1
+                                    ? 'Mulai Sekarang'
                                     : 'Lanjut',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: AppColors.onPrimary,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      color: AppColors.onPrimary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                               ),
                               SizedBox(width: 8.w),
                               Icon(Icons.arrow_forward, size: 20.w),
