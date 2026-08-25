@@ -53,6 +53,33 @@ class SecureStorage {
     return _storage.read(key: key);
   }
 
+  // ── Specific Keys ────────────────────────────────────────────────────────
+
+  Future<void> setHasSeenTour(bool value) async {
+    await write('has_seen_tour', value.toString());
+  }
+
+  Future<bool> hasSeenTour() async {
+    final value = await read('has_seen_tour');
+    return value == 'true';
+  }
+
+  Future<void> saveDeviceFingerprint(String fingerprint) async {
+    await write('device_fingerprint', fingerprint);
+  }
+
+  Future<String?> getDeviceFingerprint() async {
+    return read('device_fingerprint');
+  }
+
+  Future<void> saveFaceEmbedding(String embeddingJson) async {
+    await write('face_embedding', embeddingJson);
+  }
+
+  Future<String?> getFaceEmbedding() async {
+    return read('face_embedding');
+  }
+
   // ── Clear All ──────────────────────────────────────────────────────────
 
   Future<void> clearAll() async {

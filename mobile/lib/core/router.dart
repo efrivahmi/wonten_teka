@@ -1,95 +1,97 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 // Models
 import 'models/company_models.dart';
 
 // Pre-auth
-import '../features/onboarding/presentation/screens/splash_screen.dart';
-import '../features/onboarding/presentation/screens/onboarding_screen.dart';
-import '../features/auth/presentation/screens/login_screen.dart';
-import '../features/auth/presentation/screens/otp_screen.dart';
-import '../features/auth/presentation/screens/device_binding_screen.dart';
-import '../features/attendance/presentation/screens/face_enrollment_screen.dart';
-import '../features/onboarding/presentation/screens/app_tour_guide_screen.dart';
+import '../features/onboarding/presentation/screens/employee/splash_screen.dart';
+import '../features/onboarding/presentation/screens/employee/onboarding_screen.dart';
+import '../features/auth/presentation/screens/employee/login_screen.dart';
+import '../features/auth/presentation/screens/employee/otp_screen.dart';
+import '../features/auth/presentation/screens/employee/device_binding_screen.dart';
+import '../features/auth/presentation/screens/employee/device_pending_screen.dart';
+import '../features/attendance/presentation/screens/employee/face_enrollment_screen.dart';
+import '../features/onboarding/presentation/screens/employee/app_tour_guide_screen.dart';
 
 // Main Navigation Shell
 import 'widgets/bottom_nav_shell.dart';
 
 // Dashboard & Attendance
-import '../features/dashboard/presentation/screens/home_dashboard_screen.dart';
-import '../features/attendance/presentation/screens/attendance_history_screen.dart';
-import '../features/attendance/presentation/screens/face_check_in_screen.dart';
-import '../features/attendance/presentation/screens/check_in_success_screen.dart';
-import '../features/attendance/presentation/screens/attendance_detail_screen.dart';
+import '../features/dashboard/presentation/screens/employee/home_dashboard_screen.dart';
+import '../features/attendance/presentation/screens/employee/attendance_history_screen.dart';
+import '../features/attendance/presentation/screens/employee/face_check_in_screen.dart';
+import '../features/attendance/presentation/screens/employee/check_in_success_screen.dart';
+import '../features/attendance/presentation/screens/employee/attendance_detail_screen.dart';
 import '../features/attendance/presentation/screens/attendance_report_screen.dart';
-import '../features/attendance/presentation/screens/attendance_dispute_screen.dart';
+import '../features/attendance/presentation/screens/employee/attendance_dispute_screen.dart';
 
 // Schedule & Habits
-import '../features/schedule/presentation/screens/shift_schedule_screen.dart';
-import '../features/schedule_habit/presentation/screens/habit_tracker_screen.dart';
-import '../features/schedule_habit/presentation/screens/habit_form_screen.dart';
-import '../features/schedule_habit/presentation/screens/habit_detail_screen.dart';
+import '../features/schedule/presentation/screens/employee/shift_schedule_screen.dart';
+import '../features/schedule_habit/presentation/screens/employee/habit_tracker_screen.dart';
+import '../features/schedule_habit/presentation/screens/employee/habit_form_screen.dart';
+import '../features/schedule_habit/presentation/screens/employee/habit_detail_screen.dart';
 
 // Leave, Approval, & Claims
-import '../features/leave/presentation/screens/leave_request_form_screen.dart';
-import '../features/leave/presentation/screens/leave_detail_screen.dart';
-import '../features/approval/presentation/screens/approval_inbox_screen.dart';
-import '../features/approval/presentation/screens/approval_detail_screen.dart';
-import '../features/claims/presentation/screens/claim_list_screen.dart';
-import '../features/claims/presentation/screens/claim_submission_screen.dart';
-import '../features/claims/presentation/screens/claim_detail_screen.dart';
+import '../features/leave/presentation/screens/employee/leave_request_form_screen.dart';
+import '../features/leave/presentation/screens/employee/leave_detail_screen.dart';
+import '../features/approval/presentation/screens/manager/approval_inbox_screen.dart';
+import '../features/approval/presentation/screens/manager/approval_detail_screen.dart';
+import '../features/claims/presentation/screens/employee/claim_list_screen.dart';
+import '../features/claims/presentation/screens/employee/claim_submission_screen.dart';
+import '../features/claims/presentation/screens/employee/claim_detail_screen.dart';
 
 // Payroll, Calendar, Announcements
-import '../features/payroll/presentation/screens/payslip_list_screen.dart';
-import '../features/payroll/presentation/screens/payslip_detail_screen.dart';
-import '../features/calendar/presentation/screens/company_calendar_screen.dart';
-import '../features/calendar/presentation/screens/event_detail_screen.dart';
-import '../features/calendar/presentation/screens/announcements_screen.dart';
-import '../features/calendar/presentation/screens/announcement_detail_screen.dart';
+import '../features/payroll/presentation/screens/employee/payslip_list_screen.dart';
+import '../features/payroll/presentation/screens/employee/payslip_detail_screen.dart';
+import '../features/calendar/presentation/screens/employee/company_calendar_screen.dart';
+import '../features/calendar/presentation/screens/employee/event_detail_screen.dart';
+import '../features/calendar/presentation/screens/employee/announcements_screen.dart';
+import '../features/calendar/presentation/screens/employee/announcement_detail_screen.dart';
 
 // Profile, Settings, Notifications, Directory, Face Update
-import '../features/profile/presentation/screens/user_profile_screen.dart';
-import '../features/profile/presentation/screens/edit_profile_screen.dart';
-import '../features/profile/presentation/screens/settings_screen.dart';
-import '../features/profile/presentation/screens/help_support_screen.dart';
-import '../features/notifications/presentation/screens/notifications_screen.dart';
-import '../features/profile/presentation/screens/company_directory_screen.dart';
-import '../features/profile/presentation/screens/face_update_screen.dart';
+import '../features/profile/presentation/screens/employee/user_profile_screen.dart';
+import '../features/profile/presentation/screens/employee/edit_profile_screen.dart';
+import '../features/profile/presentation/screens/employee/settings_screen.dart';
+import '../features/profile/presentation/screens/employee/help_support_screen.dart';
+import '../features/notifications/presentation/screens/employee/notifications_screen.dart';
+import '../features/profile/presentation/screens/employee/company_directory_screen.dart';
+import '../features/profile/presentation/screens/employee/face_update_screen.dart';
 
 // Overtime
-import '../features/overtime/presentation/screens/overtime_list_screen.dart';
-import '../features/overtime/presentation/screens/overtime_form_screen.dart';
-import '../features/overtime/presentation/screens/overtime_detail_screen.dart';
+import '../features/overtime/presentation/screens/employee/overtime_list_screen.dart';
+import '../features/overtime/presentation/screens/employee/overtime_form_screen.dart';
+import '../features/overtime/presentation/screens/employee/overtime_detail_screen.dart';
 
 // Admin & Manager
-import '../features/admin/presentation/screens/admin_dashboard_screen.dart';
-import '../features/admin/presentation/screens/manager_dashboard_screen.dart';
-import '../features/admin/presentation/screens/hr_employee_dashboard_screen.dart';
-import '../features/admin/presentation/screens/employee_management_screen.dart';
-import '../features/admin/presentation/screens/employee_detail_admin_screen.dart';
-import '../features/admin/presentation/screens/employee_onboarding_admin_screen.dart';
-import '../features/admin/presentation/screens/employee_edit_admin_screen.dart';
-import '../features/admin/presentation/screens/attendance_report_admin_screen.dart';
-import '../features/admin/presentation/screens/attendance_flag_review_screen.dart';
-import '../features/admin/presentation/screens/leave_request_admin_screen.dart';
-import '../features/admin/presentation/screens/claim_detail_admin_screen.dart';
-import '../features/admin/presentation/screens/team_approvals_screen.dart';
-import '../features/admin/presentation/screens/team_performance_screen.dart';
-import '../features/admin/presentation/screens/payroll_configuration_screen.dart';
-import '../features/admin/presentation/screens/payroll_run_list_screen.dart';
-import '../features/admin/presentation/screens/payroll_run_detail_screen.dart';
-import '../features/admin/presentation/screens/shift_templates_screen.dart';
-import '../features/admin/presentation/screens/shift_template_form_screen.dart';
-import '../features/admin/presentation/screens/shift_assignment_grid_screen.dart';
-import '../features/admin/presentation/screens/create_announcement_screen.dart';
-import '../features/admin/presentation/screens/organization_settings_screen.dart';
-import '../features/admin/presentation/screens/department_analytics_screen.dart';
-import '../features/admin/presentation/screens/export_center_screen.dart';
-import '../features/admin/presentation/screens/audit_logs_screen.dart';
-import '../features/admin/presentation/screens/admin_settings_screen.dart';
-import '../features/admin/presentation/screens/company_events_manager_screen.dart';
-import '../features/admin/presentation/screens/event_edit_admin_screen.dart';
+import '../features/dashboard/presentation/screens/admin/admin_dashboard_screen.dart';
+import '../features/dashboard/presentation/screens/manager/manager_dashboard_screen.dart';
+import '../features/dashboard/presentation/screens/hr/hr_employee_dashboard_screen.dart';
+import '../features/company/presentation/screens/admin/employee_management_screen.dart';
+import '../features/company/presentation/screens/admin/employee_detail_admin_screen.dart';
+import '../features/company/presentation/screens/admin/employee_onboarding_admin_screen.dart';
+import '../features/company/presentation/screens/admin/employee_edit_admin_screen.dart';
+import '../features/attendance/presentation/screens/admin/attendance_report_admin_screen.dart';
+import '../features/attendance/presentation/screens/admin/attendance_flag_review_screen.dart';
+import '../features/leave/presentation/screens/admin/leave_request_admin_screen.dart';
+import '../features/claims/presentation/screens/admin/claim_detail_admin_screen.dart';
+import '../features/approval/presentation/screens/manager/team_approvals_screen.dart';
+import '../features/company/presentation/screens/manager/team_performance_screen.dart';
+import '../features/payroll/presentation/screens/admin/payroll_configuration_screen.dart';
+import '../features/payroll/presentation/screens/admin/payroll_run_list_screen.dart';
+import '../features/payroll/presentation/screens/admin/payroll_run_detail_screen.dart';
+import '../features/schedule/presentation/screens/admin/shift_templates_screen.dart';
+import '../features/schedule/presentation/screens/admin/shift_template_form_screen.dart';
+import '../features/schedule/presentation/screens/admin/shift_assignment_grid_screen.dart';
+import '../features/calendar/presentation/screens/admin/create_announcement_screen.dart';
+import '../features/company/presentation/screens/admin/organization_settings_screen.dart';
+import '../features/company/presentation/screens/admin/department_analytics_screen.dart';
+import '../features/company/presentation/screens/admin/export_center_screen.dart';
+import '../features/company/presentation/screens/admin/audit_logs_screen.dart';
+import '../features/company/presentation/screens/admin/admin_settings_screen.dart';
+import '../features/calendar/presentation/screens/admin/company_events_manager_screen.dart';
+import '../features/calendar/presentation/screens/admin/event_edit_admin_screen.dart';
+import '../features/auth/presentation/screens/admin/device_approval_admin_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -104,6 +106,9 @@ final appRouter = GoRouter(
     GoRoute(
         path: '/device-binding',
         builder: (_, __) => const DeviceBindingScreen()),
+    GoRoute(
+        path: '/device-pending',
+        builder: (_, __) => const DevicePendingScreen()),
     GoRoute(
         path: '/face-enrollment',
         builder: (_, __) => const FaceEnrollmentScreen()),
@@ -298,6 +303,9 @@ final appRouter = GoRouter(
           final event = state.extra as CalendarEventModel?;
           return EventEditAdminScreen(event: event);
         }),
+    GoRoute(
+        path: '/admin/devices',
+        builder: (_, __) => const DeviceApprovalAdminScreen()),
 
     // Main Shell
     StatefulShellRoute.indexedStack(
@@ -328,3 +336,4 @@ final appRouter = GoRouter(
     ),
   ],
 );
+

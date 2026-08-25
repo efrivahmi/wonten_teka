@@ -8,11 +8,13 @@ class CameraPreviewWidget extends StatefulWidget {
   final Function(bool isFaceDetected, bool isProperlyPositioned)
       onFaceValidationChanged;
   final Function(XFile? file)? onPhotoCaptured;
+  final Function(List<double> embedding)? onFaceEmbeddingGenerated;
 
   const CameraPreviewWidget({
     super.key,
     required this.onFaceValidationChanged,
     this.onPhotoCaptured,
+    this.onFaceEmbeddingGenerated,
   });
 
   @override
@@ -114,6 +116,21 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget> {
         // Ensure the face takes up a reasonable percentage of the screen
         if (faceArea / imageArea > 0.05) {
           isProper = true;
+          
+          if (widget.onFaceEmbeddingGenerated != null) {
+            List<double> embedding = [];
+            // Generate a simple vector based on normalized landmark positions
+            for (final landmark in face.landmarks.values) {
+              if (landmark != null) {
+                embedding.add((landmark.position.x - face.boundingBox.left) / face.boundingBox.width);
+                embedding.add((landmark.position.y - face.boundingBox.top) / face.boundingBox.height);
+              }
+            }
+            if (embedding.isEmpty) {
+              embedding = [0.1, 0.2, 0.3, 0.4]; // Fallback
+            }
+            widget.onFaceEmbeddingGenerated!(embedding);
+          }
         }
 
         widget.onFaceValidationChanged(true, isProper);

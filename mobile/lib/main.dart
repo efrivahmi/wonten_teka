@@ -16,6 +16,7 @@ import 'core/repositories/shift_repository.dart';
 import 'core/repositories/company_repository.dart';
 import 'core/repositories/task_repository.dart';
 import 'core/repositories/device_repository.dart';
+import 'core/repositories/device_admin_repository.dart';
 
 import 'features/auth/bloc/auth_bloc.dart';
 import 'features/attendance/bloc/attendance_cubit.dart';
@@ -69,6 +70,7 @@ class WontenTekaApp extends StatelessWidget {
         RepositoryProvider(create: (_) => CompanyRepository(api: apiClient)),
         RepositoryProvider(create: (_) => TaskRepository(api: apiClient)),
         RepositoryProvider(create: (_) => DeviceRepository(api: apiClient)),
+        RepositoryProvider(create: (_) => DeviceAdminRepository(api: apiClient)),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -91,10 +93,29 @@ class WontenTekaApp extends StatelessWidget {
               appRouter.go('/login');
             } else if (state is AuthAuthenticated) {
               try {
-                // 0. Force Device Binding Check
+                // 0. Force Device Binding Check via Backend
+                final deviceRepo = context.read<DeviceRepository>();
                 final storage = SecureStorage();
-                final isDeviceBound = await storage.read('is_device_bound');
-                if (isDeviceBound != 'true') {
+                final fingerprint = await storage.getDeviceFingerprint();
+                
+                if (fingerprint == null) {
+                   appRouter.go('/device-binding');
+                   return;
+                }
+                
+                try {
+                  final device = await deviceRepo.getStatus(fingerprint);
+                  final status = device.status;
+                  
+                  if (status == 'pending_approval') {
+                     appRouter.go('/device-pending');
+                     return;
+                  } else if (status != 'active') {
+                     appRouter.go('/device-binding');
+                     return;
+                  }
+                } catch (e) {
+                  // e.g. 404 if device not found
                   appRouter.go('/device-binding');
                   return;
                 }
