@@ -200,8 +200,9 @@ class _OtpScreenState extends State<OtpScreen> {
                       ),
                       itemCount: 12,
                       itemBuilder: (context, index) {
-                        if (index == 9)
+                        if (index == 9) {
                           return const SizedBox.shrink(); // Empty bottom-left
+                        }
 
                         if (index == 11) {
                           // Backspace
@@ -278,4 +279,3 @@ class _OtpScreenState extends State<OtpScreen> {
     );
   }
 }
-

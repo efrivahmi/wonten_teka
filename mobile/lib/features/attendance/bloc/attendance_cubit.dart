@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/api/api_exceptions.dart';
 import '../../../core/models/attendance_log_model.dart';
 import '../../../core/repositories/attendance_repository.dart';
+import '../../../core/storage/secure_storage.dart';
 
 // ── States ─────────────────────────────────────────────────────────────────
 
@@ -67,6 +69,19 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       emit(AttendanceError(e.message));
     } catch (e) {
       emit(const AttendanceError('Gagal memuat riwayat kehadiran.'));
+    }
+  }
+
+  Future<void> syncFaceData() async {
+    try {
+      final embeddings = await _repo.syncFace();
+      if (embeddings != null && embeddings.isNotEmpty) {
+        final storage = SecureStorage();
+        // Saving the primary (front) embedding for fast local check
+        await storage.saveFaceEmbedding(jsonEncode(embeddings[0]));
+      }
+    } catch (e) {
+      // Background sync, fail silently
     }
   }
 

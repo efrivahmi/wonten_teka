@@ -157,8 +157,9 @@ class _CompanyCalendarScreenState extends State<CompanyCalendarScreen> {
                                     final date = cellIndex - (firstDay - 1) + 1;
                                     final weekday = dayIdx + 1; // 1 to 7
 
-                                    if (date < 1 || date > days)
+                                    if (date < 1 || date > days) {
                                       return SizedBox(width: 36.w);
+                                    }
 
                                     final currentDate = DateTime(
                                         _currentMonth.year,
@@ -390,4 +391,3 @@ class _CompanyCalendarScreenState extends State<CompanyCalendarScreen> {
     );
   }
 }
-

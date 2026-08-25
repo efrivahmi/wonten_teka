@@ -22,10 +22,28 @@ class FaceEnrollmentScreen extends StatefulWidget {
 
 class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
   final GlobalKey<CameraPreviewWidgetState> _cameraKey = GlobalKey();
+  
+  int _currentStep = 0; // 0 = Depan, 1 = Kiri, 2 = Kanan
+  final List<String> _stepInstructions = [
+    "Arahkan wajah lurus ke depan",
+    "Tengok perlahan ke KIRI",
+    "Tengok perlahan ke KANAN"
+  ];
+  final List<String> _stepTitles = [
+    "Wajah Depan",
+    "Wajah Kiri",
+    "Wajah Kanan"
+  ];
+  
   bool _isScanning = true;
   double _scanProgress = 0.0;
   bool _isFaceProper = false;
+  bool _isTooDark = false;
+  double _currentAngleY = 0.0;
+  
+  final List<List<double>> _capturedEmbeddings = [];
   List<double> _latestEmbedding = [];
+  
   File? _capturedImage;
   bool _isSubmitting = false;
   String? _errorMessage;
@@ -36,10 +54,25 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
     _simulateScanning();
   }
 
-  void _handleFaceValidation(bool isDetected, bool isProper) {
-    if (_isFaceProper != isProper) {
+  void _handleFaceValidation(bool isDetected, bool isProper, double angleY, bool isTooDark) {
+    if (!mounted) return;
+    
+    bool isAngleCorrect = false;
+    if (isProper) {
+      if (_currentStep == 0 && angleY > -10 && angleY < 10) {
+        isAngleCorrect = true;
+      } else if (_currentStep == 1 && angleY < -15) { // Looking left
+        isAngleCorrect = true;
+      } else if (_currentStep == 2 && angleY > 15) { // Looking right
+        isAngleCorrect = true;
+      }
+    }
+
+    if (_isFaceProper != isAngleCorrect || _isTooDark != isTooDark || _currentAngleY != angleY) {
       setState(() {
-        _isFaceProper = isProper;
+        _isFaceProper = isAngleCorrect;
+        _isTooDark = isTooDark;
+        _currentAngleY = angleY;
       });
     }
   }
@@ -56,21 +89,44 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
   }
 
   void _simulateScanning() async {
-    while (_scanProgress < 1.0) {
+    while (_isScanning) {
       if (!mounted) return;
       await Future.delayed(const Duration(milliseconds: 100));
-      if (_isFaceProper) {
+      
+      if (_isFaceProper && !_isTooDark) {
         setState(() {
-          _scanProgress += 0.02;
+          _scanProgress += 0.05;
+        });
+        
+        if (_scanProgress >= 1.0) {
+          if (_latestEmbedding.isNotEmpty) {
+            _capturedEmbeddings.add(List.from(_latestEmbedding));
+          } else {
+            _capturedEmbeddings.add([0.1, 0.2, 0.3]); // Fallback
+          }
+          
+          if (_currentStep < 2) {
+            setState(() {
+              _currentStep++;
+              _scanProgress = 0.0;
+              _isFaceProper = false;
+            });
+            // Small pause between steps
+            await Future.delayed(const Duration(milliseconds: 800));
+          } else {
+            setState(() {
+              _isScanning = false;
+            });
+            await _cameraKey.currentState?.takePhoto();
+            break;
+          }
+        }
+      } else if (_scanProgress > 0) {
+        // Decrease progress if face is lost or position is wrong
+        setState(() {
+          _scanProgress = (_scanProgress - 0.1).clamp(0.0, 1.0);
         });
       }
-    }
-
-    if (mounted) {
-      setState(() {
-        _isScanning = false;
-      });
-      await _cameraKey.currentState?.takePhoto();
     }
   }
 
@@ -87,21 +143,23 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
       
       final attendanceRepo = context.read<AttendanceRepository>();
       await attendanceRepo.enrollFace(
-        faceEmbedding: _latestEmbedding.isNotEmpty ? _latestEmbedding : [0.0],
+        faceEmbeddings: _capturedEmbeddings.isNotEmpty ? _capturedEmbeddings : [[0.0]],
         deviceId: deviceId,
       );
 
-      // Save locally for fast check-in comparison
-      await storage.saveFaceEmbedding(jsonEncode(_latestEmbedding));
+      if (_capturedEmbeddings.isNotEmpty) {
+        await storage.saveFaceEmbedding(jsonEncode(_capturedEmbeddings[0]));
+      }
 
-      // Refresh user data to get updated faceEnrolled status
       if (mounted) {
         context.read<AuthBloc>().add(AuthCheckSession());
       }
     } catch (e) {
-      // Even if backend fails, navigate forward (offline-first approach)
       if (mounted) {
-        _navigateToDashboard();
+        setState(() {
+           _isSubmitting = false;
+           _errorMessage = 'Gagal menyimpan wajah ke server. Pastikan koneksi stabil.';
+        });
       }
     }
   }
@@ -123,6 +181,20 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String instructionText = _isScanning 
+        ? (_isTooDark 
+            ? "Cahaya terlalu gelap. Pindah ke tempat terang." 
+            : _stepInstructions[_currentStep]) 
+        : "Selesai!";
+        
+    String helperText = _isScanning
+        ? (_isFaceProper && !_isTooDark
+            ? "Tahan posisi ini..."
+            : "Sesuaikan wajah ke dalam bingkai oval")
+        : _isSubmitting
+            ? "Mengirim ke server..."
+            : "Wajah berhasil didaftarkan!";
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -139,8 +211,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
       ),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          // After AuthCheckSession completes, navigate based on role
-          if (state is AuthAuthenticated && !_isScanning) {
+          if (state is AuthAuthenticated && !_isScanning && !_isSubmitting && _errorMessage == null) {
             _navigateToDashboard();
           }
         },
@@ -149,17 +220,25 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
             children: [
               Padding(
                 padding: EdgeInsets.all(24.w),
-                child: Text(
-                  _isScanning
-                      ? 'Arahkan wajah ke kamera dan putar kepala Anda perlahan.'
-                      : _isSubmitting
-                          ? 'Menyimpan data wajah...'
-                          : 'Pendaftaran Berhasil!',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: AppColors.onSurface,
-                        fontWeight: FontWeight.bold,
-                      ),
-                  textAlign: TextAlign.center,
+                child: Column(
+                  children: [
+                    Text(
+                      _isScanning ? _stepTitles[_currentStep] : 'Selesai',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      instructionText,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            color: _isTooDark ? AppColors.error : AppColors.onSurface,
+                            fontWeight: FontWeight.bold,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               ),
 
@@ -187,37 +266,36 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Circular Progress Indicator
+                    // Oval Progress Indicator
                     SizedBox(
-                      width: 300.w,
-                      height: 300.w,
+                      width: 250.w,
+                      height: 330.h,
                       child: CircularProgressIndicator(
                         value: _scanProgress,
                         strokeWidth: 8.w,
                         backgroundColor: AppColors.surfaceContainerHigh,
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                            AppColors.primaryContainer),
+                        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryContainer),
                       ),
                     ),
 
-                    // Camera Feed
+                    // Camera Feed (Oval shape)
                     Container(
-                      width: 280.w,
-                      height: 280.w,
+                      width: 230.w,
+                      height: 310.h,
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.all(Radius.elliptical(230.w, 310.h)),
                         border: Border.all(
                           color: _isScanning
-                              ? (_isFaceProper
-                                  ? AppColors.primaryContainer
-                                  : AppColors.surfaceContainerHigh)
+                              ? (_isTooDark
+                                  ? AppColors.error
+                                  : (_isFaceProper ? AppColors.primaryContainer : AppColors.surfaceContainerHigh))
                               : AppColors.successEmerald,
                           width: 4.w,
                         ),
                         color: AppColors.surfaceContainerLow,
                         boxShadow: [
                           BoxShadow(
-                            color: (_isFaceProper
+                            color: (_isFaceProper && !_isTooDark
                                     ? AppColors.primaryContainer
                                     : Colors.transparent)
                                 .withValues(alpha: 0.3),
@@ -236,7 +314,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                                 onPhotoCaptured: _onPhotoCaptured,
                               ),
                       ),
-                    ).animate(target: _isFaceProper ? 1 : 0).scale(
+                    ).animate(target: (_isFaceProper && !_isTooDark) ? 1 : 0).scale(
                         duration: 300.ms,
                         curve: Curves.easeOutBack,
                         end: const Offset(1.02, 1.02)),
@@ -244,12 +322,11 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                     // Success Overlay
                     if (!_isScanning && !_isSubmitting)
                       Container(
-                        width: 280.w,
-                        height: 280.w,
+                        width: 230.w,
+                        height: 310.h,
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color:
-                              AppColors.successEmerald.withValues(alpha: 0.8),
+                          borderRadius: BorderRadius.all(Radius.elliptical(230.w, 310.h)),
+                          color: AppColors.successEmerald.withValues(alpha: 0.8),
                         ),
                         child: Icon(
                           Icons.check_circle,
@@ -264,10 +341,10 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                     // Loading Overlay
                     if (_isSubmitting)
                       Container(
-                        width: 280.w,
-                        height: 280.w,
+                        width: 230.w,
+                        height: 310.h,
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
+                          borderRadius: BorderRadius.all(Radius.elliptical(230.w, 310.h)),
                           color: AppColors.primary.withValues(alpha: 0.7),
                         ),
                         child: Column(
@@ -297,24 +374,38 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
               SizedBox(height: 24.h),
 
               Text(
-                _isScanning
-                    ? (_isFaceProper
-                        ? "Tahan posisi ini..."
-                        : "Arahkan wajah ke dalam bingkai")
-                    : _isSubmitting
-                        ? "Mengirim ke server..."
-                        : "Wajah berhasil didaftarkan!",
+                helperText,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: _isFaceProper
-                          ? AppColors.primary
-                          : AppColors.secondary,
+                      color: _isTooDark
+                          ? AppColors.error
+                          : (_isFaceProper ? AppColors.primary : AppColors.secondary),
                       fontWeight: FontWeight.bold,
                     ),
-              ).animate(target: _isFaceProper ? 1 : 0).fade().scale(),
+              ).animate(target: (_isFaceProper && !_isTooDark) ? 1 : 0).fade().scale(),
 
               const Spacer(),
 
-              // Action Button
+              // Indicators for 3 steps
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(3, (index) {
+                  bool isCompleted = index < _currentStep;
+                  bool isActive = index == _currentStep;
+                  return Container(
+                    margin: EdgeInsets.symmetric(horizontal: 4.w),
+                    width: isActive ? 24.w : 12.w,
+                    height: 12.w,
+                    decoration: BoxDecoration(
+                      color: isCompleted
+                          ? AppColors.successEmerald
+                          : (isActive ? AppColors.primary : AppColors.surfaceContainerHigh),
+                      borderRadius: BorderRadius.circular(6.r),
+                    ),
+                  );
+                }),
+              ),
+
+              // Action Button (Retry if failed, Dashboard if success)
               Padding(
                 padding: EdgeInsets.all(24.w),
                 child: SizedBox(
@@ -323,7 +414,17 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                   child: ElevatedButton(
                     onPressed: (_isScanning || _isSubmitting)
                         ? null
-                        : _navigateToDashboard,
+                        : (_errorMessage != null ? () {
+                            setState(() {
+                               _isScanning = true;
+                               _currentStep = 0;
+                               _scanProgress = 0.0;
+                               _capturedEmbeddings.clear();
+                               _capturedImage = null;
+                               _errorMessage = null;
+                            });
+                            _simulateScanning();
+                          } : _navigateToDashboard),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryContainer,
                       disabledBackgroundColor: AppColors.surfaceContainerHigh,
@@ -332,7 +433,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                       ),
                     ),
                     child: Text(
-                      'Masuk ke Dashboard',
+                      _errorMessage != null ? 'Coba Lagi' : 'Lanjut ke Dashboard',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: (_isScanning || _isSubmitting)
                                 ? AppColors.onSurfaceVariant
@@ -350,4 +451,5 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
     );
   }
 }
+
 

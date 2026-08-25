@@ -127,6 +127,9 @@ class WontenTekaApp extends StatelessWidget {
                   return;
                 }
 
+                // Fire-and-forget sync of face data for offline/fast recognition
+                context.read<AttendanceCubit>().syncFaceData();
+
                 // 2. Role-based Dashboard Routing
                 if (state.user.isAdmin) {
                   appRouter.go('/admin/dashboard');

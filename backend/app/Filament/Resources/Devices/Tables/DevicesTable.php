@@ -51,7 +51,20 @@ class DevicesTable
             ->filters([
                 //
             ])
-            ->recordActions([
+            ->actions([
+                \Filament\Actions\Action::make('approve')
+                    ->label('Approve')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->visible(fn ($record) => $record->status === 'pending_approval')
+                    ->action(function ($record) {
+                        $record->update([
+                            'status' => 'active',
+                            'approved_by' => auth()->id(),
+                            'approved_at' => now(),
+                        ]);
+                    })
+                    ->requiresConfirmation(),
                 EditAction::make(),
             ])
             ->toolbarActions([

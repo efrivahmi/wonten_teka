@@ -5,7 +5,7 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:flutter/foundation.dart';
 
 class CameraPreviewWidget extends StatefulWidget {
-  final Function(bool isFaceDetected, bool isProperlyPositioned)
+  final Function(bool isFaceDetected, bool isProperlyPositioned, double angleY, bool isTooDark)
       onFaceValidationChanged;
   final Function(XFile? file)? onPhotoCaptured;
   final Function(List<double> embedding)? onFaceEmbeddingGenerated;
@@ -106,6 +106,22 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget> {
 
       final faces = await _faceDetector.processImage(inputImage);
 
+      bool isTooDark = false;
+      if (image.planes.isNotEmpty) {
+        final bytes = image.planes[0].bytes;
+        int sum = 0;
+        int sampleCount = 0;
+        // Sample pixels to calculate average luma
+        for (int i = 0; i < bytes.length; i += 100) { 
+          sum += bytes[i];
+          sampleCount++;
+        }
+        if (sampleCount > 0) {
+          double avgLuma = sum / sampleCount;
+          isTooDark = avgLuma < 50; // Threshold for "too dark"
+        }
+      }
+
       if (faces.length == 1) {
         final face = faces.first;
         // Simple positioning check: face is reasonably large in the frame
@@ -113,6 +129,8 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget> {
         final imageArea = image.width * image.height;
 
         bool isProper = false;
+        double angleY = face.headEulerAngleY ?? 0.0;
+        
         // Ensure the face takes up a reasonable percentage of the screen
         if (faceArea / imageArea > 0.05) {
           isProper = true;
@@ -133,9 +151,9 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget> {
           }
         }
 
-        widget.onFaceValidationChanged(true, isProper);
+        widget.onFaceValidationChanged(true, isProper, angleY, isTooDark);
       } else {
-        widget.onFaceValidationChanged(faces.isNotEmpty, false);
+        widget.onFaceValidationChanged(faces.isNotEmpty, false, 0.0, isTooDark);
       }
     } catch (e) {
       debugPrint('Face detection error: $e');

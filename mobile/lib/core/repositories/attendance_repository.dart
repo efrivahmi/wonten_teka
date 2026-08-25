@@ -10,13 +10,27 @@ class AttendanceRepository {
   AttendanceRepository({required ApiClient api}) : _api = api;
 
   Future<void> enrollFace({
-    required List<double> faceEmbedding,
+    required List<List<double>> faceEmbeddings, // Now accepts 3 embeddings
     required String deviceId,
   }) async {
-    await _api.post('/attendance/enroll-face', data: {
-      'face_embedding': faceEmbedding,
+    await _api.post('/biometrics/enroll', data: {
+      'embeddings': faceEmbeddings,
       'device_id': deviceId,
     });
+  }
+
+  Future<List<List<double>>?> syncFace() async {
+    try {
+      final response = await _api.get('/biometrics/sync');
+      final data = response.data as Map<String, dynamic>;
+      if (data['embeddings'] != null) {
+        final List<dynamic> raw = data['embeddings'];
+        return raw.map((e) => (e as List).map((n) => (n as num).toDouble()).toList()).toList();
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<AttendanceLogModel> checkIn({

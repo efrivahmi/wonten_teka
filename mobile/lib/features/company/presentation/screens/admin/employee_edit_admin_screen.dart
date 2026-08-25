@@ -68,12 +68,14 @@ class _EmployeeEditAdminScreenState extends State<EmployeeEditAdminScreen> {
         TextEditingController(text: emp['employee_number'] ?? '');
 
     _selectedDepartment = emp['department'] ?? 'Engineering';
-    if (!_departments.contains(_selectedDepartment))
+    if (!_departments.contains(_selectedDepartment)) {
       _selectedDepartment = _departments.first;
+    }
 
     _selectedPosition = emp['position'] ?? 'Staff';
-    if (!_positions.contains(_selectedPosition))
+    if (!_positions.contains(_selectedPosition)) {
       _selectedPosition = _positions.first;
+    }
 
     _selectedRole = 'employee';
 
@@ -196,8 +198,9 @@ class _EmployeeEditAdminScreenState extends State<EmployeeEditAdminScreen> {
                 icon: Icons.lock,
                 obscureText: true,
                 validator: (v) {
-                  if (v != null && v.isNotEmpty && v.length < 6)
+                  if (v != null && v.isNotEmpty && v.length < 6) {
                     return 'Minimal 6 karakter';
+                  }
                   return null;
                 },
               ),
@@ -398,4 +401,3 @@ class _SectionLabel extends StatelessWidget {
     );
   }
 }
-

@@ -28,8 +28,9 @@ class _ClaimListScreenState extends State<ClaimListScreen> {
     final lower = category.toLowerCase();
     if (lower.contains('transport')) return Icons.directions_car;
     if (lower.contains('makan')) return Icons.restaurant;
-    if (lower.contains('medis') || lower.contains('kesehatan'))
+    if (lower.contains('medis') || lower.contains('kesehatan')) {
       return Icons.local_hospital;
+    }
     return Icons.receipt_long;
   }
 
@@ -137,4 +138,3 @@ class _ClaimListScreenState extends State<ClaimListScreen> {
     );
   }
 }
-

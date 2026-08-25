@@ -19,15 +19,15 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
 
   Future<void> _checkStatus() async {
     setState(() => _isChecking = true);
-    
+
     try {
       final storage = SecureStorage();
       final fingerprint = await storage.getDeviceFingerprint();
-      
+
       if (fingerprint != null) {
         final deviceRepo = context.read<DeviceRepository>();
         final device = await deviceRepo.getStatus(fingerprint);
-        
+
         if (device.status == 'active') {
           if (mounted) {
             // Trigger auth bloc to re-evaluate routing
@@ -36,13 +36,17 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
         } else if (device.status == 'pending_approval') {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Status perangkat masih menunggu persetujuan.')),
+              const SnackBar(
+                  content:
+                      Text('Status perangkat masih menunggu persetujuan.')),
             );
           }
         } else {
-           if (mounted) {
+          if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Perangkat ditolak atau tidak valid.'), backgroundColor: AppColors.error),
+              const SnackBar(
+                  content: Text('Perangkat ditolak atau tidak valid.'),
+                  backgroundColor: AppColors.error),
             );
           }
         }
@@ -50,7 +54,9 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal memeriksa status perangkat.'), backgroundColor: AppColors.error),
+          const SnackBar(
+              content: Text('Gagal memeriksa status perangkat.'),
+              backgroundColor: AppColors.error),
         );
       }
     } finally {
@@ -76,7 +82,7 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
                 child: Container(
                   width: 120.w,
                   height: 120.w,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: AppColors.secondaryContainer,
                     shape: BoxShape.circle,
                   ),
@@ -119,7 +125,8 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
                   ),
                   child: _isChecking
                       ? const CircularProgressIndicator()
-                      : const Text('Cek Status Perangkat', style: TextStyle(fontWeight: FontWeight.bold)),
+                      : const Text('Cek Status Perangkat',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
               SizedBox(height: 16.h),
@@ -141,4 +148,3 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
     );
   }
 }
-

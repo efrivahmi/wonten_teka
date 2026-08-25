@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -7,6 +7,7 @@ import 'dart:io';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/storage/secure_storage.dart';
 import '../../../../../core/repositories/device_repository.dart';
+import '../../../../../core/api/api_exceptions.dart';
 import '../../../../auth/bloc/auth_bloc.dart';
 
 class DeviceBindingScreen extends StatefulWidget {
@@ -45,7 +46,8 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
         setState(() {
           _deviceName = iosInfo.utsname.machine;
           _deviceOS = '${iosInfo.systemName} ${iosInfo.systemVersion}';
-          _deviceFingerprint = iosInfo.identifierForVendor ?? iosInfo.utsname.machine;
+          _deviceFingerprint =
+              iosInfo.identifierForVendor ?? iosInfo.utsname.machine;
           _isLoading = false;
         });
       }
@@ -53,7 +55,8 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
       setState(() {
         _deviceName = 'Perangkat Tidak Dikenal';
         _deviceOS = 'Gagal mendeteksi';
-        _deviceFingerprint = 'unknown_device_${DateTime.now().millisecondsSinceEpoch}';
+        _deviceFingerprint =
+            'unknown_device_${DateTime.now().millisecondsSinceEpoch}';
         _isLoading = false;
       });
     }
@@ -86,10 +89,15 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isBinding = false);
+        String errorMessage = 'Gagal mendaftarkan perangkat. Silakan coba lagi.';
+        if (e is ApiException) {
+           errorMessage = e.message;
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal mendaftarkan perangkat. Silakan coba lagi.'),
+            content: Text(errorMessage),
             backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -325,4 +333,3 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
     );
   }
 }
-
