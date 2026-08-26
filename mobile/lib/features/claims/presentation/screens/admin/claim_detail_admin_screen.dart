@@ -1,8 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/widgets/info_card.dart';
 
 class ClaimDetailAdminScreen extends StatelessWidget {
   const ClaimDetailAdminScreen({super.key});
@@ -10,106 +9,146 @@ class ClaimDetailAdminScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
-      appBar: AppBar(
-          backgroundColor: AppColors.surface,
-          elevation: 0,
-          leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-              onPressed: () => context.pop()),
-          title: Text('Detail Klaim (Admin)',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.primary, fontWeight: FontWeight.bold))),
-      body: SingleChildScrollView(
-          padding: EdgeInsets.all(16.w),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            InfoCard(
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: AppColors.surfaceContainerLowest,
+      body: Stack(
+        children: [
+          Container(
+            height: 240.h,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              gradient: LinearGradient(
+                colors: [AppColors.primary, AppColors.errorCrimson.withValues(alpha: 0.8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(32.r), bottomRight: Radius.circular(32.r)),
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  child: Row(
                     children: [
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Karyawan 1',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold)),
-                        Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 8.w, vertical: 4.h),
-                            decoration: BoxDecoration(
-                                color: AppColors.warningAmber
-                                    .withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8.r)),
-                            child: Text('Pending',
-                                style: TextStyle(
-                                    color: AppColors.warningAmber,
-                                    fontSize: 10.sp,
-                                    fontWeight: FontWeight.bold))),
-                      ]),
-                  SizedBox(height: 16.h),
-                  const _Row(label: 'Kategori', value: 'Medis'),
-                  SizedBox(height: 8.h),
-                  const _Row(label: 'Jumlah', value: 'Rp 500.000'),
-                  SizedBox(height: 8.h),
-                  const _Row(label: 'Tanggal', value: '15 Jul 2025'),
-                ])),
-            SizedBox(height: 16.h),
-            Text('Bukti Struk',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w600)),
-            SizedBox(height: 8.h),
-            Container(
-                height: 200.h,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(12.r)),
-                child: Center(
-                    child: Icon(Icons.image,
-                        size: 48.w, color: AppColors.onSurfaceVariant))),
-            SizedBox(height: 24.h),
-            Row(children: [
-              Expanded(
-                  child: OutlinedButton(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.errorCrimson,
-                          side:
-                              const BorderSide(color: AppColors.errorCrimson)),
-                      child: const Text('Tolak'))),
-              SizedBox(width: 12.w),
-              Expanded(
-                  child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.successEmerald,
-                          foregroundColor: Colors.white),
-                      child: const Text('Bayar/Setujui'))),
-            ]),
-          ])),
+                      IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => context.pop()),
+                      Expanded(child: Text('Persetujuan Klaim', style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
+                      SizedBox(width: 48.w),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                
+                Expanded(
+                  child: ListView.separated(
+                    padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
+                    itemCount: 5,
+                    separatorBuilder: (_, __) => SizedBox(height: 16.h),
+                    itemBuilder: (context, i) {
+                      final isPending = i % 2 == 0;
+                      return Container(
+                        padding: EdgeInsets.all(20.w),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20.r),
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 40.w,
+                                  height: 40.w,
+                                  decoration: const BoxDecoration(color: AppColors.primaryContainer, shape: BoxShape.circle),
+                                  child: Icon(Icons.person, color: AppColors.primary, size: 20.w),
+                                ),
+                                SizedBox(width: 12.w),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Karyawan ${i + 1}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.sp, color: AppColors.onSurface)),
+                                      Text('Staff Operasional', style: TextStyle(color: Colors.grey[600], fontSize: 12.sp)),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                                  decoration: BoxDecoration(
+                                    color: isPending ? AppColors.warningAmber.withValues(alpha: 0.1) : AppColors.successEmerald.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8.r),
+                                  ),
+                                  child: Text(
+                                    isPending ? 'Pending' : 'Disetujui',
+                                    style: TextStyle(color: isPending ? AppColors.warningAmber : AppColors.successEmerald, fontSize: 10.sp, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 16.h),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Klaim Transportasi', style: TextStyle(color: Colors.grey[800], fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                                Text('Rp 150.000', style: TextStyle(color: AppColors.errorCrimson, fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            SizedBox(height: 8.h),
+                            Text('Kunjungan ke klien PT ABCD', style: TextStyle(color: Colors.grey[600], fontSize: 13.sp)),
+                            SizedBox(height: 8.h),
+                            Row(
+                              children: [
+                                Icon(Icons.attachment, size: 16.w, color: AppColors.infoCerulean),
+                                SizedBox(width: 4.w),
+                                Text('Lihat Bukti Lampiran', style: TextStyle(color: AppColors.infoCerulean, fontSize: 12.sp, decoration: TextDecoration.underline)),
+                              ],
+                            ),
+                            if (isPending) ...[
+                              SizedBox(height: 16.h),
+                              Divider(color: Colors.grey[200]),
+                              SizedBox(height: 8.h),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton(
+                                      onPressed: () {},
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: AppColors.errorCrimson,
+                                        side: const BorderSide(color: AppColors.errorCrimson),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                                      ),
+                                      child: const Text('Tolak'),
+                                    ),
+                                  ),
+                                  SizedBox(width: 12.w),
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: () {},
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.successEmerald,
+                                        foregroundColor: Colors.white,
+                                        elevation: 0,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                                      ),
+                                      child: const Text('Setujui'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
-
-class _Row extends StatelessWidget {
-  final String label, value;
-  const _Row({required this.label, required this.value});
-  @override
-  Widget build(BuildContext context) =>
-      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text(label,
-            style:
-                TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
-        Text(value,
-            style: TextStyle(
-                color: AppColors.onSurface,
-                fontWeight: FontWeight.w600,
-                fontSize: 14.sp)),
-      ]);
-}
-

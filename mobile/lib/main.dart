@@ -20,6 +20,7 @@ import 'core/repositories/device_admin_repository.dart';
 
 import 'features/auth/bloc/auth_bloc.dart';
 import 'features/attendance/bloc/attendance_cubit.dart';
+import 'features/attendance/bloc/attendance_history_cubit.dart';
 import 'features/leave/bloc/leave_cubit.dart';
 import 'features/approval/bloc/approval_cubit.dart';
 import 'features/claims/bloc/claim_cubit.dart';
@@ -79,6 +80,7 @@ class WontenTekaApp extends StatelessWidget {
               ..add(AuthCheckSession()),
           ),
           BlocProvider(create: (context) => AttendanceCubit(repository: context.read<AttendanceRepository>())),
+          BlocProvider(create: (context) => AttendanceHistoryCubit(repository: context.read<AttendanceRepository>())),
           BlocProvider(create: (context) => LeaveCubit(repository: context.read<LeaveRepository>())),
           BlocProvider(create: (context) => ApprovalCubit(repository: context.read<ApprovalRepository>())),
           BlocProvider(create: (context) => ClaimCubit(repository: context.read<ClaimRepository>())),
@@ -130,14 +132,8 @@ class WontenTekaApp extends StatelessWidget {
                 // Fire-and-forget sync of face data for offline/fast recognition
                 context.read<AttendanceCubit>().syncFaceData();
 
-                // 2. Role-based Dashboard Routing
-                if (state.user.isAdmin) {
-                  appRouter.go('/admin/dashboard');
-                } else if (state.user.isManager) {
-                  appRouter.go('/manager/dashboard');
-                } else {
-                  appRouter.go('/app/home');
-                }
+                // 2. Unified Dashboard Routing (All Roles start at Usage/Employee Home)
+                appRouter.go('/app/home');
               } catch (e) {
                 // If anything fails during routing checks, go to device binding as safe default
                 appRouter.go('/device-binding');

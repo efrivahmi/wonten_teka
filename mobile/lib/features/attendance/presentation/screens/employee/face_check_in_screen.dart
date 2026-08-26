@@ -146,8 +146,8 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
   }
 
   void _handleFaceValidation(bool isDetected, bool isProper, double angleY, bool isTooDark) {
-    // For check-in, we just want them to face forward
-    bool isAngleCorrect = (isProper && angleY > -15 && angleY < 15);
+    // For check-in, loosen angle restriction so it's not too strict
+    bool isAngleCorrect = (isProper && angleY > -35 && angleY < 35);
     
     if (_isFaceDetected != isDetected || _isFaceProper != isAngleCorrect || _isTooDark != isTooDark) {
       setState(() {
@@ -219,271 +219,255 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
     final dateString = DateFormat('EEEE, d MMM y', 'id_ID').format(now);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        title: const Text('Check In'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.bug_report, color: AppColors.secondary),
-            onPressed: () {
-              setState(() => _showDebug = !_showDebug);
-            },
+      backgroundColor: AppColors.surfaceContainerLowest,
+      body: Stack(
+        children: [
+          // Background Header
+          Container(
+            height: 280.h,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(32.r),
+                bottomRight: Radius.circular(32.r),
+              ),
+            ),
           ),
-        ],
-      ),
-      body: BlocConsumer<AttendanceCubit, AttendanceState>(
-        listener: (context, state) {
-          if (state is CheckInSuccess) {
-            context.go('/app/attendance/success');
-          } else if (state is AttendanceError) {
-            setState(() => _isCapturing = false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: AppColors.error),
-            );
-          }
-        },
-        builder: (context, state) {
-          final isLoading = state is AttendanceLoading || _isCapturing;
-
-          return SafeArea(
-            child: Column(
-              children: [
-                // Header
-                Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
-                  child: Column(
-                    children: [
-                      Text(
-                        timeString,
-                        style:
-                            Theme.of(context).textTheme.displayLarge?.copyWith(
-                                  color: AppColors.primary,
-                                ),
-                      ),
-                      SizedBox(height: 8.h),
-                      Text(
-                        dateString,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: AppColors.onSurfaceVariant,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        SizedBox(height: 24.h),
-                        // Face Detection Area
-                        Center(
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Container(
-                                width: 280.w,
-                                height: 280.w,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.surfaceContainerHigh,
-                                  border: Border.all(
-                                    color: _isFaceProper && !_isTooDark
-                                        ? AppColors.primaryContainer
-                                        : (_isTooDark ? AppColors.error : AppColors.secondary),
-                                    width: 4.w,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: (_isFaceProper && !_isTooDark
-                                              ? AppColors.primaryContainer
-                                              : AppColors.secondary)
-                                          .withValues(alpha: 0.2),
-                                      blurRadius: 24,
-                                      spreadRadius: 4,
-                                    ),
-                                  ],
-                                ),
-                                child: ClipOval(
-                                  child: _capturedImage != null
-                                      ? Image.file(_capturedImage!, fit: BoxFit.cover)
-                                      : CameraPreviewWidget(
-                                          key: _cameraKey,
-                                          onFaceValidationChanged: _handleFaceValidation,
-                                          onFaceEmbeddingGenerated: _handleFaceEmbedding,
-                                          onPhotoCaptured: _onPhotoCaptured,
-                                        ),
-                                ),
-                              ).animate(target: (_isFaceProper && !_isTooDark) ? 1 : 0).scale(
-                                  duration: 300.ms,
-                                  curve: Curves.easeOutBack,
-                                  end: const Offset(1.05, 1.05)),
-                                  
-                              // Liveness Scanning Animation
-                              if (_isFaceProper && !_isTooDark && _capturedImage == null && !isLoading)
-                                Positioned.fill(
-                                  child: ClipOval(
-                                    child: Align(
-                                      alignment: Alignment.topCenter,
-                                      child: Container(
-                                        width: double.infinity,
-                                        height: 4.h,
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primary,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: AppColors.primary,
-                                              blurRadius: 10,
-                                              spreadRadius: 2,
-                                            )
-                                          ]
-                                        ),
-                                      ).animate(onPlay: (controller) => controller.repeat(reverse: true))
-                                       .moveY(begin: 0, end: 280.w, duration: 1500.ms, curve: Curves.easeInOut),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-
-                        SizedBox(height: 16.h),
-                        // Face Detection Status
-                        Text(
-                          _isTooDark
-                              ? "Cahaya terlalu gelap"
-                              : _isFaceProper
-                                  ? "Wajah terdeteksi (Lurus ke Depan)"
-                                  : _isFaceDetected
-                                      ? "Arahkan wajah lurus ke depan"
-                                      : "Wajah tidak terdeteksi",
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: _isTooDark
-                                    ? AppColors.error
-                                    : (_isFaceProper ? AppColors.primary : AppColors.secondary),
-                                fontWeight: FontWeight.bold,
+          
+          SafeArea(
+            child: BlocConsumer<AttendanceCubit, AttendanceState>(
+              listener: (context, state) {
+                if (state is CheckInSuccess) {
+                  if (mounted) {
+                    context.go('/app/attendance/success', extra: {'log': state.log, 'isCheckOut': false});
+                  }
+                } else if (state is AttendanceError) {
+                  setState(() => _isCapturing = false);
+                  
+                  showModalBottomSheet(
+                    context: context,
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24.r))),
+                    builder: (context) => Padding(
+                      padding: EdgeInsets.all(24.w),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(width: 48.w, height: 4.h, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2.r))),
+                          SizedBox(height: 24.h),
+                          Icon(Icons.error_outline, size: 64.w, color: AppColors.error),
+                          SizedBox(height: 16.h),
+                          Text('Check-in Gagal', style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+                          SizedBox(height: 8.h),
+                          Text(state.message, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600], fontSize: 14.sp)),
+                          SizedBox(height: 32.h),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52.h,
+                            child: ElevatedButton.icon(
+                              onPressed: () => Navigator.pop(context),
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Tutup & Coba Lagi'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryContainer,
+                                foregroundColor: AppColors.primary,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                                elevation: 0,
                               ),
-                        ).animate(target: (_isFaceProper && !_isTooDark) ? 1 : 0).fade().scale(),
-
-                        SizedBox(height: 24.h),
-
-                        // GPS Indicator & Address
-                        Container(
-                          margin: EdgeInsets.symmetric(horizontal: 24.w),
-                          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                          decoration: BoxDecoration(
-                            color: _isLocationValid
-                                ? const Color(0xFF10B981).withValues(alpha: 0.1)
-                                : AppColors.error.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(16.r),
-                            border: Border.all(
-                              color: _isLocationValid ? const Color(0xFF10B981) : AppColors.error,
-                              width: 1,
-                            )
+                            ),
                           ),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                        ],
+                      ),
+                    ),
+                  );
+                }
+              },
+              builder: (context, state) {
+                final isLoading = state is AttendanceLoading || _isCapturing;
+
+                return Column(
+                  children: [
+                    // Top Bar
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back, color: Colors.white),
+                            onPressed: () => context.pop(),
+                          ),
+                          Expanded(
+                            child: Text(
+                              'Absen Masuk',
+                              style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.bug_report, color: _showDebug ? Colors.white : Colors.white54),
+                            onPressed: () => setState(() => _showDebug = !_showDebug),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.symmetric(horizontal: 24.w),
+                        child: Column(
+                          children: [
+                            SizedBox(height: 16.h),
+                            // Date Time Info
+                            Text(timeString, style: TextStyle(color: Colors.white, fontSize: 48.sp, fontWeight: FontWeight.bold, letterSpacing: -1)),
+                            Text(dateString, style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 16.sp)),
+                            SizedBox(height: 32.h),
+                            
+                            // Floating Card for Camera
+                            Container(
+                              padding: EdgeInsets.all(24.w),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(32.r),
+                                boxShadow: [
+                                  BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 10))
+                                ],
+                              ),
+                              child: Column(
                                 children: [
-                                  Icon(
-                                    Icons.location_on,
-                                    size: 20.w,
-                                    color: _isLocationValid
-                                        ? const Color(0xFF10B981)
-                                        : AppColors.error,
-                                  ),
-                                  SizedBox(width: 8.w),
-                                  Expanded(
-                                    child: Text(
-                                      _locationStatus,
-                                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                            color: _isLocationValid
-                                                ? const Color(0xFF10B981)
-                                                : AppColors.error,
-                                            fontWeight: FontWeight.bold,
+                                  // Camera preview circle
+                                  Center(
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        Container(
+                                          width: 260.w,
+                                          height: 260.w,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.grey[100],
+                                            border: Border.all(
+                                              color: _isFaceProper && !_isTooDark ? AppColors.primary : (_isTooDark ? AppColors.error : Colors.grey[300]!),
+                                              width: 6.w,
+                                            ),
                                           ),
-                                      textAlign: TextAlign.center,
+                                          child: ClipOval(
+                                            child: _capturedImage != null
+                                                ? Image.file(_capturedImage!, fit: BoxFit.cover)
+                                                : CameraPreviewWidget(
+                                                    key: _cameraKey,
+                                                    onFaceValidationChanged: _handleFaceValidation,
+                                                    onFaceEmbeddingGenerated: _handleFaceEmbedding,
+                                                    onPhotoCaptured: _onPhotoCaptured,
+                                                  ),
+                                          ),
+                                        ).animate(target: (_isFaceProper && !_isTooDark) ? 1 : 0).scale(duration: 300.ms, curve: Curves.easeOutBack, end: const Offset(1.05, 1.05)),
+                                        
+                                        if (_isFaceProper && !_isTooDark && _capturedImage == null && !isLoading)
+                                          Positioned.fill(
+                                            child: ClipOval(
+                                              child: Align(
+                                                alignment: Alignment.topCenter,
+                                                child: Container(
+                                                  width: double.infinity,
+                                                  height: 4.h,
+                                                  decoration: const BoxDecoration(color: AppColors.primary, boxShadow: [BoxShadow(color: AppColors.primary, blurRadius: 10)]),
+                                                ).animate(onPlay: (c) => c.repeat(reverse: true)).moveY(begin: 0, end: 260.w, duration: 1500.ms, curve: Curves.easeInOut),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(height: 24.h),
+                                  
+                                  // Status Text
+                                  Text(
+                                    _isTooDark ? "Cahaya terlalu gelap" : _isFaceProper ? "Wajah terdeteksi sempurna" : _isFaceDetected ? "Arahkan wajah lurus ke depan" : "Wajah tidak terdeteksi",
+                                    style: TextStyle(
+                                      color: _isTooDark ? AppColors.error : (_isFaceProper ? AppColors.primary : Colors.grey[600]),
+                                      fontSize: 16.sp,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  
+                                  SizedBox(height: 24.h),
+                                  
+                                  // Location Indicator (Compact inside card)
+                                  Container(
+                                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                                    decoration: BoxDecoration(
+                                      color: _isLocationValid ? Colors.green.withValues(alpha: 0.1) : AppColors.error.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(16.r),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(_isLocationValid ? Icons.check_circle : Icons.location_off, color: _isLocationValid ? Colors.green : AppColors.error, size: 24.w),
+                                        SizedBox(width: 12.w),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(_locationStatus, style: TextStyle(color: _isLocationValid ? Colors.green[800] : AppColors.error, fontWeight: FontWeight.bold, fontSize: 13.sp)),
+                                              Text(_currentAddress, style: TextStyle(color: Colors.grey[700], fontSize: 11.sp), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  
+                                  SizedBox(height: 24.h),
+                                  
+                                  // Action Button
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 56.h,
+                                    child: ElevatedButton(
+                                      onPressed: (!isLoading && _isFaceProper && !_isTooDark && _isLocationValid) ? _handleCheckIn : null,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primary,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                                        elevation: 0,
+                                        disabledBackgroundColor: Colors.grey[300],
+                                      ),
+                                      child: isLoading
+                                          ? SizedBox(height: 24.w, width: 24.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                          : Text('Rekam Absen Masuk', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
                                     ),
                                   ),
                                 ],
                               ),
-                              if (!_isLocationValid) ...[
-                                SizedBox(height: 8.h),
-                                Text(
-                                  'Lokasi Anda saat ini:\n$_currentAddress',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: AppColors.onSurfaceVariant,
-                                      ),
-                                  textAlign: TextAlign.center,
+                            ),
+                            
+                            if (_showDebug)
+                              Container(
+                                margin: EdgeInsets.only(top: 24.h),
+                                padding: EdgeInsets.all(16.w),
+                                decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(16.r)),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('DEBUG INFO', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12.sp)),
+                                    Text('Lat: ${_currentPosition?.latitude}', style: TextStyle(color: Colors.greenAccent, fontSize: 10.sp)),
+                                    Text('Lng: ${_currentPosition?.longitude}', style: TextStyle(color: Colors.greenAccent, fontSize: 10.sp)),
+                                    Text('Mocked: ${_currentPosition?.isMocked}', style: TextStyle(color: _currentPosition?.isMocked == true ? Colors.redAccent : Colors.greenAccent, fontSize: 10.sp)),
+                                  ],
                                 ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        if (_showDebug) ...[
-                          SizedBox(height: 16.h),
-                          Container(
-                            padding: EdgeInsets.all(12.w),
-                            margin: EdgeInsets.symmetric(horizontal: 24.w),
-                            decoration: BoxDecoration(
-                              color: Colors.black87,
-                              borderRadius: BorderRadius.circular(8.r),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Text('DEBUG PANEL', style: TextStyle(color: Colors.yellow, fontWeight: FontWeight.bold, fontSize: 12.sp)),
-                                SizedBox(height: 4.h),
-                                Text('Mock Location: ${_currentPosition?.isMocked ?? false}', style: TextStyle(color: Colors.white, fontSize: 11.sp)),
-                                Text('Lat/Lng: ${_currentPosition?.latitude ?? "-"}, ${_currentPosition?.longitude ?? "-"}', style: TextStyle(color: Colors.white, fontSize: 11.sp)),
-                                Text('Face Detected: $_isFaceDetected | Proper: $_isFaceProper', style: TextStyle(color: Colors.white, fontSize: 11.sp)),
-                                Text('Too Dark: $_isTooDark', style: TextStyle(color: Colors.white, fontSize: 11.sp)),
-                              ],
-                            ),
-                          ),
-                        ],
-                        SizedBox(height: 24.h),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Action Button
-                Padding(
-                  padding: EdgeInsets.all(24.w),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 56.h,
-                    child: ElevatedButton(
-                      onPressed: (_isFaceProper &&
-                              !_isTooDark &&
-                              _isLocationValid &&
-                              !isLoading &&
-                              _capturedImage == null)
-                          ? _handleCheckIn
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryContainer,
-                        disabledBackgroundColor: AppColors.surfaceContainerHigh,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16.r),
+                              ),
+                              
+                            SizedBox(height: 32.h),
+                          ],
                         ),
                       ),
-                      child: isLoading
-                          ? const CircularProgressIndicator()
-                          : const Text('Check In Sekarang'),
                     ),
-                  ),
-                ),
-              ],
+                  ],
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }

@@ -44,9 +44,7 @@ class _HabitFormScreenState extends State<HabitFormScreen> {
           if (state is TaskActionSuccess) {
             context.pop();
           } else if (state is TaskError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: AppColors.error),
-            );
+            _showErrorSheet(context, state.message);
           }
         },
         builder: (context, state) {
@@ -134,5 +132,42 @@ class _HabitFormScreenState extends State<HabitFormScreen> {
     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.5))),
     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.5))),
     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: const BorderSide(color: AppColors.primaryContainer)));
+
+  void _showErrorSheet(BuildContext context, String message) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: EdgeInsets.all(24.w),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 40.w, height: 4.h, decoration: BoxDecoration(color: AppColors.outlineVariant, borderRadius: BorderRadius.circular(2.r))),
+            SizedBox(height: 24.h),
+            Icon(Icons.error_outline, color: AppColors.error, size: 56.w),
+            SizedBox(height: 16.h),
+            Text('Gagal Menyimpan Habit', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+            SizedBox(height: 8.h),
+            Text(message, textAlign: TextAlign.center, style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
+            SizedBox(height: 32.h),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: FilledButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: AppColors.onPrimary, padding: EdgeInsets.symmetric(vertical: 16.h), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r))),
+                child: const Text('Tutup'),
+              ),
+            ),
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 16.h),
+          ],
+        ),
+      ),
+    );
+  }
 }
 

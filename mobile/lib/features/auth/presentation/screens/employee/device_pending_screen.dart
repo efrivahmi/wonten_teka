@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -15,8 +16,27 @@ class DevicePendingScreen extends StatefulWidget {
 
 class _DevicePendingScreenState extends State<DevicePendingScreen> {
   bool _isChecking = false;
+  Timer? _timer;
 
-  Future<void> _checkStatus() async {
+  @override
+  void initState() {
+    super.initState();
+    // Auto-check initially and then every 5 seconds
+    _checkStatus(showSnackbar: false);
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!_isChecking) {
+        _checkStatus(showSnackbar: false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _checkStatus({bool showSnackbar = true}) async {
     setState(() => _isChecking = true);
 
     try {
@@ -28,34 +48,28 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
         final device = await deviceRepo.getStatus(fingerprint);
 
         if (device.status == 'active') {
+          _timer?.cancel(); // Stop polling when active
           if (mounted) {
-            // Trigger auth bloc to re-evaluate routing
             context.read<AuthBloc>().add(AuthCheckSession());
           }
         } else if (device.status == 'pending_approval') {
-          if (mounted) {
+          if (mounted && showSnackbar) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content:
-                      Text('Status perangkat masih menunggu persetujuan.')),
+              const SnackBar(content: Text('Status perangkat masih menunggu persetujuan.')),
             );
           }
         } else {
-          if (mounted) {
+          if (mounted && showSnackbar) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Perangkat ditolak atau tidak valid.'),
-                  backgroundColor: AppColors.error),
+              const SnackBar(content: Text('Perangkat ditolak atau tidak valid.'), backgroundColor: AppColors.error),
             );
           }
         }
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && showSnackbar) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Gagal memeriksa status perangkat.'),
-              backgroundColor: AppColors.error),
+          const SnackBar(content: Text('Gagal memeriksa status perangkat.'), backgroundColor: AppColors.error),
         );
       }
     } finally {
@@ -68,81 +82,125 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Spacer(),
-              Center(
-                child: Container(
-                  width: 120.w,
-                  height: 120.w,
-                  decoration: const BoxDecoration(
-                    color: AppColors.secondaryContainer,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.hourglass_empty,
-                    size: 64.w,
-                    color: AppColors.onSecondaryContainer,
-                  ),
-                ),
+      backgroundColor: AppColors.surfaceContainerLowest,
+      body: Stack(
+        children: [
+          // Extended Primary Colored Header (Warning Style)
+          Container(
+            height: 320.h,
+            decoration: BoxDecoration(
+              color: Colors.amber[700], // Warning color for pending
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(32.r),
+                bottomRight: Radius.circular(32.r),
               ),
-              SizedBox(height: 32.h),
-              Text(
-                'Menunggu Persetujuan',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: AppColors.onSurface,
-                      fontWeight: FontWeight.bold,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 16.h),
-              Text(
-                'Perangkat Anda sedang ditinjau oleh Admin.\nSilakan hubungi HR atau tunggu beberapa saat lalu tekan "Cek Status".',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppColors.onSurfaceVariant,
-                      height: 1.5,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              const Spacer(),
-              SizedBox(
-                height: 52.h,
-                child: ElevatedButton(
-                  onPressed: _isChecking ? null : _checkStatus,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryContainer,
-                    foregroundColor: AppColors.onPrimaryContainer,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                  ),
-                  child: _isChecking
-                      ? const CircularProgressIndicator()
-                      : const Text('Cek Status Perangkat',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ),
-              SizedBox(height: 16.h),
-              TextButton(
-                onPressed: () {
-                  context.read<AuthBloc>().add(AuthLogoutRequested());
-                },
-                child: Text(
-                  'Logout',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.error,
-                      ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+          
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: 24.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(height: 60.h),
+                  // Header Text
+                  Center(
+                    child: Column(
+                      children: [
+                        Icon(Icons.devices_other, size: 64.w, color: Colors.white),
+                        SizedBox(height: 16.h),
+                        Text(
+                          'Verifikasi Perangkat',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 60.h),
+                  
+                  // Floating Status Card
+                  Container(
+                    padding: EdgeInsets.all(32.w),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(16.w),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.pending_actions,
+                            size: 48.w,
+                            color: Colors.amber[700],
+                          ),
+                        ),
+                        SizedBox(height: 24.h),
+                        Text(
+                          'Menunggu Persetujuan Admin',
+                          style: TextStyle(
+                            color: AppColors.onSurface,
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          'Perangkat Anda belum diverifikasi atau telah terikat dengan akun lain.\n\nSilakan hubungi Admin atau HRD Anda untuk melakukan persetujuan (Approval) perangkat ini agar Anda dapat melakukan absensi.',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14.sp,
+                            height: 1.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 32.h),
+                        
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52.h,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              context.read<AuthBloc>().add(AuthLogoutRequested());
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey[100],
+                              foregroundColor: Colors.black87,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16.r),
+                              ),
+                              elevation: 0,
+                            ),
+                            icon: const Icon(Icons.logout),
+                            label: const Text('Keluar & Kembali ke Login', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

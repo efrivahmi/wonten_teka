@@ -5,10 +5,12 @@ import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/widgets/info_card.dart';
 import '../../../../auth/bloc/auth_bloc.dart';
 import '../../../../attendance/bloc/attendance_cubit.dart';
 import '../../../../company/bloc/company_cubit.dart';
+import '../../../../schedule/bloc/shift_cubit.dart';
+import '../../../../../core/models/attendance_log_model.dart';
+import '../../../../../core/models/shift_models.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
   const HomeDashboardScreen({super.key});
@@ -24,470 +26,462 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AttendanceCubit>().loadHistory();
       context.read<CompanyCubit>().loadAll();
+      context.read<ShiftCubit>().loadUpcoming();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        scrolledUnderElevation: 1,
-        title: Row(
-          children: [
-            Icon(Icons.fingerprint, color: AppColors.primary, size: 28.w),
-            SizedBox(width: 8.w),
-            Text(
-              'Wonten Teka',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
+      backgroundColor: AppColors.surfaceContainerLowest,
+      body: Stack(
+        children: [
+          // Background Header
+          Container(
+            height: 260.h,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(32.r),
+                bottomRight: Radius.circular(32.r),
+              ),
             ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined,
-                color: AppColors.primary),
-            onPressed: () => context.push('/app/notifications'),
+          ),
+          
+          SafeArea(
+            child: RefreshIndicator(
+              color: AppColors.primary,
+              backgroundColor: AppColors.surface,
+              displacement: 20.0,
+              onRefresh: () async {
+                context.read<AttendanceCubit>().loadHistory();
+                context.read<CompanyCubit>().loadAll();
+                context.read<ShiftCubit>().loadUpcoming();
+                await Future.delayed(const Duration(milliseconds: 600));
+              },
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  // App Bar Area
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Dashboard',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24.sp,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              BlocBuilder<AuthBloc, AuthState>(
+                                builder: (context, state) {
+                                  if (state is AuthAuthenticated && state.user.isAdmin) {
+                                    return IconButton(
+                                      icon: Icon(Icons.admin_panel_settings, color: Colors.white, size: 24.w),
+                                      onPressed: () => context.push('/admin/dashboard'),
+                                    );
+                                  }
+                                  return const SizedBox.shrink();
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.notifications_none, color: Colors.white, size: 24.w),
+                                onPressed: () => context.push('/app/notifications'),
+                              ),
+                              SizedBox(width: 4.w),
+                              BlocBuilder<AuthBloc, AuthState>(
+                                builder: (context, state) {
+                                  final userName = state is AuthAuthenticated
+                                      ? (state.user.employee?.fullName ?? state.user.name)
+                                      : 'U';
+                                  return CircleAvatar(
+                                    radius: 16.w,
+                                    backgroundColor: Colors.white.withValues(alpha: 0.2),
+                                    child: Text(
+                                      userName.isNotEmpty ? userName[0].toUpperCase() : '?',
+                                      style: TextStyle(color: Colors.white, fontSize: 14.sp, fontWeight: FontWeight.bold),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Content Area
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 10.h),
+                          // 1. Floating Contextual Attendance Card
+                          BlocBuilder<AttendanceCubit, AttendanceState>(
+                            builder: (context, state) {
+                              bool hasCheckedIn = false;
+                              bool hasCheckedOut = false;
+                              DateTime? checkInTime;
+                              DateTime? checkOutTime;
+                              AttendanceLogModel? todayLog;
+                              
+                              if (state is AttendanceLoaded && state.logs.isNotEmpty) {
+                                todayLog = state.logs.first;
+                              } else if (state is CheckInSuccess) {
+                                todayLog = state.log;
+                              } else if (state is CheckOutSuccess) {
+                                todayLog = state.log;
+                              }
+
+                              if (todayLog != null) {
+                                final now = DateTime.now();
+                                if (todayLog.checkInAt.year == now.year &&
+                                    todayLog.checkInAt.month == now.month &&
+                                    todayLog.checkInAt.day == now.day) {
+                                  hasCheckedIn = true;
+                                  checkInTime = todayLog.checkInAt;
+                                  hasCheckedOut = todayLog.checkOutAt != null;
+                                  checkOutTime = todayLog.checkOutAt;
+                                }
+                              }
+
+                              String titleText = 'Status Kehadiran';
+                              String bigText = '--:--';
+                              String stat1Val = '--:--';
+                              String stat2Val = '--:--';
+                              String stat3Val = 'Belum';
+                              Widget actionButton = const SizedBox.shrink();
+
+                              if (!hasCheckedIn) {
+                                titleText = 'Absen Hari Ini';
+                                bigText = 'Belum Absen';
+                                actionButton = Padding(
+                                  padding: EdgeInsets.only(top: 20.h),
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    height: 48.h,
+                                    child: ElevatedButton.icon(
+                                      onPressed: () => context.push('/app/attendance/check-in'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primary,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                                        elevation: 0,
+                                      ),
+                                      icon: const Icon(Icons.fingerprint),
+                                      label: const Text('Absen Masuk', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    ),
+                                  ),
+                                );
+                              } else if (hasCheckedIn && !hasCheckedOut) {
+                                titleText = 'Waktu Masuk';
+                                bigText = DateFormat('HH:mm').format(checkInTime!);
+                                stat1Val = bigText;
+                                stat3Val = 'Bekerja';
+                                actionButton = Padding(
+                                  padding: EdgeInsets.only(top: 20.h),
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    height: 48.h,
+                                    child: ElevatedButton.icon(
+                                      onPressed: () => context.push('/app/attendance/check-out'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.error,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                                        elevation: 0,
+                                      ),
+                                      icon: const Icon(Icons.exit_to_app),
+                                      label: const Text('Absen Keluar', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                titleText = 'Total Jam Kerja';
+                                final duration = checkOutTime!.difference(checkInTime!);
+                                final hours = duration.inHours;
+                                final minutes = duration.inMinutes % 60;
+                                bigText = '${hours}h ${minutes}m';
+                                stat1Val = DateFormat('HH:mm').format(checkInTime);
+                                stat2Val = DateFormat('HH:mm').format(checkOutTime);
+                                stat3Val = 'Selesai';
+                              }
+
+                              return Container(
+                                width: double.infinity,
+                                padding: EdgeInsets.all(24.w),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(24.r),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.05),
+                                      blurRadius: 20,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      titleText,
+                                      style: TextStyle(color: Colors.grey[600], fontSize: 13.sp, fontWeight: FontWeight.w600),
+                                    ),
+                                    SizedBox(height: 8.h),
+                                    Text(
+                                      bigText,
+                                      style: TextStyle(color: AppColors.primary, fontSize: 36.sp, fontWeight: FontWeight.bold, letterSpacing: -0.5),
+                                    ),
+                                    SizedBox(height: 24.h),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                      children: [
+                                        _buildStatColumn('Masuk', stat1Val),
+                                        _buildStatColumn('Keluar', stat2Val),
+                                        _buildStatColumn('Status', stat3Val),
+                                      ],
+                                    ),
+                                    actionButton,
+                                  ],
+                                ),
+                              ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1, end: 0);
+                            },
+                          ),
+                          
+                          SizedBox(height: 24.h),
+                          
+                          // 2. Second Card (e.g. Live Queries in design -> We can put "Jadwal & Info" or a chart here)
+                          // For now, let's make a beautiful solid primary-container card representing 'Shift Hari Ini'
+                          BlocBuilder<ShiftCubit, ShiftState>(
+                            builder: (context, state) {
+                              ShiftAssignmentModel? todayShift;
+                              if (state is ShiftLoaded) {
+                                final now = DateTime.now();
+                                try {
+                                  todayShift = state.shifts.firstWhere((s) =>
+                                      s.date.year == now.year &&
+                                      s.date.month == now.month &&
+                                      s.date.day == now.day);
+                                } catch (_) {}
+                              }
+                              
+                              String timeText = '--:-- - --:--';
+                              String shiftName = 'Memuat jadwal...';
+                              
+                              if (state is ShiftLoaded) {
+                                if (todayShift != null) {
+                                  shiftName = todayShift.shiftTemplate?.name ?? 'Libur';
+                                  if (todayShift.shiftTemplate?.startTime != null && todayShift.shiftTemplate?.endTime != null) {
+                                    final startF = DateFormat('HH:mm').format(DateFormat('HH:mm:ss').parse(todayShift.shiftTemplate!.startTime!));
+                                    final endF = DateFormat('HH:mm').format(DateFormat('HH:mm:ss').parse(todayShift.shiftTemplate!.endTime!));
+                                    timeText = '$startF - $endF';
+                                  } else {
+                                    timeText = 'Libur';
+                                  }
+                                } else {
+                                  shiftName = 'Tidak ada shift';
+                                  timeText = 'Libur';
+                                }
+                              } else if (state is ShiftError) {
+                                shiftName = 'Gagal memuat';
+                                timeText = 'Error';
+                              }
+
+                              return Container(
+                                width: double.infinity,
+                                padding: EdgeInsets.all(20.w),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.circular(20.r),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withValues(alpha: 0.3),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text('Jadwal Shift', style: TextStyle(color: Colors.white70, fontSize: 13.sp)),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                                          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8.r)),
+                                          child: Text('HARI INI', style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.bold)),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: 12.h),
+                                    Text(
+                                      timeText,
+                                      style: TextStyle(color: Colors.white, fontSize: 24.sp, fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(height: 4.h),
+                                    Text(
+                                      shiftName,
+                                      style: TextStyle(color: Colors.white70, fontSize: 12.sp),
+                                    ),
+                                    SizedBox(height: 16.h),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.location_on, color: Colors.white70, size: 16.w),
+                                        SizedBox(width: 4.w),
+                                        Text('Geofence Aktif', style: TextStyle(color: Colors.white, fontSize: 11.sp)),
+                                        SizedBox(width: 16.w),
+                                        Icon(Icons.verified_user, color: Colors.white70, size: 16.w),
+                                        SizedBox(width: 4.w),
+                                        Text('Perangkat Valid', style: TextStyle(color: Colors.white, fontSize: 11.sp)),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ).animate().fadeIn(delay: 100.ms, duration: 500.ms).slideY(begin: 0.1, end: 0);
+                            },
+                          ),
+                          
+                          SizedBox(height: 24.h),
+
+                          // 3. Menu Utama (Grid) - matching the 'Statistics' white card area
+                          Container(
+                            padding: EdgeInsets.all(20.w),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(24.r),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Menu Utama',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        color: AppColors.onSurface,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                ),
+                                SizedBox(height: 16.h),
+                                GridView.count(
+                                  crossAxisCount: 4,
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  mainAxisSpacing: 16.h,
+                                  crossAxisSpacing: 16.w,
+                                  childAspectRatio: 0.85,
+                                  children: [
+                                    _GridMenuIcon(
+                                      icon: Icons.beach_access_rounded,
+                                      label: 'Cuti',
+                                      color: AppColors.primary,
+                                      onTap: () => context.push('/app/leave'),
+                                    ),
+                                    _GridMenuIcon(
+                                      icon: Icons.access_time_filled,
+                                      label: 'Lembur',
+                                      color: AppColors.primary,
+                                      onTap: () => context.push('/app/overtime'),
+                                    ),
+                                    _GridMenuIcon(
+                                      icon: Icons.receipt_long_rounded,
+                                      label: 'Klaim',
+                                      color: AppColors.primary,
+                                      onTap: () => context.push('/app/claims'),
+                                    ),
+                                    _GridMenuIcon(
+                                      icon: Icons.payment_rounded,
+                                      label: 'Slip Gaji',
+                                      color: AppColors.primary,
+                                      onTap: () => context.push('/app/payroll'),
+                                    ),
+                                    _GridMenuIcon(
+                                      icon: Icons.calendar_month_rounded,
+                                      label: 'Jadwal',
+                                      color: AppColors.primary,
+                                      onTap: () => context.push('/app/schedule'),
+                                    ),
+                                    _GridMenuIcon(
+                                      icon: Icons.business_rounded,
+                                      label: 'Karyawan',
+                                      color: AppColors.primary,
+                                      onTap: () => context.push('/app/company/directory'),
+                                    ),
+                                    _GridMenuIcon(
+                                      icon: Icons.fact_check_rounded,
+                                      label: 'Approval',
+                                      color: AppColors.primary,
+                                      onTap: () => context.push('/admin/approvals'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ).animate().fadeIn(delay: 200.ms, duration: 500.ms).slideY(begin: 0.1, end: 0),
+                          
+                          SizedBox(height: 32.h),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
-      body: RefreshIndicator(
-        color: AppColors.primary,
-        backgroundColor: AppColors.surface,
-        onRefresh: () async {
-          context.read<AttendanceCubit>().loadHistory();
-          context.read<CompanyCubit>().loadAll();
-          await Future.delayed(const Duration(milliseconds: 600));
-        },
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Welcome Section
-              BlocBuilder<AuthBloc, AuthState>(
-                builder: (context, state) {
-                  final userName = state is AuthAuthenticated
-                      ? (state.user.employee?.fullName ?? state.user.name)
-                      : 'User';
-                  final position = state is AuthAuthenticated
-                      ? (state.user.employee?.position ?? '')
-                      : '';
-                  return InfoCard(
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 56.w,
-                          height: 56.w,
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryFixed,
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                          child: Center(
-                            child: Text(
-                              userName.isNotEmpty
-                                  ? userName[0].toUpperCase()
-                                  : '?',
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontSize: 24.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 16.w),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Halo, $userName!',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                      color: AppColors.onSurface,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                              if (position.isNotEmpty) ...[
-                                SizedBox(height: 2.h),
-                                Text(
-                                  position,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        color: AppColors.onSurfaceVariant,
-                                      ),
-                                ),
-                              ],
-                              SizedBox(height: 4.h),
-                              Text(
-                                DateFormat('EEEE, d MMMM y', 'id_ID')
-                                    .format(DateTime.now()),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: AppColors.onSurfaceVariant,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              SizedBox(height: 16.h),
+    );
+  }
 
-              // Primary Action: Absensi
-              SizedBox(
-                width: double.infinity,
-                height: 52.h,
-                child: ElevatedButton(
-                  onPressed: () => context.push('/app/attendance/check-in'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryContainer,
-                    foregroundColor: AppColors.onPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16.r),
-                    ),
-                    elevation: 4,
-                    shadowColor:
-                        AppColors.primaryContainer.withValues(alpha: 0.5),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.face, size: 20.w),
-                      SizedBox(width: 8.w),
-                      Text(
-                        'Absensi Sekarang',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: AppColors.onPrimary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 8.h),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.location_on,
-                      size: 14.w, color: AppColors.successEmerald),
-                  SizedBox(width: 4.w),
-                  Text(
-                    'Geofence Aktif',
-                    style: TextStyle(
-                      color: AppColors.onSurfaceVariant,
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 24.h),
-
-              // Quick Stats
-              BlocBuilder<AttendanceCubit, AttendanceState>(
-                builder: (context, state) {
-                  String checkInAt = '--:--';
-                  String checkOutAt = '--:--';
-
-                  if (state is AttendanceLoaded && state.logs.isNotEmpty) {
-                    final todayLog = state.logs.first;
-                    checkInAt = DateFormat('HH:mm').format(todayLog.checkInAt);
-                    checkOutAt = todayLog.checkOutAt != null
-                        ? DateFormat('HH:mm').format(todayLog.checkOutAt!)
-                        : '--:--';
-                  }
-
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: InfoCard(
-                          borderLeftColor: AppColors.successEmerald,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'CHECK-IN',
-                                style: TextStyle(
-                                  color: AppColors.onSurfaceVariant,
-                                  fontSize: 11.sp,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                              SizedBox(height: 4.h),
-                              Text(
-                                checkInAt,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.copyWith(
-                                      color: AppColors.onSurface,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 16.w),
-                      Expanded(
-                        child: InfoCard(
-                          borderLeftColor: AppColors.surfaceVariant,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'CHECK-OUT',
-                                style: TextStyle(
-                                  color: AppColors.onSurfaceVariant,
-                                  fontSize: 11.sp,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                              SizedBox(height: 4.h),
-                              Text(
-                                checkOutAt,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.copyWith(
-                                      color: AppColors.onSurfaceVariant,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              SizedBox(height: 24.h),
-
-              // Quick Actions
-              Text(
-                'Menu Cepat',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: AppColors.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-              SizedBox(height: 12.h),
-              Row(
-                children: [
-                  _QuickAction(
-                    icon: Icons.beach_access,
-                    label: 'Cuti',
-                    color: AppColors.infoCerulean,
-                    onTap: () => context.push('/app/leave/new'),
-                  ),
-                  SizedBox(width: 12.w),
-                  _QuickAction(
-                    icon: Icons.access_time,
-                    label: 'Lembur',
-                    color: AppColors.warningAmber,
-                    onTap: () => context.push('/app/overtime'),
-                  ),
-                  SizedBox(width: 12.w),
-                  _QuickAction(
-                    icon: Icons.receipt,
-                    label: 'Klaim',
-                    color: AppColors.successEmerald,
-                    onTap: () => context.push('/app/claims'),
-                  ),
-                  SizedBox(width: 12.w),
-                  _QuickAction(
-                    icon: Icons.payments,
-                    label: 'Payslip',
-                    color: AppColors.tertiary,
-                    onTap: () => context.push('/app/payslip'),
-                  ),
-                ],
-              ),
-              SizedBox(height: 12.h),
-              Row(
-                children: [
-                  _QuickAction(
-                    icon: Icons.calendar_month,
-                    label: 'Kalender',
-                    color: AppColors.primary,
-                    onTap: () => context.push('/app/calendar'),
-                  ),
-                  SizedBox(width: 12.w),
-                  _QuickAction(
-                    icon: Icons.schedule,
-                    label: 'Shift',
-                    color: AppColors.secondary,
-                    onTap: () => context.push('/app/schedule/shifts'),
-                  ),
-                  SizedBox(width: 12.w),
-                  _QuickAction(
-                    icon: Icons.campaign,
-                    label: 'Info',
-                    color: AppColors.warningAmber,
-                    onTap: () => context.push('/app/announcements'),
-                  ),
-                  SizedBox(width: 12.w),
-                  _QuickAction(
-                    icon: Icons.people,
-                    label: 'Direktori',
-                    color: AppColors.onSurfaceVariant,
-                    onTap: () => context.push('/app/directory'),
-                  ),
-                ],
-              ),
-              SizedBox(height: 24.h),
-
-              // Announcements
-              Padding(
-                padding: EdgeInsets.only(left: 4.w),
-                child: Text(
-                  'Pengumuman Penting',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: AppColors.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-              ),
-              SizedBox(height: 8.h),
-              BlocBuilder<CompanyCubit, CompanyState>(
-                builder: (context, state) {
-                  if (state is CompanyLoading) {
-                    return InfoCard(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 40.w,
-                            height: 40.w,
-                            decoration: BoxDecoration(
-                              color: AppColors.surfaceContainerHigh,
-                              borderRadius: BorderRadius.circular(8.r),
-                            ),
-                          ),
-                          SizedBox(width: 12.w),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(height: 14.h, width: 120.w, color: AppColors.surfaceContainerHigh),
-                                SizedBox(height: 8.h),
-                                Container(height: 10.h, width: double.infinity, color: AppColors.surfaceContainerHigh),
-                                SizedBox(height: 4.h),
-                                Container(height: 10.h, width: double.infinity, color: AppColors.surfaceContainerHigh),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ).animate(onPlay: (controller) => controller.repeat()).shimmer(duration: 1200.ms, color: AppColors.surface.withValues(alpha: 0.5));
-                  } else if (state is CompanyLoaded &&
-                      state.announcements.isNotEmpty) {
-                    final announcement = state.announcements.first;
-                    return InfoCard(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: EdgeInsets.all(8.w),
-                            decoration: BoxDecoration(
-                              color:
-                                  AppColors.warningAmber.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8.r),
-                            ),
-                            child: Icon(Icons.campaign,
-                                color: AppColors.warningAmber, size: 24.w),
-                          ),
-                          SizedBox(width: 12.w),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  announcement.title,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
-                                      ?.copyWith(
-                                        color: AppColors.onSurface,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                ),
-                                SizedBox(height: 4.h),
-                                Text(
-                                  announcement.body,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        color: AppColors.onSurfaceVariant,
-                                      ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  } else {
-                    return InfoCard(
-                      child: Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8.h),
-                          child: Text(
-                            'Tidak ada pengumuman hari ini.',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: AppColors.onSurfaceVariant,
-                                    ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-                },
-              ),
-            ]
-                .animate(interval: 50.ms)
-                .fade(duration: 300.ms)
-                .slideY(begin: 0.1, curve: Curves.easeOutQuad),
+  Widget _buildStatColumn(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            color: Colors.black87,
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w800,
           ),
         ),
-      ),
+        SizedBox(height: 4.h),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.grey[500],
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _QuickAction extends StatelessWidget {
+class _GridMenuIcon extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
   final VoidCallback onTap;
 
-  const _QuickAction({
+  const _GridMenuIcon({
     required this.icon,
     required this.label,
     required this.color,
@@ -496,43 +490,39 @@ class _QuickAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12.r),
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 12.h),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(
-                color: AppColors.outlineVariant.withValues(alpha: 0.4)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: EdgeInsets.all(8.w),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-                child: Icon(icon, color: color, size: 20.w),
+        borderRadius: BorderRadius.circular(16.r),
+        splashColor: color.withValues(alpha: 0.1),
+        highlightColor: color.withValues(alpha: 0.05),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: const BoxDecoration(
+                color: AppColors.surfaceContainerHigh,
+                shape: BoxShape.circle,
               ),
-              SizedBox(height: 6.h),
-              Text(
-                label,
-                style: TextStyle(
-                  color: AppColors.onSurface,
-                  fontSize: 11.sp,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
+              child: Icon(icon, color: color, size: 24.w),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11.sp,
+                  ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );
   }
 }
-

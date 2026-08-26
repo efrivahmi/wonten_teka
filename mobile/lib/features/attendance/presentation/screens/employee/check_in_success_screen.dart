@@ -1,151 +1,127 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/models/attendance_log_model.dart';
 
 class CheckInSuccessScreen extends StatelessWidget {
-  const CheckInSuccessScreen({super.key});
+  final AttendanceLogModel log;
+  final bool isCheckOut;
+  
+  const CheckInSuccessScreen({
+    super.key, 
+    required this.log,
+    this.isCheckOut = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final timeStr =
-        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    final isFlagged = log.status == 'flagged';
+    final primaryColor = isFlagged ? Colors.amber[600]! : Colors.green[500]!;
+    final iconData = isFlagged ? Icons.warning_rounded : Icons.check_circle_rounded;
+    
+    final relevantTime = isCheckOut ? (log.checkOutAt ?? DateTime.now()) : log.checkInAt;
+    final timeStr = DateFormat('HH:mm').format(relevantTime);
+    final dateStr = DateFormat('EEEE, d MMM yyyy', 'id_ID').format(relevantTime);
+
+    String locationText = 'Lokasi GPS Tersimpan';
+    if (log.flags != null && log.flags!.containsKey('address')) {
+       locationText = log.flags!['address'] as String;
+    }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: primaryColor,
       body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(24.w),
-          child: Column(
-            children: [
-              const Spacer(),
-              // Success Animation Area
-              Container(
-                width: 160.w,
-                height: 160.w,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.successEmerald.withValues(alpha: 0.1),
-                ),
-                child: Center(
-                  child: Container(
-                    width: 120.w,
-                    height: 120.w,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.successEmerald,
-                    ),
-                    child: Icon(Icons.check, color: Colors.white, size: 64.w),
-                  ),
-                ),
-              ),
-              SizedBox(height: 32.h),
-              Text(
-                'Check-in Berhasil!',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: AppColors.onSurface,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              SizedBox(height: 8.h),
-              Text(
-                'Absensi tercatat pada',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppColors.onSurfaceVariant,
-                    ),
-              ),
-              SizedBox(height: 16.h),
-              Text(
-                timeStr,
-                style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                      color: AppColors.primaryContainer,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -1,
-                    ),
-              ),
-              SizedBox(height: 32.h),
-              // Info Cards
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceContainerLowest,
-                  borderRadius: BorderRadius.circular(16.r),
-                  border: Border.all(
-                      color: AppColors.outlineVariant.withValues(alpha: 0.5)),
-                ),
+        child: Column(
+          children: [
+            Expanded(
+              child: Center(
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const _InfoRow(
-                        icon: Icons.location_on,
-                        label: 'Lokasi',
-                        value: 'Kantor Pusat Jakarta'),
-                    Divider(
-                        height: 24.h,
-                        color: AppColors.outlineVariant.withValues(alpha: 0.3)),
-                    const _InfoRow(
-                        icon: Icons.face,
-                        label: 'Verifikasi',
-                        value: 'Wajah Terdeteksi âœ“'),
-                    Divider(
-                        height: 24.h,
-                        color: AppColors.outlineVariant.withValues(alpha: 0.3)),
-                    const _InfoRow(
-                        icon: Icons.smartphone,
-                        label: 'Perangkat',
-                        value: 'Terikat âœ“'),
+                    Container(
+                      padding: EdgeInsets.all(24.w),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20)],
+                      ),
+                      child: Icon(iconData, color: primaryColor, size: 80.w),
+                    ),
+                    SizedBox(height: 32.h),
+                    Text(
+                      isCheckOut ? 'Check-out Berhasil' : 'Check-in Berhasil',
+                      style: TextStyle(color: Colors.white, fontSize: 32.sp, fontWeight: FontWeight.bold),
+                    ),
+                    if (isFlagged)
+                      Padding(
+                        padding: EdgeInsets.only(top: 8.h),
+                        child: Text(
+                          'Catatan: Menunggu Tinjauan Admin',
+                          style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 14.sp),
+                        ),
+                      ),
                   ],
                 ),
               ),
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                height: 52.h,
-                child: ElevatedButton(
-                  onPressed: () => context.go('/app/home'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryContainer,
-                    foregroundColor: AppColors.onPrimary,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r)),
-                  ),
-                  child: Text('Kembali ke Dashboard',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w700, fontSize: 16.sp)),
-                ),
+            ),
+            
+            // Bottom White Card
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(32.w),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(32.r), topRight: Radius.circular(32.r)),
               ),
-            ],
-          ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Text(timeStr, style: TextStyle(color: AppColors.primary, fontSize: 56.sp, fontWeight: FontWeight.bold, letterSpacing: -2)),
+                  ),
+                  Center(
+                    child: Text(dateStr, style: TextStyle(color: Colors.grey[600], fontSize: 16.sp)),
+                  ),
+                  SizedBox(height: 32.h),
+                  
+                  Container(
+                    padding: EdgeInsets.all(16.w),
+                    decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(16.r), border: Border.all(color: Colors.grey[200]!)),
+                    child: Row(
+                      children: [
+                        Icon(Icons.location_on, color: Colors.grey[400], size: 24.w),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: Text(locationText, style: TextStyle(color: Colors.grey[600], fontSize: 12.sp), maxLines: 2, overflow: TextOverflow.ellipsis),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  SizedBox(height: 32.h),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56.h,
+                    child: ElevatedButton(
+                      onPressed: () => context.go('/app/dashboard'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                        elevation: 0,
+                      ),
+                      child: Text('Kembali ke Dashboard', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  SizedBox(height: 16.h), // Bottom padding for safe area
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
-
-class _InfoRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  const _InfoRow(
-      {required this.icon, required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, color: AppColors.onSurfaceVariant, size: 20.w),
-        SizedBox(width: 12.w),
-        Text(label,
-            style:
-                TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
-        const Spacer(),
-        Text(value,
-            style: TextStyle(
-                color: AppColors.onSurface,
-                fontWeight: FontWeight.w600,
-                fontSize: 14.sp)),
-      ],
-    );
-  }
-}
-

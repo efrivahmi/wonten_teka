@@ -1,7 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
 import '../../../../../core/widgets/status_badge.dart';
@@ -27,37 +28,103 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
   void _showActionDialog(BuildContext context, ApprovalInstanceModel request, bool isApprove) {
     final commentController = TextEditingController();
     
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(isApprove ? 'Setujui Permintaan?' : 'Tolak Permintaan?'),
-        content: TextField(
-          controller: commentController,
-          decoration: const InputDecoration(
-            hintText: 'Tambahkan catatan (opsional)',
-          ),
-          maxLines: 3,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: EdgeInsets.all(24.w),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              if (isApprove) {
-                context.read<ApprovalCubit>().approve(request.id, comment: commentController.text);
-              } else {
-                context.read<ApprovalCubit>().reject(request.id, comment: commentController.text);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isApprove ? AppColors.successEmerald : AppColors.errorCrimson,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(child: Container(width: 40.w, height: 4.h, decoration: BoxDecoration(color: AppColors.outlineVariant, borderRadius: BorderRadius.circular(2.r)))),
+            SizedBox(height: 24.h),
+            Text(isApprove ? 'Setujui Permintaan?' : 'Tolak Permintaan?', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+            SizedBox(height: 16.h),
+            TextField(
+              controller: commentController,
+              decoration: InputDecoration(
+                hintText: 'Tambahkan catatan (opsional)',
+                filled: true,
+                fillColor: AppColors.surfaceContainerLow,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: BorderSide.none),
+              ),
+              maxLines: 3,
             ),
-            child: Text(isApprove ? 'Setujui' : 'Tolak'),
-          ),
-        ],
+            SizedBox(height: 32.h),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: OutlinedButton.styleFrom(padding: EdgeInsets.symmetric(vertical: 16.h), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r))),
+                    child: const Text('Batal'),
+                  ),
+                ),
+                SizedBox(width: 16.w),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      if (isApprove) {
+                        context.read<ApprovalCubit>().approve(request.id, comment: commentController.text);
+                      } else {
+                        context.read<ApprovalCubit>().reject(request.id, comment: commentController.text);
+                      }
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: isApprove ? AppColors.successEmerald : AppColors.errorCrimson,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 16.h),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                    ),
+                    child: Text(isApprove ? 'Setujui' : 'Tolak'),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 16.h),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showErrorSheet(BuildContext context, String message) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: EdgeInsets.all(24.w),
+        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.vertical(top: Radius.circular(24.r))),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 40.w, height: 4.h, decoration: BoxDecoration(color: AppColors.outlineVariant, borderRadius: BorderRadius.circular(2.r))),
+            SizedBox(height: 24.h),
+            Icon(Icons.error_outline, color: AppColors.error, size: 56.w),
+            SizedBox(height: 16.h),
+            Text('Gagal', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+            SizedBox(height: 8.h),
+            Text(message, textAlign: TextAlign.center, style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
+            SizedBox(height: 32.h),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: FilledButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: AppColors.onPrimary, padding: EdgeInsets.symmetric(vertical: 16.h), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r))),
+                child: const Text('Tutup'),
+              ),
+            ),
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 16.h),
+          ],
+        ),
       ),
     );
   }
@@ -86,42 +153,100 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
             );
             context.read<ApprovalCubit>().loadPending();
           } else if (state is ApprovalError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: AppColors.error),
-            );
+            _showErrorSheet(context, state.message);
           }
         },
         builder: (context, state) {
-          if (state is ApprovalLoading) {
-            return const Center(child: CircularProgressIndicator());
+          if (state is ApprovalLoading && context.read<ApprovalCubit>().state is! ApprovalLoaded) {
+            return ListView.separated(
+              padding: EdgeInsets.all(16.w),
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: 4,
+              separatorBuilder: (_, __) => SizedBox(height: 12.h),
+              itemBuilder: (context, index) {
+                return Container(height: 160.h, width: double.infinity, decoration: BoxDecoration(color: AppColors.surfaceContainerHigh, borderRadius: BorderRadius.circular(16.r)));
+              },
+            ).animate(onPlay: (c) => c.repeat()).shimmer(duration: 1200.ms, color: AppColors.surface.withValues(alpha: 0.5));
+          } else if (state is ApprovalError && context.read<ApprovalCubit>().state is! ApprovalLoaded) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: 100.h),
+                Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24.w),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.wifi_off, size: 64.w, color: AppColors.error.withValues(alpha: 0.7)),
+                        SizedBox(height: 16.h),
+                        Text('Gagal Memuat Data', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.error, fontWeight: FontWeight.bold)),
+                        SizedBox(height: 8.h),
+                        Text(state.message, textAlign: TextAlign.center, style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
+                        SizedBox(height: 24.h),
+                        ElevatedButton.icon(
+                          onPressed: () => context.read<ApprovalCubit>().loadPending(),
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Coba Lagi'),
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryContainer, foregroundColor: AppColors.onPrimary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
           }
           
+          List<ApprovalInstanceModel> requests = [];
           if (state is ApprovalLoaded) {
-            final requests = state.pending;
-            
-            if (requests.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.check_circle_outline, size: 64.w, color: AppColors.successEmerald),
-                    SizedBox(height: 16.h),
-                    Text(
-                      'Semua bersih!',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.onSurfaceVariant,
+            requests = state.pending;
+          } else if (context.read<ApprovalCubit>().state is ApprovalLoaded) {
+            requests = (context.read<ApprovalCubit>().state as ApprovalLoaded).pending;
+          }
+          
+          if (requests.isEmpty) {
+            return RefreshIndicator(
+              onRefresh: () async => context.read<ApprovalCubit>().loadPending(),
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(height: 100.h),
+                  Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24.w),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(24.w),
+                            decoration: const BoxDecoration(color: AppColors.surfaceContainerHigh, shape: BoxShape.circle),
+                            child: Icon(Icons.check_circle_outline, size: 48.w, color: AppColors.successEmerald.withValues(alpha: 0.7)),
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            'Semua bersih!',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: AppColors.onSurface,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          Text(
+                            'Tidak ada permintaan yang menunggu persetujuan Anda saat ini.',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    Text(
-                      'Tidak ada permintaan yang menunggu.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
+                  ),
+                ],
+              ),
+            );
+          }
             
             return RefreshIndicator(
               onRefresh: () async => context.read<ApprovalCubit>().loadPending(),
@@ -199,9 +324,6 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                 },
               ),
             );
-          }
-          
-          return const SizedBox.shrink();
         },
       ),
     );

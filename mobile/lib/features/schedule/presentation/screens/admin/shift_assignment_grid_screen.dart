@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -18,8 +18,6 @@ class _ShiftAssignmentGridScreenState extends State<ShiftAssignmentGridScreen> {
   late final ApiClient _api;
 
   bool _isLoading = true;
-  String _startDateStr = '';
-  String _endDateStr = '';
   List<dynamic> _employees = [];
   List<dynamic> _assignments = [];
   List<dynamic> _templates = [];
@@ -46,8 +44,6 @@ class _ShiftAssignmentGridScreenState extends State<ShiftAssignmentGridScreen> {
           '/admin/shift-assignments?start_date=$startFormat&end_date=$endFormat');
       if (mounted) {
         setState(() {
-          _startDateStr = response.data['start_date'];
-          _endDateStr = response.data['end_date'];
           _employees = response.data['employees'] as List;
           _assignments = response.data['assignments'] as List;
           _templates = response.data['templates'] as List;
@@ -128,8 +124,10 @@ class _ShiftAssignmentGridScreenState extends State<ShiftAssignmentGridScreen> {
       });
       _loadGrid(); // Refresh grid
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Gagal assign shift: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Gagal assign shift: $e')));
+      }
     }
   }
 

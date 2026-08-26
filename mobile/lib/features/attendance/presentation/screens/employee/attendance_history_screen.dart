@@ -1,8 +1,13 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart';
+
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
 import '../../../../../core/widgets/status_badge.dart';
+import '../../../bloc/attendance_history_cubit.dart';
 
 class AttendanceHistoryScreen extends StatefulWidget {
   const AttendanceHistoryScreen({super.key});
@@ -13,41 +18,31 @@ class AttendanceHistoryScreen extends StatefulWidget {
 }
 
 class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
-  DateTime _selectedMonth = DateTime.now();
+  final ScrollController _scrollController = ScrollController();
 
-  // Mock data
-  final List<Map<String, dynamic>> _attendanceData = [
-    {
-      'date': 'Senin, 7 Jul',
-      'checkIn': '07:58',
-      'checkOut': '17:02',
-      'status': 'on_time'
-    },
-    {
-      'date': 'Selasa, 8 Jul',
-      'checkIn': '08:15',
-      'checkOut': '17:05',
-      'status': 'late'
-    },
-    {
-      'date': 'Rabu, 9 Jul',
-      'checkIn': '07:55',
-      'checkOut': '17:00',
-      'status': 'on_time'
-    },
-    {
-      'date': 'Kamis, 10 Jul',
-      'checkIn': '--:--',
-      'checkOut': '--:--',
-      'status': 'absent'
-    },
-    {
-      'date': 'Jumat, 11 Jul',
-      'checkIn': '08:00',
-      'checkOut': '17:30',
-      'status': 'on_time'
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+    context.read<AttendanceHistoryCubit>().loadHistory(isRefresh: true);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      context.read<AttendanceHistoryCubit>().loadHistory();
+    }
+  }
+
+  Future<void> _onRefresh() async {
+    await context.read<AttendanceHistoryCubit>().loadHistory(isRefresh: true);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,106 +61,181 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Summary Stats Row
-            Row(
-              children: [
-                const _StatCard(
-                    label: 'HADIR',
-                    value: '18',
-                    color: AppColors.successEmerald),
-                SizedBox(width: 8.w),
-                const _StatCard(
-                    label: 'TERLAMBAT',
-                    value: '3',
-                    color: AppColors.warningAmber),
-                SizedBox(width: 8.w),
-                const _StatCard(
-                    label: 'TIDAK HADIR',
-                    value: '1',
-                    color: AppColors.errorCrimson),
-              ],
-            ),
-            SizedBox(height: 24.h),
-
-            // Month Selector
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.chevron_left,
-                      color: AppColors.onSurfaceVariant),
-                  onPressed: () {
-                    setState(() {
-                      _selectedMonth = DateTime(
-                          _selectedMonth.year, _selectedMonth.month - 1);
-                    });
-                  },
-                ),
-                Text(
-                  _formatMonth(_selectedMonth),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.onSurface,
-                        fontWeight: FontWeight.bold,
+      body: BlocBuilder<AttendanceHistoryCubit, AttendanceHistoryState>(
+        builder: (context, state) {
+          if (state is AttendanceHistoryInitial ||
+              (state is AttendanceHistoryLoading && state.isFirstFetch)) {
+            return _buildShimmerLoading();
+          } else if (state is AttendanceHistoryError) {
+            return _buildErrorState(state.message);
+          } else if (state is AttendanceHistoryLoaded) {
+            if (state.logs.isEmpty) {
+              return _buildEmptyState();
+            }
+            return RefreshIndicator(
+              onRefresh: _onRefresh,
+              color: AppColors.primary,
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: EdgeInsets.all(16.w),
+                itemCount: state.logs.length + (state.hasNextPage ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index >= state.logs.length) {
+                    return Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.h),
+                      child: const Center(
+                        child: CircularProgressIndicator(color: AppColors.primary),
                       ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right,
-                      color: AppColors.onSurfaceVariant),
-                  onPressed: () {
-                    setState(() {
-                      _selectedMonth = DateTime(
-                          _selectedMonth.year, _selectedMonth.month + 1);
-                    });
-                  },
-                ),
-              ],
+                    );
+                  }
+                  
+                  final log = state.logs[index];
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: 12.h),
+                    child: InfoCard(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  DateFormat('EEEE, d MMM yyyy', 'id_ID')
+                                      .format(log.checkInAt),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.copyWith(
+                                        color: AppColors.onSurface,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                ),
+                                SizedBox(height: 8.h),
+                                Row(
+                                  children: [
+                                    _TimeChip(
+                                        label: 'Masuk',
+                                        time: DateFormat('HH:mm')
+                                            .format(log.checkInAt)),
+                                    SizedBox(width: 16.w),
+                                    _TimeChip(
+                                        label: 'Keluar',
+                                        time: log.checkOutAt != null
+                                            ? DateFormat('HH:mm')
+                                                .format(log.checkOutAt!)
+                                            : '--:--'),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          _buildStatusBadge(log.status),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+  }
+
+  Widget _buildShimmerLoading() {
+    return ListView.builder(
+      padding: EdgeInsets.all(16.w),
+      itemCount: 6,
+      itemBuilder: (_, __) => Padding(
+        padding: EdgeInsets.only(bottom: 12.h),
+        child: Shimmer.fromColors(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: Container(
+            height: 90.h,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16.r),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 40.h),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(24.w),
+              decoration: const BoxDecoration(
+                color: AppColors.surfaceContainerHigh,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.history_toggle_off,
+                  size: 48.w, color: AppColors.onSurfaceVariant),
             ),
             SizedBox(height: 16.h),
-
-            // Daily Records
-            ...(_attendanceData.map((record) => Padding(
-                  padding: EdgeInsets.only(bottom: 12.h),
-                  child: InfoCard(
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                record['date'],
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(
-                                      color: AppColors.onSurface,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                              ),
-                              SizedBox(height: 8.h),
-                              Row(
-                                children: [
-                                  _TimeChip(
-                                      label: 'Masuk', time: record['checkIn']),
-                                  SizedBox(width: 16.w),
-                                  _TimeChip(
-                                      label: 'Keluar',
-                                      time: record['checkOut']),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        _buildStatusBadge(record['status']),
-                      ],
-                    ),
+            Text(
+              'Belum ada riwayat absensi',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.onSurface,
                   ),
-                ))),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'Data absensi akan muncul di sini',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String message) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(24.w),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.wifi_off, size: 64.w, color: AppColors.error),
+            SizedBox(height: 16.h),
+            Text(
+              'Gagal Memuat Data',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.onSurface,
+                  ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                  ),
+            ),
+            SizedBox(height: 24.h),
+            ElevatedButton.icon(
+              onPressed: _onRefresh,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Coba Lagi'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryContainer,
+                foregroundColor: AppColors.onPrimary,
+              ),
+            ),
           ],
         ),
       ),
@@ -175,72 +245,20 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
   Widget _buildStatusBadge(String status) {
     switch (status) {
       case 'on_time':
+      case 'present':
         return StatusBadge.onTime();
       case 'late':
         return StatusBadge.late();
       case 'absent':
         return StatusBadge.absent();
+      case 'flagged':
+        return const StatusBadge(
+            label: 'REVIEW',
+            backgroundColor: AppColors.warningAmber,
+            textColor: Colors.white);
       default:
         return StatusBadge.onTime();
     }
-  }
-
-  String _formatMonth(DateTime date) {
-    const months = [
-      'Januari',
-      'Februari',
-      'Maret',
-      'April',
-      'Mei',
-      'Juni',
-      'Juli',
-      'Agustus',
-      'September',
-      'Oktober',
-      'November',
-      'Desember'
-    ];
-    return '${months[date.month - 1]} ${date.year}';
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-
-  const _StatCard(
-      {required this.label, required this.value, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: InfoCard(
-        borderLeftColor: color,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: AppColors.onSurfaceVariant,
-                fontSize: 11.sp,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.5,
-              ),
-            ),
-            SizedBox(height: 4.h),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 

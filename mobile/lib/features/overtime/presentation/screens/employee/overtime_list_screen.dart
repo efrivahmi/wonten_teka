@@ -1,8 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/widgets/info_card.dart';
 
 class OvertimeListScreen extends StatelessWidget {
   const OvertimeListScreen({super.key});
@@ -10,94 +9,62 @@ class OvertimeListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          'Riwayat Lembur',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-      ),
+      backgroundColor: AppColors.surfaceContainerLowest,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/app/overtime/new'),
-        backgroundColor: AppColors.primaryContainer,
-        icon: const Icon(Icons.add, color: AppColors.onPrimaryContainer),
-        label: const Text(
-          'Ajukan Lembur',
-          style: TextStyle(
-            color: AppColors.onPrimaryContainer,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('Ajukan Lembur', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
-      body: ListView.builder(
-        padding: EdgeInsets.all(16.w),
-        itemCount: 3,
-        itemBuilder: (context, index) {
-          final statuses = ['Disetujui', 'Menunggu', 'Ditolak'];
-          final colors = [AppColors.successEmerald, AppColors.warningAmber, AppColors.errorCrimson];
-          
-          return Padding(
-            padding: EdgeInsets.only(bottom: 12.h),
-            child: InkWell(
-              onTap: () => context.push('/app/overtime/detail'),
-              borderRadius: BorderRadius.circular(16.r),
-              child: InfoCard(
-                borderLeftColor: colors[index],
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+      body: Stack(
+        children: [
+          Container(
+            height: 240.h,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(32.r), bottomRight: Radius.circular(32.r)),
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  child: Row(
+                    children: [
+                      IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => context.pop()),
+                      Expanded(child: Text('Riwayat Lembur', style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
+                      SizedBox(width: 48.w),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          'Lembur Proyek ${index + 1}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16.sp,
-                          ),
+                        Container(
+                          padding: EdgeInsets.all(24.w),
+                          decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20)]),
+                          child: Icon(Icons.more_time, size: 64.w, color: AppColors.primary),
                         ),
-                        SizedBox(height: 4.h),
-                        Text(
-                          '12 Okt 2026 â€¢ 18:00 - 21:00',
-                          style: TextStyle(
-                            color: AppColors.onSurfaceVariant,
-                            fontSize: 14.sp,
-                          ),
+                        SizedBox(height: 24.h),
+                        Text('Belum ada riwayat lembur', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+                        SizedBox(height: 8.h),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 32.w),
+                          child: Text('Riwayat pengajuan lembur Anda akan tampil di sini.', textAlign: TextAlign.center, style: TextStyle(fontSize: 14.sp, color: Colors.grey[600])),
                         ),
                       ],
                     ),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                      decoration: BoxDecoration(
-                        color: colors[index].withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20.r),
-                      ),
-                      child: Text(
-                        statuses[index],
-                        style: TextStyle(
-                          color: colors[index],
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12.sp,
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
 }
-

@@ -46,10 +46,13 @@ class AttendanceRepository {
       'longitude': longitude,
       'face_match_score': faceMatchScore,
       'device_id': deviceId,
+      'client_time': DateTime.now().toUtc().toIso8601String(),
     };
     
     if (flags != null) {
-      data['flags'] = flags;
+      flags.forEach((key, value) {
+        data['flags[$key]'] = value;
+      });
     }
 
     dynamic requestData;
@@ -77,6 +80,7 @@ class AttendanceRepository {
     final response = await _api.post('/attendance/check-out', data: {
       'latitude': latitude,
       'longitude': longitude,
+      'client_time': DateTime.now().toUtc().toIso8601String(),
     });
     final data = response.data as Map<String, dynamic>;
     return AttendanceLogModel.fromJson(data['data'] as Map<String, dynamic>);

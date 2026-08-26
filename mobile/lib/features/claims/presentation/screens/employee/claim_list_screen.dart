@@ -4,8 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/widgets/info_card.dart';
-import '../../../../../core/widgets/status_badge.dart';
 import '../../../bloc/claim_cubit.dart';
 
 class ClaimListScreen extends StatefulWidget {
@@ -24,151 +22,172 @@ class _ClaimListScreenState extends State<ClaimListScreen> {
     });
   }
 
-  IconData _getIconForCategory(String category) {
-    final lower = category.toLowerCase();
-    if (lower.contains('transport')) return Icons.directions_car;
-    if (lower.contains('makan')) return Icons.restaurant;
-    if (lower.contains('medis') || lower.contains('kesehatan')) {
-      return Icons.local_hospital;
-    }
-    return Icons.receipt_long;
-  }
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormatter =
-        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
-
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        title: Text('Riwayat Klaim',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppColors.primary, fontWeight: FontWeight.bold)),
-        centerTitle: true,
-      ),
+      backgroundColor: AppColors.surfaceContainerLowest,
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/app/claims/new'),
-        backgroundColor: AppColors.primaryContainer,
-        foregroundColor: AppColors.onPrimary,
-        icon: const Icon(Icons.add),
-        label: const Text('Ajukan Klaim'),
+        onPressed: () async {
+          await context.push('/app/claims/new');
+          if (!context.mounted) return;
+          context.read<ClaimCubit>().loadAll();
+        },
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('Ajukan Klaim', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
-      body: BlocBuilder<ClaimCubit, ClaimState>(
-        builder: (context, state) {
-          if (state is ClaimLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is ClaimError) {
-            return Center(
-                child: Text(state.message,
-                    style: const TextStyle(color: AppColors.error)));
-          } else if (state is ClaimLoaded) {
-            if (state.history.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 40.h),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+      body: Stack(
+        children: [
+          Container(
+            height: 240.h,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(32.r), bottomRight: Radius.circular(32.r)),
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  child: Row(
                     children: [
-                      Container(
-                        padding: EdgeInsets.all(24.w),
-                        decoration: const BoxDecoration(
-                          color: AppColors.surfaceContainerHigh,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(Icons.receipt_long,
-                            size: 48.w,
-                            color: AppColors.onSurfaceVariant
-                                .withValues(alpha: 0.5)),
-                      ),
-                      SizedBox(height: 16.h),
-                      Text('Belum ada klaim',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(
-                                  color: AppColors.onSurface,
-                                  fontWeight: FontWeight.bold)),
-                      SizedBox(height: 8.h),
-                      Text(
-                          'Anda belum pernah mengajukan klaim.\nKlik tombol di bawah untuk mulai.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: AppColors.onSurfaceVariant,
-                              fontSize: 14.sp)),
+                      IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => context.pop()),
+                      Expanded(child: Text('Riwayat Klaim', style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
+                      SizedBox(width: 48.w),
                     ],
                   ),
                 ),
-              );
-            }
-            return ListView.separated(
-              padding: EdgeInsets.all(16.w),
-              itemCount: state.history.length,
-              separatorBuilder: (_, __) => SizedBox(height: 12.h),
-              itemBuilder: (context, i) {
-                final claim = state.history[i];
-                return InfoCard(
-                  onTap: () =>
-                      context.push('/app/claims/detail'), // Should pass ID
-                  child: Row(children: [
-                    Container(
-                      width: 48.w,
-                      height: 48.w,
-                      decoration: BoxDecoration(
-                          color: AppColors.primaryFixed,
-                          borderRadius: BorderRadius.circular(12.r)),
-                      child: Icon(
-                          _getIconForCategory(claim.claimCategory?.name ?? ''),
+                SizedBox(height: 16.h),
+                Expanded(
+                  child: BlocBuilder<ClaimCubit, ClaimState>(
+                    builder: (context, state) {
+                      if (state is ClaimLoading) {
+                        return ListView.separated(
+                          padding: EdgeInsets.all(24.w),
+                          itemCount: 5,
+                          separatorBuilder: (_, __) => SizedBox(height: 16.h),
+                          itemBuilder: (_, __) => Container(height: 100.h, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16.r))),
+                        );
+                      } else if (state is ClaimLoaded) {
+                        final claims = state.history;
+                        if (claims.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(24.w),
+                                  decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20)]),
+                                  child: Icon(Icons.receipt_long, size: 64.w, color: AppColors.primary),
+                                ),
+                                SizedBox(height: 24.h),
+                                Text('Belum ada riwayat klaim', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+                                SizedBox(height: 8.h),
+                                Text('Ajukan reimbursement untuk biaya pekerjaan.', style: TextStyle(fontSize: 14.sp, color: Colors.grey[600])),
+                              ],
+                            ),
+                          );
+                        }
+
+                        return RefreshIndicator(
+                          onRefresh: () => context.read<ClaimCubit>().loadAll(),
                           color: AppColors.primary,
-                          size: 24.w),
-                    ),
-                    SizedBox(width: 16.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(claim.claimCategory?.name ?? 'Klaim',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold)),
-                          SizedBox(height: 4.h),
-                          Text(
-                              DateFormat('dd MMM yyyy')
-                                  .format(claim.expenseDate),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                      color: AppColors.onSurfaceVariant)),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(currencyFormatter.format(claim.amount),
-                            style: TextStyle(
-                                color: AppColors.onSurface,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14.sp)),
-                        SizedBox(height: 4.h),
-                        claim.status.toLowerCase() == 'approved'
-                            ? StatusBadge.approved()
-                            : claim.status.toLowerCase() == 'pending'
-                                ? StatusBadge.pending()
-                                : StatusBadge.rejected(),
-                      ],
-                    ),
-                  ]),
-                );
-              },
-            );
-          }
-          return const SizedBox.shrink();
-        },
+                          child: ListView.separated(
+                            padding: EdgeInsets.all(24.w),
+                            itemCount: claims.length,
+                            separatorBuilder: (_, __) => SizedBox(height: 16.h),
+                            itemBuilder: (context, index) {
+                              final item = claims[index];
+                              return Container(
+                                padding: EdgeInsets.all(16.w),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16.r),
+                                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            item.claimCategory?.name ?? 'Klaim',
+                                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp, color: AppColors.onSurface),
+                                            maxLines: 1, overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        _buildStatusChip(item.status),
+                                      ],
+                                    ),
+                                    SizedBox(height: 12.h),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.calendar_today, size: 16.w, color: Colors.grey[500]),
+                                        SizedBox(width: 8.w),
+                                        Text(DateFormat('dd MMM yyyy').format(item.expenseDate), style: TextStyle(color: Colors.grey[700], fontSize: 13.sp)),
+                                      ],
+                                    ),
+                                    SizedBox(height: 8.h),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.attach_money, size: 16.w, color: Colors.grey[500]),
+                                        SizedBox(width: 8.w),
+                                        Text(
+                                          NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0).format(item.amount),
+                                          style: TextStyle(color: Colors.grey[800], fontSize: 14.sp, fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      } else if (state is ClaimError) {
+                        return Center(child: Text(state.message, style: const TextStyle(color: AppColors.error)));
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(String status) {
+    Color color;
+    String label;
+    switch (status.toLowerCase()) {
+      case 'approved':
+        color = AppColors.successEmerald;
+        label = 'Disetujui';
+        break;
+      case 'rejected':
+        color = AppColors.errorCrimson;
+        label = 'Ditolak';
+        break;
+      default:
+        color = AppColors.warningAmber;
+        label = 'Pending';
+    }
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: color, fontSize: 11.sp, fontWeight: FontWeight.bold),
       ),
     );
   }

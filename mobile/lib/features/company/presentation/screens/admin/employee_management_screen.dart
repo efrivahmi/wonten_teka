@@ -1,9 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/widgets/info_card.dart';
 import '../../../../../core/api/api_client.dart';
 
 class EmployeeManagementScreen extends StatefulWidget {
@@ -19,8 +18,6 @@ class _EmployeeManagementScreenState extends State<EmployeeManagementScreen> {
   List<Map<String, dynamic>> _filteredEmployees = [];
   bool _isLoading = true;
   String _searchQuery = '';
-  String? _error;
-
   @override
   void initState() {
     super.initState();
@@ -30,7 +27,6 @@ class _EmployeeManagementScreenState extends State<EmployeeManagementScreen> {
   Future<void> _loadEmployees() async {
     setState(() {
       _isLoading = true;
-      _error = null;
     });
 
     try {
@@ -54,7 +50,6 @@ class _EmployeeManagementScreenState extends State<EmployeeManagementScreen> {
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _error = 'Gagal memuat data karyawan. Pastikan API endpoint tersedia.';
         _employees = [];
         _filteredEmployees = [];
       });
@@ -82,238 +77,183 @@ class _EmployeeManagementScreenState extends State<EmployeeManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          'Manajemen Karyawan',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-      ),
+      backgroundColor: AppColors.surfaceContainerLowest,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          final result = await context.push('/admin/employees/onboarding');
-          if (result == true) {
-            _loadEmployees();
-          }
+          await context.push('/app/admin/employees/new');
+          if (!mounted) return;
+          _loadEmployees();
         },
-        backgroundColor: AppColors.primaryContainer,
-        foregroundColor: AppColors.onPrimaryContainer,
-        icon: const Icon(Icons.person_add),
-        label:
-            const Text('Tambah', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: AppColors.errorCrimson,
+        icon: const Icon(Icons.person_add, color: Colors.white),
+        label: const Text('Tambah', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          // Search Bar
           Container(
-            color: AppColors.surface,
-            padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
-            child: TextField(
-              onChanged: _filterEmployees,
-              decoration: InputDecoration(
-                hintText: 'Cari karyawan...',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: AppColors.surfaceContainerLow,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            height: 240.h,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              gradient: LinearGradient(
+                colors: [AppColors.primary, AppColors.errorCrimson.withValues(alpha: 0.8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(32.r), bottomRight: Radius.circular(32.r)),
             ),
           ),
+          SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  child: Row(
+                    children: [
+                      IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => context.pop()),
+                      Expanded(child: Text('Daftar Karyawan', style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
+                      SizedBox(width: 48.w),
+                    ],
+                  ),
+                ),
+                
+                // Search Bar
+                Padding(
+                  padding: EdgeInsets.all(24.w),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16.r),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))],
+                    ),
+                    child: TextField(
+                      controller: TextEditingController(text: _searchQuery),
+                      decoration: InputDecoration(
+                        hintText: 'Cari nama atau NIK...',
+                        border: InputBorder.none,
+                        icon: Icon(Icons.search, color: Colors.grey[400]),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.filter_list, color: AppColors.primary),
+                          onPressed: () {
+                            // TODO: Show filters
+                          },
+                        ),
+                      ),
+                      onChanged: (value) {
+                        _filterEmployees(value);
+                      },
+                    ),
+                  ),
+                ),
+                
+                Expanded(
+                  child: Builder(
+                    builder: (context) {
+                      if (_isLoading) {
+                        return ListView.separated(
+                          padding: EdgeInsets.symmetric(horizontal: 24.w),
+                          itemCount: 5,
+                          separatorBuilder: (_, __) => SizedBox(height: 16.h),
+                          itemBuilder: (_, __) => Container(height: 80.h, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16.r))),
+                        );
+                      } else {
+                        final employees = _filteredEmployees;
+                        if (employees.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(24.w),
+                                  decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20)]),
+                                  child: Icon(Icons.group_off, size: 64.w, color: AppColors.errorCrimson),
+                                ),
+                                SizedBox(height: 24.h),
+                                Text('Tidak ada karyawan', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+                              ],
+                            ),
+                          );
+                        }
 
-          // Content
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
-                    ? _buildErrorState()
-                    : _filteredEmployees.isEmpty
-                        ? _buildEmptyState()
-                        : _buildEmployeeList(),
+                        return RefreshIndicator(
+                          onRefresh: _loadEmployees,
+                          color: AppColors.errorCrimson,
+                          child: ListView.separated(
+                            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
+                            itemCount: employees.length,
+                            separatorBuilder: (_, __) => SizedBox(height: 16.h),
+                            itemBuilder: (context, index) {
+                              final item = employees[index];
+                              return GestureDetector(
+                                onTap: () => context.push('/app/admin/employees/${item['id']}'),
+                                child: Container(
+                                  padding: EdgeInsets.all(16.w),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16.r),
+                                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 50.w,
+                                        height: 50.w,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primaryContainer,
+                                          shape: BoxShape.circle,
+                                          image: item['photo_url'] != null
+                                              ? DecorationImage(image: NetworkImage(item['photo_url']), fit: BoxFit.cover)
+                                              : null,
+                                        ),
+                                        child: item['photo_url'] == null
+                                            ? Icon(Icons.person, color: AppColors.primary, size: 24.w)
+                                            : null,
+                                      ),
+                                      SizedBox(width: 16.w),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              item['full_name'] ?? 'No Name',
+                                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp, color: AppColors.onSurface),
+                                              maxLines: 1, overflow: TextOverflow.ellipsis,
+                                            ),
+                                            SizedBox(height: 4.h),
+                                            Text(
+                                              item['position']?.toString() ?? 'No Position',
+                                              style: TextStyle(color: Colors.grey[600], fontSize: 13.sp),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                                        decoration: BoxDecoration(
+                                          color: (item['is_active'] == true) ? AppColors.successEmerald.withValues(alpha: 0.1) : AppColors.error.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(8.r),
+                                        ),
+                                        child: Text(
+                                          (item['is_active'] == true) ? 'Aktif' : 'Non-aktif',
+                                          style: TextStyle(color: (item['is_active'] == true) ? AppColors.successEmerald : AppColors.error, fontSize: 10.sp, fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
-
-  Widget _buildErrorState() {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(32.w),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.cloud_off,
-                size: 64.w, color: AppColors.onSurfaceVariant),
-            SizedBox(height: 16.h),
-            Text(
-              _error!,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.onSurfaceVariant,
-                  ),
-            ),
-            SizedBox(height: 16.h),
-            ElevatedButton.icon(
-              onPressed: _loadEmployees,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Coba Lagi'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(32.w),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.people_outline,
-                size: 64.w, color: AppColors.onSurfaceVariant),
-            SizedBox(height: 16.h),
-            Text(
-              _searchQuery.isNotEmpty
-                  ? 'Tidak ditemukan karyawan dengan kata kunci "$_searchQuery"'
-                  : 'Belum ada karyawan terdaftar.\nTekan tombol + untuk menambahkan.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.onSurfaceVariant,
-                  ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmployeeList() {
-    return RefreshIndicator(
-      onRefresh: _loadEmployees,
-      child: ListView.separated(
-        padding: EdgeInsets.all(16.w),
-        itemCount: _filteredEmployees.length,
-        separatorBuilder: (_, __) => SizedBox(height: 8.h),
-        itemBuilder: (context, index) {
-          final emp = _filteredEmployees[index];
-          final name = emp['full_name'] ?? 'Tanpa Nama';
-          final department = emp['department'] ?? '-';
-          final position = emp['position'] ?? '-';
-          final empNumber = emp['employee_number'] ?? '-';
-          final isActive = emp['is_active'] == true || emp['is_active'] == 1;
-
-          return InfoCard(
-            onTap: () async {
-              final result =
-                  await context.push('/admin/employees/detail', extra: emp);
-              if (result == true) {
-                _loadEmployees();
-              }
-            },
-            child: Row(
-              children: [
-                // Avatar
-                Container(
-                  width: 48.w,
-                  height: 48.w,
-                  decoration: BoxDecoration(
-                    color: isActive
-                        ? AppColors.primaryFixed
-                        : AppColors.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  child: Center(
-                    child: Text(
-                      name.isNotEmpty ? name[0].toUpperCase() : '?',
-                      style: TextStyle(
-                        color: isActive
-                            ? AppColors.primary
-                            : AppColors.onSurfaceVariant,
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 12.w),
-                // Info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              name,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.copyWith(
-                                    color: AppColors.onSurface,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                          ),
-                          if (!isActive)
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 6.w, vertical: 2.h),
-                              decoration: BoxDecoration(
-                                color: AppColors.errorContainer,
-                                borderRadius: BorderRadius.circular(4.r),
-                              ),
-                              child: Text(
-                                'Nonaktif',
-                                style: TextStyle(
-                                  color: AppColors.error,
-                                  fontSize: 10.sp,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      SizedBox(height: 2.h),
-                      Text(
-                        '$position â€¢ $department',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.onSurfaceVariant,
-                            ),
-                      ),
-                      Text(
-                        empNumber,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.onSurfaceVariant,
-                              fontSize: 11.sp,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(Icons.chevron_right, color: AppColors.outline, size: 20.w),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
 }
-

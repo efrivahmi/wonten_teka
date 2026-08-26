@@ -1,8 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 // Models
 import 'models/company_models.dart';
+import 'models/attendance_log_model.dart';
+import 'models/payslip_model.dart';
 
 // Pre-auth
 import '../features/onboarding/presentation/screens/employee/splash_screen.dart';
@@ -21,6 +23,7 @@ import 'widgets/bottom_nav_shell.dart';
 import '../features/dashboard/presentation/screens/employee/home_dashboard_screen.dart';
 import '../features/attendance/presentation/screens/employee/attendance_history_screen.dart';
 import '../features/attendance/presentation/screens/employee/face_check_in_screen.dart';
+import '../features/attendance/presentation/screens/employee/check_out_screen.dart';
 import '../features/attendance/presentation/screens/employee/check_in_success_screen.dart';
 import '../features/attendance/presentation/screens/employee/attendance_detail_screen.dart';
 import '../features/attendance/presentation/screens/attendance_report_screen.dart';
@@ -119,8 +122,16 @@ final appRouter = GoRouter(
         path: '/app/attendance/check-in',
         builder: (_, __) => const FaceCheckInScreen()),
     GoRoute(
+        path: '/app/attendance/check-out',
+        builder: (_, __) => const CheckOutScreen()),
+    GoRoute(
         path: '/app/attendance/success',
-        builder: (_, __) => const CheckInSuccessScreen()),
+        builder: (_, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          final log = extra['log'] as AttendanceLogModel;
+          final isCheckOut = extra['isCheckOut'] as bool? ?? false;
+          return CheckInSuccessScreen(log: log, isCheckOut: isCheckOut);
+        }),
     GoRoute(
         path: '/app/attendance/detail',
         builder: (_, __) => const AttendanceDetailScreen()),
@@ -164,7 +175,11 @@ final appRouter = GoRouter(
         path: '/app/payslip', builder: (_, __) => const PayslipListScreen()),
     GoRoute(
         path: '/app/payslip/detail',
-        builder: (_, __) => const PayslipDetailScreen()),
+        builder: (_, state) {
+          final payslip = state.extra as PayslipModel?;
+          if (payslip == null) return const PayslipListScreen();
+          return PayslipDetailScreen(payslip: payslip);
+        }),
 
     GoRoute(
         path: '/app/calendar',
