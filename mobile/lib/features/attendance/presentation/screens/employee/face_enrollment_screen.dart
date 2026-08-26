@@ -152,6 +152,9 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
       }
 
       if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
         context.read<AuthBloc>().add(AuthCheckSession());
       }
     } catch (e) {

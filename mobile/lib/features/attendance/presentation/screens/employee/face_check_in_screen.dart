@@ -14,6 +14,7 @@ import 'package:geocoding/geocoding.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/storage/secure_storage.dart';
 import '../../../../../core/services/face_matcher_service.dart';
+import '../../../../company/bloc/company_cubit.dart';
 import '../../../bloc/attendance_cubit.dart';
 import '../../widgets/camera_preview_widget.dart';
 
@@ -80,23 +81,55 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
     }
 
     try {
-      final position = await Geolocator.getCurrentPosition();
+      Position? position;
+      try {
+        position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+          timeLimit: const Duration(seconds: 5),
+        );
+      } catch (e) {
+        // Fallback if getCurrentPosition times out
+        position = await Geolocator.getLastKnownPosition();
+      }
       
-      // Simulate checking against office radius
-      // In a real app, calculate distance to office lat/long
-      bool inRadius = true; // Placeholder for actual radius check
+      if (position == null) {
+        if (mounted) setState(() => _locationStatus = "Gagal mendapatkan lokasi GPS.");
+        return;
+      }
+      
+      bool inRadius = true; // Fallback if no geofence data is available
+      final companyState = context.read<CompanyCubit>().state;
+      if (companyState is CompanyLoaded && companyState.geofence != null) {
+        final geofence = companyState.geofence!;
+        final double officeLat = double.tryParse(geofence['latitude']?.toString() ?? '') ?? 0.0;
+        final double officeLng = double.tryParse(geofence['longitude']?.toString() ?? '') ?? 0.0;
+        final double radius = double.tryParse(geofence['geofence_radius_meters']?.toString() ?? '') ?? 100.0;
+        
+        if (officeLat != 0.0 && officeLng != 0.0) {
+          final distance = Geolocator.distanceBetween(
+              position.latitude, position.longitude, officeLat, officeLng);
+          inRadius = distance <= radius;
+        }
+      }
+
+      bool isMock = position.isMocked;
 
       if (mounted) {
         setState(() {
           _currentPosition = position;
-          _isLocationValid = inRadius;
-          _locationStatus = inRadius ? "Lokasi Sesuai Radius" : "Di Luar Radius Kantor";
+          if (isMock) {
+            _isLocationValid = false;
+            _locationStatus = "Terdeteksi Fake GPS! Harap matikan aplikasi lokasi palsu Anda.";
+          } else {
+            _isLocationValid = inRadius;
+            _locationStatus = inRadius ? "Lokasi Sesuai Radius" : "Anda berada di luar radius absen kantor.";
+          }
         });
       }
       
       // Reverse Geocoding
       try {
-        List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+        List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude).timeout(const Duration(seconds: 5));
         if (placemarks.isNotEmpty && mounted) {
           final place = placemarks[0];
           setState(() {
@@ -130,7 +163,7 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
   }
 
   Future<void> _handleCheckIn() async {
-    if (_currentPosition == null || !_isFaceProper || _isTooDark || _isCapturing) return;
+    if (_currentPosition == null || !_isFaceProper || _isTooDark || _isCapturing || !_isLocationValid) return;
 
     setState(() => _isCapturing = true);
     await _cameraKey.currentState?.takePhoto();
@@ -242,140 +275,183 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                   ),
                 ),
 
-                const Spacer(),
-
-                // Face Detection Area
-                Center(
-                  child: Container(
-                    width: 280.w,
-                    height: 280.w,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.surfaceContainerHigh,
-                      border: Border.all(
-                        color: _isFaceProper && !_isTooDark
-                            ? AppColors.primaryContainer
-                            : (_isTooDark ? AppColors.error : AppColors.secondary),
-                        width: 4.w,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: (_isFaceProper && !_isTooDark
-                                  ? AppColors.primaryContainer
-                                  : AppColors.secondary)
-                              .withValues(alpha: 0.2),
-                          blurRadius: 24,
-                          spreadRadius: 4,
-                        ),
-                      ],
-                    ),
-                    child: ClipOval(
-                      child: _capturedImage != null
-                          ? Image.file(_capturedImage!, fit: BoxFit.cover)
-                          : CameraPreviewWidget(
-                              key: _cameraKey,
-                              onFaceValidationChanged: _handleFaceValidation,
-                              onFaceEmbeddingGenerated: _handleFaceEmbedding,
-                              onPhotoCaptured: _onPhotoCaptured,
-                            ),
-                    ),
-                  ).animate(target: (_isFaceProper && !_isTooDark) ? 1 : 0).scale(
-                      duration: 300.ms,
-                      curve: Curves.easeOutBack,
-                      end: const Offset(1.05, 1.05)),
-                ),
-
-                SizedBox(height: 16.h),
-                // Face Detection Status
-                Text(
-                  _isTooDark
-                      ? "Cahaya terlalu gelap"
-                      : _isFaceProper
-                          ? "Wajah terdeteksi (Lurus ke Depan)"
-                          : _isFaceDetected
-                              ? "Arahkan wajah lurus ke depan"
-                              : "Wajah tidak terdeteksi",
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: _isTooDark
-                            ? AppColors.error
-                            : (_isFaceProper ? AppColors.primary : AppColors.secondary),
-                        fontWeight: FontWeight.bold,
-                      ),
-                ).animate(target: (_isFaceProper && !_isTooDark) ? 1 : 0).fade().scale(),
-
-                SizedBox(height: 24.h),
-
-                // GPS Indicator
-                Container(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                  decoration: BoxDecoration(
-                    color: _isLocationValid
-                        ? const Color(0xFF10B981).withValues(alpha: 0.1)
-                        : AppColors.surfaceContainer,
-                    borderRadius: BorderRadius.circular(24.r),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 16.w,
-                        color: _isLocationValid
-                            ? const Color(0xFF10B981)
-                            : AppColors.secondary,
-                      ),
-                      SizedBox(width: 8.w),
-                      Text(
-                        _locationStatus,
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              color: _isLocationValid
-                                  ? const Color(0xFF10B981)
-                                  : AppColors.secondary,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                SizedBox(height: 8.h),
-                
-                // Detailed Address
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24.w),
-                  child: Text(
-                    _currentAddress,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-
-                if (_showDebug) ...[
-                  SizedBox(height: 16.h),
-                  Container(
-                    padding: EdgeInsets.all(12.w),
-                    margin: EdgeInsets.symmetric(horizontal: 24.w),
-                    decoration: BoxDecoration(
-                      color: Colors.black87,
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
+                Expanded(
+                  child: SingleChildScrollView(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text('DEBUG PANEL', style: TextStyle(color: Colors.yellow, fontWeight: FontWeight.bold, fontSize: 12.sp)),
-                        SizedBox(height: 4.h),
-                        Text('Mock Location: ${_currentPosition?.isMocked ?? false}', style: TextStyle(color: Colors.white, fontSize: 11.sp)),
-                        Text('Lat/Lng: ${_currentPosition?.latitude ?? "-"}, ${_currentPosition?.longitude ?? "-"}', style: TextStyle(color: Colors.white, fontSize: 11.sp)),
-                        Text('Face Detected: $_isFaceDetected | Proper: $_isFaceProper', style: TextStyle(color: Colors.white, fontSize: 11.sp)),
-                        Text('Too Dark: $_isTooDark', style: TextStyle(color: Colors.white, fontSize: 11.sp)),
+                        SizedBox(height: 24.h),
+                        // Face Detection Area
+                        Center(
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Container(
+                                width: 280.w,
+                                height: 280.w,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppColors.surfaceContainerHigh,
+                                  border: Border.all(
+                                    color: _isFaceProper && !_isTooDark
+                                        ? AppColors.primaryContainer
+                                        : (_isTooDark ? AppColors.error : AppColors.secondary),
+                                    width: 4.w,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: (_isFaceProper && !_isTooDark
+                                              ? AppColors.primaryContainer
+                                              : AppColors.secondary)
+                                          .withValues(alpha: 0.2),
+                                      blurRadius: 24,
+                                      spreadRadius: 4,
+                                    ),
+                                  ],
+                                ),
+                                child: ClipOval(
+                                  child: _capturedImage != null
+                                      ? Image.file(_capturedImage!, fit: BoxFit.cover)
+                                      : CameraPreviewWidget(
+                                          key: _cameraKey,
+                                          onFaceValidationChanged: _handleFaceValidation,
+                                          onFaceEmbeddingGenerated: _handleFaceEmbedding,
+                                          onPhotoCaptured: _onPhotoCaptured,
+                                        ),
+                                ),
+                              ).animate(target: (_isFaceProper && !_isTooDark) ? 1 : 0).scale(
+                                  duration: 300.ms,
+                                  curve: Curves.easeOutBack,
+                                  end: const Offset(1.05, 1.05)),
+                                  
+                              // Liveness Scanning Animation
+                              if (_isFaceProper && !_isTooDark && _capturedImage == null && !isLoading)
+                                Positioned.fill(
+                                  child: ClipOval(
+                                    child: Align(
+                                      alignment: Alignment.topCenter,
+                                      child: Container(
+                                        width: double.infinity,
+                                        height: 4.h,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primary,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: AppColors.primary,
+                                              blurRadius: 10,
+                                              spreadRadius: 2,
+                                            )
+                                          ]
+                                        ),
+                                      ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+                                       .moveY(begin: 0, end: 280.w, duration: 1500.ms, curve: Curves.easeInOut),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+
+                        SizedBox(height: 16.h),
+                        // Face Detection Status
+                        Text(
+                          _isTooDark
+                              ? "Cahaya terlalu gelap"
+                              : _isFaceProper
+                                  ? "Wajah terdeteksi (Lurus ke Depan)"
+                                  : _isFaceDetected
+                                      ? "Arahkan wajah lurus ke depan"
+                                      : "Wajah tidak terdeteksi",
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: _isTooDark
+                                    ? AppColors.error
+                                    : (_isFaceProper ? AppColors.primary : AppColors.secondary),
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ).animate(target: (_isFaceProper && !_isTooDark) ? 1 : 0).fade().scale(),
+
+                        SizedBox(height: 24.h),
+
+                        // GPS Indicator & Address
+                        Container(
+                          margin: EdgeInsets.symmetric(horizontal: 24.w),
+                          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                          decoration: BoxDecoration(
+                            color: _isLocationValid
+                                ? const Color(0xFF10B981).withValues(alpha: 0.1)
+                                : AppColors.error.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(16.r),
+                            border: Border.all(
+                              color: _isLocationValid ? const Color(0xFF10B981) : AppColors.error,
+                              width: 1,
+                            )
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.location_on,
+                                    size: 20.w,
+                                    color: _isLocationValid
+                                        ? const Color(0xFF10B981)
+                                        : AppColors.error,
+                                  ),
+                                  SizedBox(width: 8.w),
+                                  Expanded(
+                                    child: Text(
+                                      _locationStatus,
+                                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                            color: _isLocationValid
+                                                ? const Color(0xFF10B981)
+                                                : AppColors.error,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (!_isLocationValid) ...[
+                                SizedBox(height: 8.h),
+                                Text(
+                                  'Lokasi Anda saat ini:\n$_currentAddress',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: AppColors.onSurfaceVariant,
+                                      ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        if (_showDebug) ...[
+                          SizedBox(height: 16.h),
+                          Container(
+                            padding: EdgeInsets.all(12.w),
+                            margin: EdgeInsets.symmetric(horizontal: 24.w),
+                            decoration: BoxDecoration(
+                              color: Colors.black87,
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Text('DEBUG PANEL', style: TextStyle(color: Colors.yellow, fontWeight: FontWeight.bold, fontSize: 12.sp)),
+                                SizedBox(height: 4.h),
+                                Text('Mock Location: ${_currentPosition?.isMocked ?? false}', style: TextStyle(color: Colors.white, fontSize: 11.sp)),
+                                Text('Lat/Lng: ${_currentPosition?.latitude ?? "-"}, ${_currentPosition?.longitude ?? "-"}', style: TextStyle(color: Colors.white, fontSize: 11.sp)),
+                                Text('Face Detected: $_isFaceDetected | Proper: $_isFaceProper', style: TextStyle(color: Colors.white, fontSize: 11.sp)),
+                                Text('Too Dark: $_isTooDark', style: TextStyle(color: Colors.white, fontSize: 11.sp)),
+                              ],
+                            ),
+                          ),
+                        ],
+                        SizedBox(height: 24.h),
                       ],
                     ),
                   ),
-                ],
-
-                const Spacer(),
+                ),
 
                 // Action Button
                 Padding(

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -66,7 +66,42 @@ class _ClaimListScreenState extends State<ClaimListScreen> {
                     style: const TextStyle(color: AppColors.error)));
           } else if (state is ClaimLoaded) {
             if (state.history.isEmpty) {
-              return const Center(child: Text('Belum ada riwayat klaim'));
+              return Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40.h),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(24.w),
+                        decoration: const BoxDecoration(
+                          color: AppColors.surfaceContainerHigh,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.receipt_long,
+                            size: 48.w,
+                            color: AppColors.onSurfaceVariant
+                                .withValues(alpha: 0.5)),
+                      ),
+                      SizedBox(height: 16.h),
+                      Text('Belum ada klaim',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                                  color: AppColors.onSurface,
+                                  fontWeight: FontWeight.bold)),
+                      SizedBox(height: 8.h),
+                      Text(
+                          'Anda belum pernah mengajukan klaim.\nKlik tombol di bawah untuk mulai.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              color: AppColors.onSurfaceVariant,
+                              fontSize: 14.sp)),
+                    ],
+                  ),
+                ),
+              );
             }
             return ListView.separated(
               padding: EdgeInsets.all(16.w),

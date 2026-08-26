@@ -19,6 +19,25 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+subprojects {
+    val proj = this
+    fun forceSdk() {
+        if (proj.plugins.hasPlugin("com.android.library") || proj.plugins.hasPlugin("com.android.application")) {
+            val ext = proj.extensions.findByName("android")
+            if (ext != null) {
+                try {
+                    ext.javaClass.getMethod("setCompileSdkVersion", Int::class.java).invoke(ext, 36)
+                } catch (e: Exception) {}
+            }
+        }
+    }
+    if (proj.state.executed) {
+        forceSdk()
+    } else {
+        proj.afterEvaluate { forceSdk() }
+    }
+}
+
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }

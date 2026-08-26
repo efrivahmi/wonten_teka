@@ -18,16 +18,18 @@ class CompanyLoaded extends CompanyState {
   final List<AnnouncementModel> announcements;
   final List<Map<String, dynamic>> attendanceLogs;
   final List<int> workingDays;
+  final Map<String, dynamic>? geofence;
   
   const CompanyLoaded({
     this.calendarEvents = const [], 
     this.announcements = const [],
     this.attendanceLogs = const [],
     this.workingDays = const [1,2,3,4,5],
+    this.geofence,
   });
   
   @override
-  List<Object?> get props => [calendarEvents, announcements, attendanceLogs, workingDays];
+  List<Object?> get props => [calendarEvents, announcements, attendanceLogs, workingDays, geofence];
 }
 
 class CompanyError extends CompanyState {
@@ -50,6 +52,7 @@ class CompanyCubit extends Cubit<CompanyState> {
       final results = await Future.wait([
         _repo.getCalendar(month: month, year: year),
         _repo.getAnnouncements(),
+        _repo.getGeofence().catchError((_) => <String, dynamic>{}), // Optional fallback
       ]);
       
       final calendarData = results[0] as Map<String, dynamic>;
@@ -62,6 +65,7 @@ class CompanyCubit extends Cubit<CompanyState> {
         attendanceLogs: logs,
         workingDays: wDays,
         announcements: (results[1] as dynamic).data as List<AnnouncementModel>,
+        geofence: (results[2] as Map<String, dynamic>).isNotEmpty ? results[2] as Map<String, dynamic> : null,
       ));
     } on ApiException catch (e) {
       emit(CompanyError(e.message));

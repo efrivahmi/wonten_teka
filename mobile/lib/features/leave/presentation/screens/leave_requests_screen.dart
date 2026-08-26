@@ -94,7 +94,41 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
 
                   // Request List
                   if (state.history.isEmpty)
-                    const Center(child: Text('Belum ada riwayat cuti'))
+                    Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 40.h),
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(24.w),
+                              decoration: const BoxDecoration(
+                                color: AppColors.surfaceContainerHigh,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(Icons.event_busy,
+                                  size: 48.w,
+                                  color: AppColors.onSurfaceVariant
+                                      .withValues(alpha: 0.5)),
+                            ),
+                            SizedBox(height: 16.h),
+                            Text('Belum ada riwayat cuti',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                        color: AppColors.onSurface,
+                                        fontWeight: FontWeight.bold)),
+                            SizedBox(height: 8.h),
+                            Text(
+                                'Anda belum pernah mengajukan cuti.\nKlik tombol di bawah untuk mulai.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: AppColors.onSurfaceVariant,
+                                    fontSize: 14.sp)),
+                          ],
+                        ),
+                      ),
+                    )
                   else
                     ...state.history.map((request) {
                       return Padding(

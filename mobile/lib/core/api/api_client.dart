@@ -42,6 +42,7 @@ class ApiClient {
     );
 
     _dio.interceptors.addAll([
+      LogInterceptor(request: true, requestHeader: true, requestBody: true, responseHeader: true, responseBody: true, error: true),
       _AuthInterceptor(_storage),
       _ErrorInterceptor(),
     ]);

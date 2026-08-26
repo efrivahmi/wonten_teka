@@ -1,78 +1,224 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
+import '../../../../schedule/bloc/task_cubit.dart';
+import '../../../../../core/models/task_device_models.dart';
 
-class HabitTrackerScreen extends StatelessWidget {
+class HabitTrackerScreen extends StatefulWidget {
   const HabitTrackerScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final habits = [
-      {'name': 'Olahraga Pagi', 'streak': 12, 'icon': Icons.fitness_center, 'done': true, 'time': '06:00'},
-      {'name': 'Baca Buku', 'streak': 5, 'icon': Icons.menu_book, 'done': true, 'time': '07:00'},
-      {'name': 'Meditasi', 'streak': 3, 'icon': Icons.self_improvement, 'done': false, 'time': '21:00'},
-      {'name': 'Belajar Bahasa', 'streak': 0, 'icon': Icons.translate, 'done': false, 'time': '20:00'},
-    ];
+  State<HabitTrackerScreen> createState() => _HabitTrackerScreenState();
+}
 
+class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<TaskCubit>().loadTasks();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surfaceContainerLow,
-      appBar: AppBar(backgroundColor: AppColors.surface, elevation: 0,
-        title: Text('Habit Tracker', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)), centerTitle: true),
+      appBar: AppBar(
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        title: Text(
+          'Habit Tracker',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        centerTitle: true,
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/app/habits/new'),
-        backgroundColor: AppColors.primaryContainer, foregroundColor: AppColors.onPrimary,
+        backgroundColor: AppColors.primaryContainer,
+        foregroundColor: AppColors.onPrimary,
         child: const Icon(Icons.add),
       ),
-      body: SingleChildScrollView(padding: EdgeInsets.all(16.w), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // Today's Progress
-        InfoCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Hari Ini', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-          SizedBox(height: 12.h),
-          ClipRRect(borderRadius: BorderRadius.circular(4.r), child: LinearProgressIndicator(
-            value: 0.5, backgroundColor: AppColors.surfaceContainerHigh,
-            valueColor: const AlwaysStoppedAnimation(AppColors.successEmerald), minHeight: 8.h,
-          )),
-          SizedBox(height: 8.h),
-          Text('2 dari 4 habit selesai', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp)),
-        ])),
-        SizedBox(height: 24.h),
+      body: BlocConsumer<TaskCubit, TaskState>(
+        listener: (context, state) {
+          if (state is TaskActionSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.successEmerald,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          } else if (state is TaskError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is TaskLoading && context.read<TaskCubit>().state is! TaskLoaded) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        Text('Habit Saya', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-        SizedBox(height: 12.h),
-        ...habits.map((h) => Padding(padding: EdgeInsets.only(bottom: 12.h), child: InfoCard(
-          onTap: () => context.push('/app/habits/detail'),
-          child: Row(children: [
-            Container(
-              width: 48.w, height: 48.w,
-              decoration: BoxDecoration(
-                color: (h['done'] as bool) ? AppColors.successEmerald.withValues(alpha: 0.1) : AppColors.surfaceContainerHigh,
-                borderRadius: BorderRadius.circular(12.r)),
-              child: Icon(h['icon'] as IconData, color: (h['done'] as bool) ? AppColors.successEmerald : AppColors.onSurfaceVariant, size: 24.w),
+          List<PersonalTaskModel> tasks = [];
+          if (state is TaskLoaded) {
+            tasks = state.tasks;
+          } else if (context.read<TaskCubit>().state is TaskLoaded) {
+            tasks = (context.read<TaskCubit>().state as TaskLoaded).tasks;
+          }
+
+          final completedCount = tasks.where((t) => t.isCompletedToday ?? false).length;
+          final totalCount = tasks.length;
+          final progress = totalCount > 0 ? completedCount / totalCount : 0.0;
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              await context.read<TaskCubit>().loadTasks();
+            },
+            color: AppColors.primary,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.all(16.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Today's Progress
+                  InfoCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Hari Ini',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w600)),
+                        SizedBox(height: 12.h),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4.r),
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            backgroundColor: AppColors.surfaceContainerHigh,
+                            valueColor: const AlwaysStoppedAnimation(
+                                AppColors.successEmerald),
+                            minHeight: 8.h,
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        Text('$completedCount dari $totalCount habit selesai',
+                            style: TextStyle(
+                                color: AppColors.onSurfaceVariant,
+                                fontSize: 12.sp)),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 24.h),
+
+                  Text('Habit Saya',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w600)),
+                  SizedBox(height: 12.h),
+                  
+                  if (tasks.isEmpty)
+                    Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 32.h),
+                        child: Column(
+                          children: [
+                            Icon(Icons.self_improvement, size: 64.w, color: AppColors.onSurfaceVariant.withValues(alpha: 0.5)),
+                            SizedBox(height: 16.h),
+                            Text('Belum ada habit.', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
+                            Text('Tap + untuk memulai rutinitas baru.', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp)),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    ...tasks.map((h) => Padding(
+                          padding: EdgeInsets.only(bottom: 12.h),
+                          child: InfoCard(
+                            onTap: () {},
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 48.w,
+                                  height: 48.w,
+                                  decoration: BoxDecoration(
+                                      color: (h.isCompletedToday ?? false)
+                                          ? AppColors.successEmerald.withValues(alpha: 0.1)
+                                          : AppColors.surfaceContainerHigh,
+                                      borderRadius: BorderRadius.circular(12.r)),
+                                  child: Icon(Icons.star_outline,
+                                      color: (h.isCompletedToday ?? false)
+                                          ? AppColors.successEmerald
+                                          : AppColors.onSurfaceVariant,
+                                      size: 24.w),
+                                ),
+                                SizedBox(width: 16.w),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(h.title,
+                                          style: TextStyle(
+                                              color: AppColors.onSurface,
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14.sp)),
+                                      SizedBox(height: 2.h),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.local_fire_department,
+                                              size: 14.w,
+                                              color: AppColors.warningAmber),
+                                          SizedBox(width: 4.w),
+                                          Text('${h.streakCount ?? 0} hari streak',
+                                              style: TextStyle(
+                                                  color: AppColors.onSurfaceVariant,
+                                                  fontSize: 12.sp)),
+                                          SizedBox(width: 12.w),
+                                          Icon(Icons.schedule,
+                                              size: 14.w,
+                                              color: AppColors.onSurfaceVariant),
+                                          SizedBox(width: 4.w),
+                                          Text(h.reminderTime != null ? h.reminderTime!.substring(0, 5) : '-',
+                                              style: TextStyle(
+                                                  color: AppColors.onSurfaceVariant,
+                                                  fontSize: 12.sp)),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Checkbox(
+                                  value: h.isCompletedToday ?? false,
+                                  onChanged: (h.isCompletedToday ?? false) ? null : (_) {
+                                    context.read<TaskCubit>().completeTask(h.id);
+                                  },
+                                  activeColor: AppColors.successEmerald,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4.r)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )),
+                ],
+              ),
             ),
-            SizedBox(width: 16.w),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(h['name'] as String, style: TextStyle(color: AppColors.onSurface, fontWeight: FontWeight.w600, fontSize: 14.sp)),
-              SizedBox(height: 2.h),
-              Row(children: [
-                Icon(Icons.local_fire_department, size: 14.w, color: AppColors.warningAmber),
-                SizedBox(width: 4.w),
-                Text('${h['streak']} hari streak', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp)),
-                SizedBox(width: 12.w),
-                Icon(Icons.schedule, size: 14.w, color: AppColors.onSurfaceVariant),
-                SizedBox(width: 4.w),
-                Text(h['time'] as String, style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp)),
-              ]),
-            ])),
-            Checkbox(
-              value: h['done'] as bool, onChanged: (_) {},
-              activeColor: AppColors.successEmerald,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.r)),
-            ),
-          ]),
-        ))),
-      ])),
+          );
+        },
+      ),
     );
   }
 }
