@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
@@ -92,7 +93,10 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                   final log = state.logs[index];
                   return Padding(
                     padding: EdgeInsets.only(bottom: 12.h),
-                    child: InfoCard(
+                    child: InkWell(
+                      onTap: () => context.push('/app/attendance/detail', extra: log),
+                      borderRadius: BorderRadius.circular(16.r),
+                      child: InfoCard(
                       child: Row(
                         children: [
                           Expanded(
@@ -132,6 +136,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                           _buildStatusBadge(log.status),
                         ],
                       ),
+                     ),
                     ),
                   );
                 },

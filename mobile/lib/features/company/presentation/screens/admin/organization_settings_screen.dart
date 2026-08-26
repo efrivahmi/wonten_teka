@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -101,12 +101,6 @@ class _OrganizationSettingsScreenState
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
-    }
-  }
-
-  void _moveToLocation() {
-    if (_selectedLocation != null) {
-      _mapController.move(_selectedLocation!, 16);
     }
   }
 

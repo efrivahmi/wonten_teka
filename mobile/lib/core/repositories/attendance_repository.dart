@@ -76,14 +76,41 @@ class AttendanceRepository {
   Future<AttendanceLogModel> checkOut({
     required double latitude,
     required double longitude,
+    required double faceMatchScore,
+    required String deviceId,
+    File? photo,
+    Map<String, dynamic>? flags,
   }) async {
-    final response = await _api.post('/attendance/check-out', data: {
+    final Map<String, dynamic> data = {
       'latitude': latitude,
       'longitude': longitude,
+      'face_match_score': faceMatchScore,
+      'device_id': deviceId,
       'client_time': DateTime.now().toUtc().toIso8601String(),
-    });
-    final data = response.data as Map<String, dynamic>;
-    return AttendanceLogModel.fromJson(data['data'] as Map<String, dynamic>);
+    };
+    
+    if (flags != null) {
+      flags.forEach((key, value) {
+        data['flags[$key]'] = value;
+      });
+    }
+
+    dynamic requestData;
+
+    if (photo != null) {
+      final formData = FormData.fromMap(data);
+      formData.files.add(MapEntry(
+        'photo',
+        await MultipartFile.fromFile(photo.path, filename: 'checkout.jpg'),
+      ));
+      requestData = formData;
+    } else {
+      requestData = data;
+    }
+
+    final response = await _api.post('/attendance/check-out', data: requestData);
+    final responseData = response.data as Map<String, dynamic>;
+    return AttendanceLogModel.fromJson(responseData['data'] as Map<String, dynamic>);
   }
 
   Future<PaginatedResponse<AttendanceLogModel>> getHistory({int page = 1}) async {

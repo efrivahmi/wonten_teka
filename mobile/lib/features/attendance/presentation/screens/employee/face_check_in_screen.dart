@@ -19,7 +19,8 @@ import '../../../bloc/attendance_cubit.dart';
 import '../../widgets/camera_preview_widget.dart';
 
 class FaceCheckInScreen extends StatefulWidget {
-  const FaceCheckInScreen({super.key});
+  final bool isCheckOut;
+  const FaceCheckInScreen({super.key, this.isCheckOut = false});
 
   @override
   State<FaceCheckInScreen> createState() => _FaceCheckInScreenState();
@@ -190,17 +191,31 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
       final isMock = _currentPosition?.isMocked ?? false;
 
       if (mounted) {
-        context.read<AttendanceCubit>().checkIn(
-          latitude: _currentPosition!.latitude,
-          longitude: _currentPosition!.longitude,
-          deviceId: deviceId,
-          faceMatchScore: faceMatchScore,
-          photo: _capturedImage,
-          flags: {
-            'is_mock_location': isMock,
-            'address': _currentAddress,
-          },
-        );
+        if (widget.isCheckOut) {
+          context.read<AttendanceCubit>().checkOut(
+            latitude: _currentPosition!.latitude,
+            longitude: _currentPosition!.longitude,
+            deviceId: deviceId,
+            faceMatchScore: faceMatchScore,
+            photo: _capturedImage,
+            flags: {
+              'is_mock_location': isMock,
+              'address': _currentAddress,
+            },
+          );
+        } else {
+          context.read<AttendanceCubit>().checkIn(
+            latitude: _currentPosition!.latitude,
+            longitude: _currentPosition!.longitude,
+            deviceId: deviceId,
+            faceMatchScore: faceMatchScore,
+            photo: _capturedImage,
+            flags: {
+              'is_mock_location': isMock,
+              'address': _currentAddress,
+            },
+          );
+        }
       }
     } else {
       setState(() => _isCapturing = false);
@@ -241,6 +256,10 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                   if (mounted) {
                     context.go('/app/attendance/success', extra: {'log': state.log, 'isCheckOut': false});
                   }
+                } else if (state is CheckOutSuccess) {
+                  if (mounted) {
+                    context.go('/app/attendance/success', extra: {'log': state.log, 'isCheckOut': true});
+                  }
                 } else if (state is AttendanceError) {
                   setState(() => _isCapturing = false);
                   
@@ -257,7 +276,7 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                           SizedBox(height: 24.h),
                           Icon(Icons.error_outline, size: 64.w, color: AppColors.error),
                           SizedBox(height: 16.h),
-                          Text('Check-in Gagal', style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+                          Text(widget.isCheckOut ? 'Check-out Gagal' : 'Check-in Gagal', style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
                           SizedBox(height: 8.h),
                           Text(state.message, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600], fontSize: 14.sp)),
                           SizedBox(height: 32.h),
@@ -434,7 +453,7 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                                       ),
                                       child: isLoading
                                           ? SizedBox(height: 24.w, width: 24.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                          : Text('Rekam Absen Masuk', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+                                          : Text(widget.isCheckOut ? 'Rekam Absen Keluar' : 'Rekam Absen Masuk', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
                                     ),
                                   ),
                                 ],

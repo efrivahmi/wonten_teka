@@ -23,7 +23,6 @@ import 'widgets/bottom_nav_shell.dart';
 import '../features/dashboard/presentation/screens/employee/home_dashboard_screen.dart';
 import '../features/attendance/presentation/screens/employee/attendance_history_screen.dart';
 import '../features/attendance/presentation/screens/employee/face_check_in_screen.dart';
-import '../features/attendance/presentation/screens/employee/check_out_screen.dart';
 import '../features/attendance/presentation/screens/employee/check_in_success_screen.dart';
 import '../features/attendance/presentation/screens/employee/attendance_detail_screen.dart';
 import '../features/attendance/presentation/screens/attendance_report_screen.dart';
@@ -123,7 +122,7 @@ final appRouter = GoRouter(
         builder: (_, __) => const FaceCheckInScreen()),
     GoRoute(
         path: '/app/attendance/check-out',
-        builder: (_, __) => const CheckOutScreen()),
+        builder: (_, __) => const FaceCheckInScreen(isCheckOut: true)),
     GoRoute(
         path: '/app/attendance/success',
         builder: (_, state) {
@@ -134,7 +133,11 @@ final appRouter = GoRouter(
         }),
     GoRoute(
         path: '/app/attendance/detail',
-        builder: (_, __) => const AttendanceDetailScreen()),
+        builder: (_, state) {
+          final log = state.extra as AttendanceLogModel?;
+          if (log == null) return const AttendanceHistoryScreen();
+          return AttendanceDetailScreen(log: log);
+        }),
     GoRoute(
         path: '/app/attendance/report',
         builder: (_, __) => const AttendanceReportScreen()),

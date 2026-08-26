@@ -10,6 +10,8 @@ class AttendanceLogModel extends Equatable {
   final Map<String, dynamic>? checkInGps;
   final Map<String, dynamic>? checkOutGps;
   final double? faceMatchScore;
+  final String? checkInPhotoUrl;
+  final String? checkOutPhotoUrl;
   final String? deviceId;
   final Map<String, dynamic>? flags;
   final String status; // 'present', 'flagged', 'late'
@@ -23,6 +25,8 @@ class AttendanceLogModel extends Equatable {
     this.checkInGps,
     this.checkOutGps,
     this.faceMatchScore,
+    this.checkInPhotoUrl,
+    this.checkOutPhotoUrl,
     this.deviceId,
     this.flags,
     this.status = 'present',
@@ -48,6 +52,8 @@ class AttendanceLogModel extends Equatable {
       faceMatchScore: json['check_in_face_score'] != null 
           ? double.tryParse(json['check_in_face_score'].toString()) 
           : null,
+      checkInPhotoUrl: json['check_in_photo_url'] as String?,
+      checkOutPhotoUrl: json['check_out_photo_url'] as String?,
       deviceId: json['device_id']?.toString(),
       flags: json['flags'] as Map<String, dynamic>?,
       status: json['status'] as String? ?? 'present',

@@ -410,19 +410,19 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                                       icon: Icons.payment_rounded,
                                       label: 'Slip Gaji',
                                       color: AppColors.primary,
-                                      onTap: () => context.push('/app/payroll'),
+                                      onTap: () => context.push('/app/payslip'),
                                     ),
                                     _GridMenuIcon(
                                       icon: Icons.calendar_month_rounded,
                                       label: 'Jadwal',
                                       color: AppColors.primary,
-                                      onTap: () => context.push('/app/schedule'),
+                                      onTap: () => context.push('/app/schedule/shifts'),
                                     ),
                                     _GridMenuIcon(
                                       icon: Icons.business_rounded,
                                       label: 'Karyawan',
                                       color: AppColors.primary,
-                                      onTap: () => context.push('/app/company/directory'),
+                                      onTap: () => context.push('/app/directory'),
                                     ),
                                     _GridMenuIcon(
                                       icon: Icons.fact_check_rounded,

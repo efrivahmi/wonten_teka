@@ -114,11 +114,21 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   Future<void> checkOut({
     required double latitude,
     required double longitude,
+    required String deviceId,
+    double faceMatchScore = 1.0,
+    File? photo,
+    Map<String, dynamic>? flags,
   }) async {
     emit(AttendanceLoading());
     try {
-      final log =
-          await _repo.checkOut(latitude: latitude, longitude: longitude);
+      final log = await _repo.checkOut(
+        latitude: latitude,
+        longitude: longitude,
+        faceMatchScore: faceMatchScore,
+        deviceId: deviceId,
+        photo: photo,
+        flags: flags,
+      );
       emit(CheckOutSuccess(log));
     } on ApiException catch (e) {
       emit(AttendanceError(e.message));

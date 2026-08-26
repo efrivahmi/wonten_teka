@@ -1,12 +1,15 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
-import '../../../../../core/widgets/status_badge.dart';
+
+import '../../../../../core/models/attendance_log_model.dart';
+import 'package:intl/intl.dart';
 
 class AttendanceDetailScreen extends StatelessWidget {
-  const AttendanceDetailScreen({super.key});
+  final AttendanceLogModel log;
+  const AttendanceDetailScreen({super.key, required this.log});
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +39,7 @@ class AttendanceDetailScreen extends StatelessWidget {
                   Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Senin, 7 Juli 2025',
+                        Text(DateFormat('EEEE, d MMM yyyy', 'id_ID').format(log.checkInAt),
                             style: Theme.of(context)
                                 .textTheme
                                 .titleMedium
@@ -44,13 +47,13 @@ class AttendanceDetailScreen extends StatelessWidget {
                                     color: AppColors.onSurface,
                                     fontWeight: FontWeight.bold)),
                         SizedBox(height: 4.h),
-                        Text('Shift Pagi (08:00 - 17:00)',
+                        Text(log.flags?['shift_name'] ?? 'Shift Regular',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodySmall
                                 ?.copyWith(color: AppColors.onSurfaceVariant)),
                       ]),
-                  StatusBadge.onTime(),
+                  _buildStatusBadge(log.status),
                 ],
               ),
             ),
@@ -71,7 +74,7 @@ class AttendanceDetailScreen extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.5)),
                       SizedBox(height: 4.h),
-                      Text('07:58',
+                      Text(DateFormat('HH:mm').format(log.checkInAt),
                           style: Theme.of(context)
                               .textTheme
                               .headlineSmall
@@ -94,7 +97,7 @@ class AttendanceDetailScreen extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.5)),
                       SizedBox(height: 4.h),
-                      Text('17:02',
+                      Text(log.checkOutAt != null ? DateFormat('HH:mm').format(log.checkOutAt!) : '--:--',
                           style: Theme.of(context)
                               .textTheme
                               .headlineSmall
@@ -121,7 +124,7 @@ class AttendanceDetailScreen extends StatelessWidget {
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 0.5)),
                           SizedBox(height: 4.h),
-                          Text('9j 4m',
+                          Text(_formatDuration(log.workDuration),
                               style: Theme.of(context)
                                   .textTheme
                                   .headlineSmall
@@ -194,34 +197,48 @@ class AttendanceDetailScreen extends StatelessWidget {
             SizedBox(height: 24.h),
 
             // Face Verification
-            Text('Verifikasi Wajah',
+            Text('Foto & Verifikasi Wajah',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: AppColors.onSurface, fontWeight: FontWeight.w600)),
             SizedBox(height: 8.h),
-            InfoCard(
-              child: Row(children: [
-                Container(
-                  width: 56.w,
-                  height: 56.w,
-                  decoration: BoxDecoration(
-                      color: AppColors.surfaceContainerHigh,
-                      borderRadius: BorderRadius.circular(8.r)),
-                  child: Icon(Icons.face,
-                      color: AppColors.onSurfaceVariant, size: 32.w),
+            Row(
+              children: [
+                Expanded(
+                  child: InfoCard(
+                    child: Column(
+                      children: [
+                        Text('Masuk', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold)),
+                        SizedBox(height: 8.h),
+                        if (log.checkInPhotoUrl != null)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8.r),
+                            child: Image.network('http://www.great-symbols-begin-freely.st.a.dcdg.xyz/storage/${log.checkInPhotoUrl}', height: 100.h, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.broken_image))
+                          )
+                        else
+                          Icon(Icons.face, color: AppColors.onSurfaceVariant, size: 48.w),
+                      ],
+                    ),
+                  ),
                 ),
-                SizedBox(width: 16.w),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Confidence: 98.5%',
-                      style: TextStyle(
-                          color: AppColors.onSurface,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14.sp)),
-                  SizedBox(height: 2.h),
-                  Text('Liveness: Passed',
-                      style: TextStyle(
-                          color: AppColors.successEmerald, fontSize: 12.sp)),
-                ]),
-              ]),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: InfoCard(
+                    child: Column(
+                      children: [
+                        Text('Keluar', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold)),
+                        SizedBox(height: 8.h),
+                        if (log.checkOutPhotoUrl != null)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8.r),
+                            child: Image.network('http://www.great-symbols-begin-freely.st.a.dcdg.xyz/storage/${log.checkOutPhotoUrl}', height: 100.h, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.broken_image))
+                          )
+                        else
+                          Icon(Icons.face, color: AppColors.onSurfaceVariant, size: 48.w),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: 24.h),
 
@@ -245,6 +262,67 @@ class AttendanceDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatDuration(Duration? duration) {
+    if (duration == null) return '--';
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    return '${hours}j ${minutes}m';
+  }
+
+  Widget _buildStatusBadge(String status) {
+    switch (status) {
+      case 'on_time':
+      case 'present':
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+          decoration: BoxDecoration(
+            color: AppColors.successEmerald.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.check_circle, size: 14.w, color: AppColors.successEmerald),
+              SizedBox(width: 4.w),
+              Text('Tepat Waktu', style: TextStyle(color: AppColors.successEmerald, fontSize: 11.sp, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        );
+      case 'late':
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+          decoration: BoxDecoration(
+            color: AppColors.error.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.access_time_filled, size: 14.w, color: AppColors.error),
+              SizedBox(width: 4.w),
+              Text('Terlambat', style: TextStyle(color: AppColors.error, fontSize: 11.sp, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        );
+      case 'early_leave':
+      case 'half_day':
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+          decoration: BoxDecoration(
+            color: AppColors.warningAmber.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, size: 14.w, color: AppColors.warningAmber),
+              SizedBox(width: 4.w),
+              Text('Setengah Hari', style: TextStyle(color: AppColors.warningAmber, fontSize: 11.sp, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
   }
 }
 
