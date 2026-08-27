@@ -47,8 +47,12 @@ class AttendanceLogModel extends Equatable {
       companyId: json['company_id'] as int,
       checkInAt: _parseAndLocalize(json['check_in_at'] as String),
       checkOutAt: json['check_out_at'] != null ? _parseAndLocalize(json['check_out_at'] as String) : null,
-      checkInGps: json['check_in_gps'] as Map<String, dynamic>?,
-      checkOutGps: json['check_out_gps'] as Map<String, dynamic>?,
+      checkInGps: (json['check_in_latitude'] != null && json['check_in_longitude'] != null)
+          ? {'latitude': json['check_in_latitude'], 'longitude': json['check_in_longitude']}
+          : null,
+      checkOutGps: (json['check_out_latitude'] != null && json['check_out_longitude'] != null)
+          ? {'latitude': json['check_out_latitude'], 'longitude': json['check_out_longitude']}
+          : null,
       faceMatchScore: json['check_in_face_score'] != null 
           ? double.tryParse(json['check_in_face_score'].toString()) 
           : null,

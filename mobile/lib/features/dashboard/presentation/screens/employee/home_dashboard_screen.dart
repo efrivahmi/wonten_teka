@@ -11,7 +11,9 @@ import '../../../../company/bloc/company_cubit.dart';
 import '../../../../schedule/bloc/shift_cubit.dart';
 import '../../../../../core/models/attendance_log_model.dart';
 import '../../../../../core/models/shift_models.dart';
+import '../../../../../core/widgets/main_sidebar_drawer.dart';
 import '../../widgets/dashboard_calendar.dart';
+import '../../widgets/dashboard_carousel.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
   const HomeDashboardScreen({super.key});
@@ -35,6 +37,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surfaceContainerLowest,
+      drawer: const MainSidebarDrawer(),
       body: Stack(
         children: [
           // Background Header
@@ -66,18 +69,28 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   // App Bar Area
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Dashboard',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24.sp,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
+                          Row(
+                            children: [
+                              Builder(
+                                builder: (context) => IconButton(
+                                  icon: const Icon(Icons.menu, color: Colors.white),
+                                  onPressed: () => Scaffold.of(context).openDrawer(),
+                                ),
+                              ),
+                              Text(
+                                'Dashboard',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24.sp,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
                           ),
                           Row(
                             children: [
@@ -126,7 +139,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(height: 10.h),
+                          const DashboardCarousel(),
+                          SizedBox(height: 16.h),
                           // 1. Floating Contextual Attendance Card
                           BlocBuilder<AttendanceCubit, AttendanceState>(
                             builder: (context, state) {

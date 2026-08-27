@@ -1,10 +1,14 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../auth/bloc/auth_bloc.dart';
+import '../../../../../core/widgets/main_sidebar_drawer.dart';
+import '../../widgets/admin_dashboard_calendar.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -18,9 +22,10 @@ class AdminDashboardScreen extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: AppColors.surfaceContainerLowest,
+          drawer: const MainSidebarDrawer(),
           body: Stack(
             children: [
-              // Hero Background - Darker/Reddish tint for Admin Mode
+              // Hero Background
               Container(
                 height: 280.h,
                 decoration: BoxDecoration(
@@ -40,32 +45,28 @@ class AdminDashboardScreen extends StatelessWidget {
               SafeArea(
                 child: Column(
                   children: [
-                    // Header
+                    // Header with Drawer Toggle
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
                       child: Row(
                         children: [
-                          Container(
-                            width: 48.w,
-                            height: 48.w,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10)],
+                          Builder(
+                            builder: (context) => IconButton(
+                              icon: const Icon(Icons.menu, color: Colors.white),
+                              onPressed: () => Scaffold.of(context).openDrawer(),
                             ),
-                            child: Icon(Icons.admin_panel_settings, color: AppColors.errorCrimson, size: 28.w),
                           ),
-                          SizedBox(width: 16.w),
+                          SizedBox(width: 8.w),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Admin Panel',
+                                  'Monitoring Pusat',
                                   style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 14.sp),
                                 ),
                                 Text(
-                                  userName,
+                                  'Halo, $userName',
                                   style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold),
                                 ),
                               ],
@@ -75,92 +76,37 @@ class AdminDashboardScreen extends StatelessWidget {
                             icon: const Icon(Icons.notifications_none, color: Colors.white),
                             onPressed: () => context.push('/app/notifications'),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.logout, color: Colors.white),
-                            onPressed: () => context.go('/app/home'), // Back to employee view or logout
-                          ),
                         ],
                       ),
                     ),
                     
                     Expanded(
                       child: SingleChildScrollView(
-                        padding: EdgeInsets.all(24.w),
+                        padding: EdgeInsets.all(20.w),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Quick Stats Floating Card
-                            Container(
-                              padding: EdgeInsets.all(24.w),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(24.r),
-                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 10))],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(Icons.analytics, color: AppColors.primary, size: 20.w),
-                                      SizedBox(width: 8.w),
-                                      Text('Ringkasan Hari Ini', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp, color: AppColors.onSurface)),
-                                    ],
-                                  ),
-                                  SizedBox(height: 20.h),
-                                  Row(
-                                    children: [
-                                      Expanded(child: _buildStatItem('Hadir', '-', AppColors.successEmerald)),
-                                      Container(width: 1.w, height: 40.h, color: Colors.grey[200]),
-                                      Expanded(child: _buildStatItem('Cuti', '-', AppColors.infoCerulean)),
-                                      Container(width: 1.w, height: 40.h, color: Colors.grey[200]),
-                                      Expanded(child: _buildStatItem('Sakit', '-', AppColors.warningAmber)),
-                                      Container(width: 1.w, height: 40.h, color: Colors.grey[200]),
-                                      Expanded(child: _buildStatItem('Alpa', '-', AppColors.errorCrimson)),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.2, end: 0),
-                            
-                            SizedBox(height: 32.h),
-                            Text('Operasional', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp, color: AppColors.onSurface)),
+                            // 1. Quick Stats (Dummy Aggregates)
+                            _buildQuickStats(context),
+                            SizedBox(height: 24.h),
+
+                            // 2. Attendance Bar Chart
+                            Text(
+                              'Tren Kehadiran (7 Hari)',
+                              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: AppColors.onSurface),
+                            ),
                             SizedBox(height: 16.h),
-                            
-                            GridView.count(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              crossAxisCount: 4,
-                              mainAxisSpacing: 24.h,
-                              crossAxisSpacing: 16.w,
-                              childAspectRatio: 0.8,
-                              children: [
-                                _buildGridItem(context, 'Persetujuan', Icons.fact_check, AppColors.primary, () => context.push('/admin/approvals')),
-                                _buildGridItem(context, 'Karyawan', Icons.people, AppColors.infoCerulean, () => context.push('/admin/employees')),
-                                _buildGridItem(context, 'Shift', Icons.calendar_month, AppColors.warningAmber, () => context.push('/admin/shifts')),
-                                _buildGridItem(context, 'Log Absen', Icons.history, AppColors.successEmerald, () => context.push('/admin/attendance-flags')),
-                              ],
-                            ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0),
-                            
-                            SizedBox(height: 32.h),
-                            Text('Pengaturan & Keuangan', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp, color: AppColors.onSurface)),
+                            _buildChartContainer(),
+                            SizedBox(height: 24.h),
+
+                            // 3. Admin Calendar Monitoring
+                            Text(
+                              'Kalender Kehadiran & Libur',
+                              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: AppColors.onSurface),
+                            ),
                             SizedBox(height: 16.h),
-                            
-                            GridView.count(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              crossAxisCount: 4,
-                              mainAxisSpacing: 24.h,
-                              crossAxisSpacing: 16.w,
-                              childAspectRatio: 0.8,
-                              children: [
-                                _buildGridItem(context, 'Payroll', Icons.request_quote, AppColors.errorCrimson, () => context.push('/admin/payroll')),
-                                _buildGridItem(context, 'Master Data', Icons.storage, AppColors.primary, () => context.push('/admin/org-settings')),
-                                _buildGridItem(context, 'Laporan', Icons.insert_chart, AppColors.infoCerulean, () => context.push('/admin/reports')),
-                                _buildGridItem(context, 'Settings', Icons.settings, Colors.grey[700]!, () => context.push('/admin/settings')),
-                              ],
-                            ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2, end: 0),
-                            
+                            const AdminDashboardCalendar(),
+                            SizedBox(height: 60.h),
                           ],
                         ),
                       ),
@@ -175,35 +121,135 @@ class AdminDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String label, String value, Color color) {
+  Widget _buildQuickStats(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24.r),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 10))],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Ringkasan Hari Ini', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp)),
+              Text(DateFormat('dd MMM yyyy').format(DateTime.now()), style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
+            ],
+          ),
+          SizedBox(height: 20.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildStatItem('Hadir', '142', AppColors.successEmerald, Icons.how_to_reg),
+              _buildStatItem('Alpha', '5', AppColors.errorCrimson, Icons.person_off),
+              _buildStatItem('Cuti/Sakit', '12', AppColors.warningAmber, Icons.sick),
+            ],
+          ),
+          SizedBox(height: 20.h),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                context.push('/admin/attendance-daily');
+              },
+              icon: const Icon(Icons.table_chart),
+              label: const Text('Buka Tabel Absensi Harian'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: 12.h),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+              ),
+            ),
+          )
+        ],
+      ),
+    ).animate().fadeIn().slideY(begin: 0.2, end: 0);
+  }
+
+  Widget _buildStatItem(String label, String value, Color color, IconData icon) {
     return Column(
       children: [
-        Text(value, style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: color)),
-        SizedBox(height: 4.h),
-        Text(label, style: TextStyle(fontSize: 12.sp, color: Colors.grey[600])),
+        Container(
+          padding: EdgeInsets.all(12.w),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 28.w),
+        ),
+        SizedBox(height: 8.h),
+        Text(value, style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+        Text(label, style: TextStyle(fontSize: 12.sp, color: AppColors.onSurfaceVariant)),
       ],
     );
   }
 
-  Widget _buildGridItem(BuildContext context, String label, IconData icon, Color color, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(color: color.withValues(alpha: 0.3)),
-            ),
-            child: Icon(icon, color: color, size: 28.w),
-          ),
-          SizedBox(height: 8.h),
-          Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600, color: AppColors.onSurface)),
-        ],
+  Widget _buildChartContainer() {
+    return Container(
+      height: 220.h,
+      padding: EdgeInsets.only(top: 24.h, bottom: 16.h, left: 16.w, right: 16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24.r),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15)],
       ),
+      child: BarChart(
+        BarChartData(
+          alignment: BarChartAlignment.spaceAround,
+          maxY: 160,
+          barTouchData: BarTouchData(enabled: false),
+          titlesData: FlTitlesData(
+            show: true,
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(days[value.toInt() % 7], style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 10.sp)),
+                  );
+                },
+              ),
+            ),
+            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          ),
+          gridData: const FlGridData(show: false),
+          borderData: FlBorderData(show: false),
+          barGroups: [
+            _makeGroupData(0, 145, 12, 3),
+            _makeGroupData(1, 150, 8, 2),
+            _makeGroupData(2, 148, 10, 2),
+            _makeGroupData(3, 142, 12, 5),
+            _makeGroupData(4, 155, 5, 0),
+            _makeGroupData(5, 50, 0, 110), // Saturday
+            _makeGroupData(6, 0, 0, 160),  // Sunday
+          ],
+        ),
+      ),
+    ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0);
+  }
+
+  BarChartGroupData _makeGroupData(int x, double present, double leave, double absent) {
+    return BarChartGroupData(
+      x: x,
+      barRods: [
+        BarChartRodData(
+          toY: present + leave + absent,
+          width: 16.w,
+          borderRadius: BorderRadius.circular(4.r),
+          rodStackItems: [
+            BarChartRodStackItem(0, present, AppColors.successEmerald),
+            BarChartRodStackItem(present, present + leave, AppColors.warningAmber),
+            BarChartRodStackItem(present + leave, present + leave + absent, AppColors.errorCrimson),
+          ],
+        ),
+      ],
     );
   }
 }
-

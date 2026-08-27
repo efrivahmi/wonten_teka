@@ -1,11 +1,13 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/widgets/info_card.dart';
-
-import '../../../../../core/models/attendance_log_model.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/models/attendance_log_model.dart';
+import '../../widgets/info_card.dart';
+import '../../../../../core/api/api_client.dart'; // To get baseUrl or just hardcode
 
 class AttendanceDetailScreen extends StatelessWidget {
   final AttendanceLogModel log;
@@ -13,6 +15,23 @@ class AttendanceDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Determine map location based on check_in_gps
+    LatLng? checkInLocation;
+    if (log.checkInGps != null && log.checkInGps!['latitude'] != null) {
+      checkInLocation = LatLng(
+        double.parse(log.checkInGps!['latitude'].toString()),
+        double.parse(log.checkInGps!['longitude'].toString())
+      );
+    }
+
+    String address = 'Lokasi GPS Tersimpan';
+    if (log.flags != null && log.flags!['address'] != null) {
+      address = log.flags!['address'];
+    }
+
+    // Backend base URL for images
+    const String baseUrl = 'http://www.great-symbols-begin-freely.st.a.dcdg.xyz/storage/';
+
     return Scaffold(
       backgroundColor: AppColors.surfaceContainerLow,
       appBar: AppBar(
@@ -136,8 +155,7 @@ class AttendanceDetailScreen extends StatelessWidget {
                       padding:
                           EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                       decoration: BoxDecoration(
-                          color:
-                              AppColors.successEmerald.withValues(alpha: 0.1),
+                          color: AppColors.successEmerald.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8.r)),
                       child: Text('Normal',
                           style: TextStyle(
@@ -149,13 +167,13 @@ class AttendanceDetailScreen extends StatelessWidget {
             ),
             SizedBox(height: 24.h),
 
-            // Location Map Placeholder
+            // Real Flutter Map location
             Text('Lokasi Check-in',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: AppColors.onSurface, fontWeight: FontWeight.w600)),
             SizedBox(height: 8.h),
             Container(
-              height: 180.h,
+              height: 200.h,
               width: double.infinity,
               decoration: BoxDecoration(
                 color: AppColors.surfaceContainerHigh,
@@ -163,37 +181,69 @@ class AttendanceDetailScreen extends StatelessWidget {
                 border: Border.all(
                     color: AppColors.outlineVariant.withValues(alpha: 0.5)),
               ),
-              child: Stack(children: [
-                Center(
-                    child: Icon(Icons.map,
-                        size: 48.w,
-                        color:
-                            AppColors.onSurfaceVariant.withValues(alpha: 0.3))),
-                Positioned(
-                  bottom: 12.h,
-                  left: 12.w,
-                  right: 12.w,
-                  child: Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                    decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerLowest,
-                        borderRadius: BorderRadius.circular(8.r)),
-                    child: Row(children: [
-                      Icon(Icons.location_on,
-                          color: AppColors.primaryContainer, size: 16.w),
-                      SizedBox(width: 8.w),
-                      Expanded(
-                          child: Text(
-                              'Kantor Pusat, Jl. Sudirman No. 52, Jakarta',
-                              style: TextStyle(
-                                  fontSize: 12.sp,
-                                  color: AppColors.onSurface))),
-                    ]),
-                  ),
-                ),
-              ]),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12.r),
+                child: checkInLocation != null 
+                  ? FlutterMap(
+                      options: MapOptions(
+                        initialCenter: checkInLocation,
+                        initialZoom: 16.0,
+                        interactionOptions: const InteractionOptions(
+                          flags: InteractiveFlag.none, // Make map static for detail view
+                        )
+                      ),
+                      children: [
+                        TileLayer(
+                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName: 'com.example.wonten_teka',
+                        ),
+                        MarkerLayer(
+                          markers: [
+                            Marker(
+                              point: checkInLocation,
+                              width: 40,
+                              height: 40,
+                              child: const Icon(Icons.location_pin, color: Colors.red, size: 40),
+                            ),
+                          ],
+                        ),
+                      ],
+                    )
+                  : Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.location_off, size: 32.w, color: AppColors.onSurfaceVariant),
+                          SizedBox(height: 8.h),
+                          Text('Data lokasi tidak tersedia', style: TextStyle(color: AppColors.onSurfaceVariant))
+                        ],
+                      )
+                    ),
+              ),
             ),
+            
+            // Address Label
+            Padding(
+              padding: EdgeInsets.only(top: 8.h),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(8.r)),
+                child: Row(children: [
+                  Icon(Icons.location_on,
+                      color: AppColors.primaryContainer, size: 16.w),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                      child: Text(
+                          address,
+                          style: TextStyle(
+                              fontSize: 12.sp,
+                              color: AppColors.onSurface))),
+                ]),
+              ),
+            ),
+
             SizedBox(height: 24.h),
 
             // Face Verification
@@ -209,13 +259,27 @@ class AttendanceDetailScreen extends StatelessWidget {
                       children: [
                         Text('Masuk', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold)),
                         SizedBox(height: 8.h),
-                        if (log.checkInPhotoUrl != null)
+                        if (log.checkInPhotoUrl != null && log.checkInPhotoUrl!.isNotEmpty)
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8.r),
-                            child: Image.network('http://www.great-symbols-begin-freely.st.a.dcdg.xyz/storage/${log.checkInPhotoUrl}', height: 100.h, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.broken_image))
+                            child: Image.network(
+                              "\\", 
+                              height: 120.h, 
+                              width: double.infinity, 
+                              fit: BoxFit.cover, 
+                              errorBuilder: (_,__,___) => Container(
+                                height: 120.h,
+                                color: Colors.grey[200],
+                                child: const Icon(Icons.broken_image, color: Colors.grey),
+                              ),
+                            )
                           )
                         else
-                          Icon(Icons.face, color: AppColors.onSurfaceVariant, size: 48.w),
+                          Container(
+                            height: 120.h,
+                            color: Colors.grey[100],
+                            child: Center(child: Icon(Icons.face, color: AppColors.onSurfaceVariant, size: 48.w)),
+                          ),
                       ],
                     ),
                   ),
@@ -227,13 +291,27 @@ class AttendanceDetailScreen extends StatelessWidget {
                       children: [
                         Text('Keluar', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold)),
                         SizedBox(height: 8.h),
-                        if (log.checkOutPhotoUrl != null)
+                        if (log.checkOutPhotoUrl != null && log.checkOutPhotoUrl!.isNotEmpty)
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8.r),
-                            child: Image.network('http://www.great-symbols-begin-freely.st.a.dcdg.xyz/storage/${log.checkOutPhotoUrl}', height: 100.h, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.broken_image))
+                            child: Image.network(
+                              "\\", 
+                              height: 120.h, 
+                              width: double.infinity, 
+                              fit: BoxFit.cover, 
+                              errorBuilder: (_,__,___) => Container(
+                                height: 120.h,
+                                color: Colors.grey[200],
+                                child: const Icon(Icons.broken_image, color: Colors.grey),
+                              ),
+                            )
                           )
                         else
-                          Icon(Icons.face, color: AppColors.onSurfaceVariant, size: 48.w),
+                          Container(
+                            height: 120.h,
+                            color: Colors.grey[100],
+                            child: Center(child: Icon(Icons.face, color: AppColors.onSurfaceVariant, size: 48.w)),
+                          ),
                       ],
                     ),
                   ),
@@ -268,7 +346,7 @@ class AttendanceDetailScreen extends StatelessWidget {
     if (duration == null) return '--';
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
-    return '${hours}j ${minutes}m';
+    return '\j \m';
   }
 
   Widget _buildStatusBadge(String status) {
@@ -278,51 +356,40 @@ class AttendanceDetailScreen extends StatelessWidget {
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
           decoration: BoxDecoration(
-            color: AppColors.successEmerald.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16.r),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.check_circle, size: 14.w, color: AppColors.successEmerald),
-              SizedBox(width: 4.w),
-              Text('Tepat Waktu', style: TextStyle(color: AppColors.successEmerald, fontSize: 11.sp, fontWeight: FontWeight.bold)),
-            ],
-          ),
+              color: AppColors.successEmerald.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8.r)),
+          child: Text('Tepat Waktu',
+              style: TextStyle(
+                  color: AppColors.successEmerald,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12.sp)),
         );
       case 'late':
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
           decoration: BoxDecoration(
-            color: AppColors.error.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16.r),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.access_time_filled, size: 14.w, color: AppColors.error),
-              SizedBox(width: 4.w),
-              Text('Terlambat', style: TextStyle(color: AppColors.error, fontSize: 11.sp, fontWeight: FontWeight.bold)),
-            ],
-          ),
+              color: AppColors.errorCrimson.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8.r)),
+          child: Text('Terlambat',
+              style: TextStyle(
+                  color: AppColors.errorCrimson,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12.sp)),
         );
-      case 'early_leave':
-      case 'half_day':
+      case 'flagged':
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
           decoration: BoxDecoration(
-            color: AppColors.warningAmber.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16.r),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.warning_amber_rounded, size: 14.w, color: AppColors.warningAmber),
-              SizedBox(width: 4.w),
-              Text('Setengah Hari', style: TextStyle(color: AppColors.warningAmber, fontSize: 11.sp, fontWeight: FontWeight.bold)),
-            ],
-          ),
+              color: AppColors.warningAmber.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8.r)),
+          child: Text('Ditinjau',
+              style: TextStyle(
+                  color: AppColors.warningAmber,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12.sp)),
         );
       default:
         return const SizedBox.shrink();
     }
   }
 }
-

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 // Models
@@ -76,6 +76,7 @@ import '../features/company/presentation/screens/admin/employee_onboarding_admin
 import '../features/company/presentation/screens/admin/employee_edit_admin_screen.dart';
 import '../features/attendance/presentation/screens/admin/attendance_report_admin_screen.dart';
 import '../features/attendance/presentation/screens/admin/attendance_flag_review_screen.dart';
+import '../features/attendance/presentation/screens/admin/daily_attendance_table_screen.dart';
 import '../features/leave/presentation/screens/admin/leave_request_admin_screen.dart';
 import '../features/claims/presentation/screens/admin/claim_detail_admin_screen.dart';
 import '../features/approval/presentation/screens/manager/team_approvals_screen.dart';
@@ -257,6 +258,9 @@ final appRouter = GoRouter(
         path: '/admin/reports',
         builder: (_, __) => const AttendanceReportAdminScreen()),
     GoRoute(
+        path: '/admin/attendance-daily',
+        builder: (_, __) => const DailyAttendanceTableScreen()),
+      GoRoute(
         path: '/admin/attendance-flags',
         builder: (_, __) => const AttendanceFlagReviewScreen()),
     GoRoute(
@@ -342,9 +346,9 @@ final appRouter = GoRouter(
         ]),
         StatefulShellBranch(routes: [
           GoRoute(
-              path: '/app/leave',
-              builder: (_, __) => const LeaveHistoryScreen())
-        ]), // Swapped to Inbox for better default manager feel, but could be LeaveRequestsScreen. Let's use ApprovalInboxScreen
+              path: '/app/payroll',
+              builder: (_, __) => const PayslipListScreen())
+        ]),
         StatefulShellBranch(routes: [
           GoRoute(
               path: '/app/profile',
@@ -354,4 +358,5 @@ final appRouter = GoRouter(
     ),
   ],
 );
+
 

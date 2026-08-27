@@ -27,7 +27,7 @@ class _ShiftTemplatesScreenState extends State<ShiftTemplatesScreen> {
   Future<void> _loadTemplates() async {
     setState(() => _isLoading = true);
     try {
-      final response = await _api.get('/shifts');
+      final response = await _api.get('/admin/shifts');
       if (mounted) {
         setState(() {
           _templates = response.data['data'] as List;

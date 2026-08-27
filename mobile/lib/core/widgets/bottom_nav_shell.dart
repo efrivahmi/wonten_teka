@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
+import 'main_sidebar_drawer.dart';
 
 /// Persistent bottom navigation shell wrapping the 4 main tabs.
 /// Mirrors the Stitch BottomNavBar: Home, Absensi, Approval, Profil.
@@ -16,6 +17,7 @@ class BottomNavShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const MainSidebarDrawer(),
       body: navigationShell,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -52,8 +54,8 @@ class BottomNavShell extends StatelessWidget {
                   onTap: () => navigationShell.goBranch(1),
                 ),
                 _NavItem(
-                  icon: Icons.rule,
-                  label: 'Approval',
+                  icon: Icons.request_quote,
+                  label: 'Payroll',
                   isActive: navigationShell.currentIndex == 2,
                   onTap: () => navigationShell.goBranch(2),
                 ),
