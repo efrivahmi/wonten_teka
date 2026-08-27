@@ -6,8 +6,10 @@ import 'package:shimmer/shimmer.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/widgets/info_card.dart';
 import '../../../../../core/widgets/status_badge.dart';
+import '../../../../../core/widgets/info_card.dart';
+import '../../../../../core/widgets/empty_state_widget.dart';
+import '../../../../../core/widgets/error_state_widget.dart';
 import '../../../bloc/attendance_history_cubit.dart';
 
 class AttendanceHistoryScreen extends StatefulWidget {
@@ -171,79 +173,17 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 40.h),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(24.w),
-              decoration: const BoxDecoration(
-                color: AppColors.surfaceContainerHigh,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.history_toggle_off,
-                  size: 48.w, color: AppColors.onSurfaceVariant),
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              'Belum ada riwayat absensi',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.onSurface,
-                  ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              'Data absensi akan muncul di sini',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.onSurfaceVariant,
-                  ),
-            ),
-          ],
-        ),
-      ),
+    return const EmptyStateWidget(
+      title: 'Belum ada riwayat absensi',
+      message: 'Data absensi akan muncul di sini',
+      icon: Icons.history_toggle_off,
     );
   }
 
   Widget _buildErrorState(String message) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(24.w),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.wifi_off, size: 64.w, color: AppColors.error),
-            SizedBox(height: 16.h),
-            Text(
-              'Gagal Memuat Data',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.onSurface,
-                  ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.onSurfaceVariant,
-                  ),
-            ),
-            SizedBox(height: 24.h),
-            ElevatedButton.icon(
-              onPressed: _onRefresh,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Coba Lagi'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryContainer,
-                foregroundColor: AppColors.onPrimary,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return ErrorStateWidget(
+      message: message,
+      onRetry: _onRefresh,
     );
   }
 

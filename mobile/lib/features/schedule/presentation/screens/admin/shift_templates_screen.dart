@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -27,7 +27,7 @@ class _ShiftTemplatesScreenState extends State<ShiftTemplatesScreen> {
   Future<void> _loadTemplates() async {
     setState(() => _isLoading = true);
     try {
-      final response = await _api.get('/admin/shifts');
+      final response = await _api.get('/shifts');
       if (mounted) {
         setState(() {
           _templates = response.data['data'] as List;

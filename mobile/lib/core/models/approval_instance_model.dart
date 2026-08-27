@@ -25,6 +25,8 @@ class ApprovalInstanceModel extends Equatable {
   /// Friendly name for the type of request.
   String get requestType {
     if (approvableType.contains('LeaveRequest')) return 'Cuti';
+    if (approvableType.contains('OvertimeRequest')) return 'Lembur';
+    if (approvableType.contains('ShiftExchangeRequest')) return 'Tukar Shift';
     if (approvableType.contains('Claim')) return 'Klaim';
     return 'Persetujuan';
   }

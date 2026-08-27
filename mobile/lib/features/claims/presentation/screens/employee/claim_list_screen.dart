@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/widgets/empty_state_widget.dart';
+import '../../../../../core/widgets/error_state_widget.dart';
 import '../../../bloc/claim_cubit.dart';
 
 class ClaimListScreen extends StatefulWidget {
@@ -73,21 +75,10 @@ class _ClaimListScreenState extends State<ClaimListScreen> {
                       } else if (state is ClaimLoaded) {
                         final claims = state.history;
                         if (claims.isEmpty) {
-                          return Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  padding: EdgeInsets.all(24.w),
-                                  decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20)]),
-                                  child: Icon(Icons.receipt_long, size: 64.w, color: AppColors.primary),
-                                ),
-                                SizedBox(height: 24.h),
-                                Text('Belum ada riwayat klaim', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
-                                SizedBox(height: 8.h),
-                                Text('Ajukan reimbursement untuk biaya pekerjaan.', style: TextStyle(fontSize: 14.sp, color: Colors.grey[600])),
-                              ],
-                            ),
+                          return const EmptyStateWidget(
+                            title: 'Belum ada riwayat klaim',
+                            message: 'Ajukan reimbursement untuk biaya pekerjaan.',
+                            icon: Icons.receipt_long,
                           );
                         }
 
@@ -149,7 +140,10 @@ class _ClaimListScreenState extends State<ClaimListScreen> {
                           ),
                         );
                       } else if (state is ClaimError) {
-                        return Center(child: Text(state.message, style: const TextStyle(color: AppColors.error)));
+                        return ErrorStateWidget(
+                          message: state.message,
+                          onRetry: () => context.read<ClaimCubit>().loadAll(),
+                        );
                       }
                       return const SizedBox.shrink();
                     },

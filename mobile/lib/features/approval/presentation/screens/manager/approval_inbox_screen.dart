@@ -5,7 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
-import '../../../../../core/widgets/status_badge.dart';
+import '../../../../../core/widgets/empty_state_widget.dart';
+import '../../../../../core/widgets/error_state_widget.dart';
 import '../../../bloc/approval_cubit.dart';
 import '../../../../../core/models/approval_instance_model.dart';
 
@@ -17,6 +18,8 @@ class ApprovalInboxScreen extends StatefulWidget {
 }
 
 class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
+  String _selectedFilter = 'Semua';
+
   @override
   void initState() {
     super.initState();
@@ -49,20 +52,23 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
             TextField(
               controller: commentController,
               decoration: InputDecoration(
-                hintText: 'Tambahkan catatan (opsional)',
+                hintText: 'Tambahkan catatan (opsional)...',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
                 filled: true,
-                fillColor: AppColors.surfaceContainerLow,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: BorderSide.none),
+                fillColor: AppColors.surfaceContainerLowest,
               ),
               maxLines: 3,
             ),
-            SizedBox(height: 32.h),
+            SizedBox(height: 24.h),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.pop(ctx),
-                    style: OutlinedButton.styleFrom(padding: EdgeInsets.symmetric(vertical: 16.h), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r))),
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 16.h),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                    ),
                     child: const Text('Batal'),
                   ),
                 ),
@@ -157,8 +163,20 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
           }
         },
         builder: (context, state) {
+          List<ApprovalInstanceModel> requests = [];
+          if (state is ApprovalLoaded) {
+            requests = state.pending;
+          } else if (context.read<ApprovalCubit>().state is ApprovalLoaded) {
+            requests = (context.read<ApprovalCubit>().state as ApprovalLoaded).pending;
+          }
+
+          if (_selectedFilter != 'Semua') {
+            requests = requests.where((r) => r.requestType == _selectedFilter).toList();
+          }
+
+          Widget content;
           if (state is ApprovalLoading && context.read<ApprovalCubit>().state is! ApprovalLoaded) {
-            return ListView.separated(
+            content = ListView.separated(
               padding: EdgeInsets.all(16.w),
               physics: const AlwaysScrollableScrollPhysics(),
               itemCount: 4,
@@ -168,151 +186,142 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
               },
             ).animate(onPlay: (c) => c.repeat()).shimmer(duration: 1200.ms, color: AppColors.surface.withValues(alpha: 0.5));
           } else if (state is ApprovalError && context.read<ApprovalCubit>().state is! ApprovalLoaded) {
-            return ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: [
-                SizedBox(height: 100.h),
-                Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24.w),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.wifi_off, size: 64.w, color: AppColors.error.withValues(alpha: 0.7)),
-                        SizedBox(height: 16.h),
-                        Text('Gagal Memuat Data', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.error, fontWeight: FontWeight.bold)),
-                        SizedBox(height: 8.h),
-                        Text(state.message, textAlign: TextAlign.center, style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
-                        SizedBox(height: 24.h),
-                        ElevatedButton.icon(
-                          onPressed: () => context.read<ApprovalCubit>().loadPending(),
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Coba Lagi'),
-                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryContainer, foregroundColor: AppColors.onPrimary),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+            content = ErrorStateWidget(
+              message: state.message,
+              onRetry: () => context.read<ApprovalCubit>().loadPending(),
             );
-          }
-          
-          List<ApprovalInstanceModel> requests = [];
-          if (state is ApprovalLoaded) {
-            requests = state.pending;
-          } else if (context.read<ApprovalCubit>().state is ApprovalLoaded) {
-            requests = (context.read<ApprovalCubit>().state as ApprovalLoaded).pending;
-          }
-          
-          if (requests.isEmpty) {
-            return RefreshIndicator(
+          } else if (requests.isEmpty) {
+            content = RefreshIndicator(
               onRefresh: () async => context.read<ApprovalCubit>().loadPending(),
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
                   SizedBox(height: 100.h),
-                  Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 24.w),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: EdgeInsets.all(24.w),
-                            decoration: const BoxDecoration(color: AppColors.surfaceContainerHigh, shape: BoxShape.circle),
-                            child: Icon(Icons.check_circle_outline, size: 48.w, color: AppColors.successEmerald.withValues(alpha: 0.7)),
-                          ),
-                          SizedBox(height: 16.h),
-                          Text(
-                            'Semua bersih!',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: AppColors.onSurface,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 8.h),
-                          Text(
-                            'Tidak ada permintaan yang menunggu persetujuan Anda saat ini.',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  const EmptyStateWidget(
+                    title: 'Semua bersih!',
+                    message: 'Tidak ada permintaan yang menunggu persetujuan Anda saat ini.',
+                    icon: Icons.check_circle_outline,
                   ),
                 ],
               ),
             );
-          }
-            
-            return RefreshIndicator(
+          } else {
+            content = RefreshIndicator(
               onRefresh: () async => context.read<ApprovalCubit>().loadPending(),
               child: ListView.separated(
                 padding: EdgeInsets.all(16.w),
+                physics: const AlwaysScrollableScrollPhysics(),
                 itemCount: requests.length,
-                separatorBuilder: (_, __) => SizedBox(height: 12.h),
+                separatorBuilder: (_, __) => SizedBox(height: 16.h),
                 itemBuilder: (context, index) {
-                  final request = requests[index];
-                  // Asumsi bahwa request.model berisi informasi spesifik cuti/klaim, dan requester_id/name tersedia jika nested model
-                  // Karena modelnya polymorphic, kita sesuaikan tampilannya
-                  final typeLabel = request.requestType;
-                                    
+                  final req = requests[index];
+                  
                   return InfoCard(
-                    onTap: () {}, // context.push('/app/leave/approval-detail', extra: request),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              '$typeLabel #${request.approvableId}',
-                              style: TextStyle(
-                                color: AppColors.onSurface,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14.sp,
-                              ),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                              decoration: BoxDecoration(color: AppColors.primaryContainer, borderRadius: BorderRadius.circular(8.r)),
+                              child: Text(req.requestType, style: TextStyle(color: AppColors.primary, fontSize: 11.sp, fontWeight: FontWeight.bold)),
                             ),
-                            StatusBadge.pending(),
+                            Text(
+                              req.createdAt != null ? DateFormat('dd MMM yyyy').format(req.createdAt!) : '',
+                              style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp),
+                            ),
                           ],
                         ),
                         SizedBox(height: 12.h),
                         Row(
                           children: [
-                            Icon(Icons.calendar_today, size: 14.w, color: AppColors.onSurfaceVariant),
-                            SizedBox(width: 6.w),
-                            Text(
-                              DateFormat('dd MMM yyyy, HH:mm').format(request.createdAt ?? DateTime.now()),
-                              style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13.sp),
+                            CircleAvatar(
+                              radius: 20.r,
+                              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                              child: Icon(Icons.person, color: AppColors.primary, size: 20.w),
+                            ),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    req.approvable?['employee']?['full_name'] ?? 'Karyawan',
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: AppColors.onSurface),
+                                  ),
+                                  SizedBox(height: 2.h),
+                                  Text(
+                                    "Posisi: ${req.approvable?['employee']?['position'] ?? '-'}",
+                                    style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
+                        ),
+                        SizedBox(height: 16.h),
+                        Container(
+                          padding: EdgeInsets.all(12.w),
+                          width: double.infinity,
+                          decoration: BoxDecoration(color: AppColors.surfaceContainerLowest, borderRadius: BorderRadius.circular(12.r), border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5))),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (req.approvable?['reason'] != null) ...[
+                                Text('Alasan:', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp, fontWeight: FontWeight.w600)),
+                                SizedBox(height: 4.h),
+                                Text(req.approvable!['reason'].toString(), style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp)),
+                              ],
+                              if (req.requestType == 'Cuti') ...[
+                                SizedBox(height: 8.h),
+                                Row(
+                                  children: [
+                                    Icon(Icons.calendar_today, size: 14.w, color: AppColors.primary),
+                                    SizedBox(width: 6.w),
+                                    Text("${req.approvable?['start_date']} - ${req.approvable?['end_date']}", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                                  ],
+                                ),
+                              ],
+                              if (req.requestType == 'Lembur') ...[
+                                SizedBox(height: 8.h),
+                                Row(
+                                  children: [
+                                    Icon(Icons.access_time, size: 14.w, color: AppColors.primary),
+                                    SizedBox(width: 6.w),
+                                    Text("${req.approvable?['date']} (${req.approvable?['start_time']} - ${req.approvable?['end_time']})", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                                  ],
+                                ),
+                              ],
+                              if (req.requestType == 'Tukar Shift') ...[
+                                SizedBox(height: 8.h),
+                                Row(
+                                  children: [
+                                    Icon(Icons.swap_horiz, size: 14.w, color: AppColors.primary),
+                                    SizedBox(width: 6.w),
+                                    Text("${req.approvable?['original_date']} \u2192 ${req.approvable?['proposed_date']}", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
                         SizedBox(height: 16.h),
                         Row(
                           children: [
                             Expanded(
                               child: OutlinedButton(
-                                onPressed: () => _showActionDialog(context, request, false),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppColors.errorCrimson,
-                                  side: const BorderSide(color: AppColors.errorCrimson),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
-                                ),
+                                onPressed: () => _showActionDialog(context, req, false),
+                                style: OutlinedButton.styleFrom(foregroundColor: AppColors.errorCrimson, side: const BorderSide(color: AppColors.errorCrimson), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r))),
                                 child: const Text('Tolak'),
                               ),
                             ),
                             SizedBox(width: 12.w),
                             Expanded(
-                              child: ElevatedButton(
-                                onPressed: () => _showActionDialog(context, request, true),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.successEmerald,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
-                                ),
+                              child: FilledButton(
+                                onPressed: () => _showActionDialog(context, req, true),
+                                style: FilledButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r))),
                                 child: const Text('Setujui'),
                               ),
                             ),
@@ -320,13 +329,51 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                         ),
                       ],
                     ),
-                  );
+                  ).animate().fadeIn(delay: Duration(milliseconds: 50 * index)).slideX(begin: 0.05, end: 0);
                 },
               ),
             );
+          }
+
+          return Column(
+            children: [
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                child: Row(
+                  children: ['Semua', 'Cuti', 'Lembur', 'Tukar Shift', 'Klaim'].map((filter) {
+                    final isSelected = _selectedFilter == filter;
+                    return Padding(
+                      padding: EdgeInsets.only(right: 8.w),
+                      child: FilterChip(
+                        label: Text(filter),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          setState(() {
+                            _selectedFilter = filter;
+                          });
+                        },
+                        selectedColor: AppColors.primaryContainer,
+                        checkmarkColor: AppColors.primary,
+                        labelStyle: TextStyle(
+                          color: isSelected ? AppColors.primary : AppColors.onSurfaceVariant,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16.r),
+                          side: BorderSide(color: isSelected ? AppColors.primary : AppColors.outlineVariant),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              Expanded(child: content),
+            ],
+          );
         },
       ),
     );
   }
 }
-

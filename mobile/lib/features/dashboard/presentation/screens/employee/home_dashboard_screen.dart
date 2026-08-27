@@ -11,6 +11,7 @@ import '../../../../company/bloc/company_cubit.dart';
 import '../../../../schedule/bloc/shift_cubit.dart';
 import '../../../../../core/models/attendance_log_model.dart';
 import '../../../../../core/models/shift_models.dart';
+import '../../widgets/dashboard_calendar.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
   const HomeDashboardScreen({super.key});
@@ -355,7 +356,25 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                           
                           SizedBox(height: 24.h),
 
-                          // 3. Menu Utama (Grid) - matching the 'Statistics' white card area
+                          // 3. Kalender (Dashboard Calendar)
+                          BlocBuilder<CompanyCubit, CompanyState>(
+                            builder: (context, state) {
+                              if (state is CompanyLoaded) {
+                                return DashboardCalendar(
+                                  workingDays: state.workingDays,
+                                  events: state.calendarEvents,
+                                  onDateSelected: (date) {
+                                    // Buka modal/dialog untuk event list jika ada
+                                  },
+                                ).animate().fadeIn(delay: 150.ms, duration: 500.ms).slideY(begin: 0.1, end: 0);
+                              }
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                          
+                          SizedBox(height: 24.h),
+
+                          // 4. Menu Utama (Grid) - matching the 'Statistics' white card area
                           Container(
                             padding: EdgeInsets.all(20.w),
                             decoration: BoxDecoration(

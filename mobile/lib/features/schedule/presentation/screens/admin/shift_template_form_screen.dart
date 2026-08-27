@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -94,9 +94,9 @@ class _ShiftTemplateFormScreenState extends State<ShiftTemplateFormScreen> {
 
     try {
       if (widget.template == null) {
-        await _api.post('/admin/shifts', data: data);
+        await _api.post('/shifts', data: data);
       } else {
-        await _api.put('/admin/shifts/${widget.template!['id']}', data: data);
+        await _api.put('/shifts/${widget.template!['id']}', data: data);
       }
 
       if (mounted) {

@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/widgets/empty_state_widget.dart';
+import '../../../../../core/widgets/error_state_widget.dart';
 import '../../../bloc/leave_cubit.dart';
 
 class LeaveHistoryScreen extends StatefulWidget {
@@ -43,30 +45,10 @@ class _LeaveHistoryScreenState extends State<LeaveHistoryScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.all(24.w),
-            decoration: BoxDecoration(
-              color: AppColors.primaryContainer.withValues(alpha: 0.3),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.beach_access, size: 64.w, color: AppColors.primary),
-          ),
-          SizedBox(height: 24.h),
-          Text(
-            'Belum ada riwayat cuti',
-            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: AppColors.onSurface),
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            'Ajukan cuti untuk beristirahat.',
-            style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
-          ),
-        ],
-      ),
+    return const EmptyStateWidget(
+      title: 'Belum ada riwayat cuti',
+      message: 'Ajukan cuti untuk beristirahat.',
+      icon: Icons.beach_access,
     );
   }
 
@@ -210,7 +192,10 @@ class _LeaveHistoryScreenState extends State<LeaveHistoryScreen> {
                           ),
                         );
                       } else if (state is LeaveError) {
-                        return Center(child: Text(state.message, style: const TextStyle(color: AppColors.error)));
+                        return ErrorStateWidget(
+                          message: state.message,
+                          onRetry: () => context.read<LeaveCubit>().loadAll(),
+                        );
                       }
                       return const SizedBox.shrink();
                     },

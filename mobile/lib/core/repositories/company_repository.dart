@@ -44,4 +44,16 @@ class CompanyRepository {
       'geofence_radius_meters': radius,
     });
   }
+
+  Future<List<int>> getWorkingDays() async {
+    final response = await _api.get('/company/working-days');
+    final data = response.data['working_days'] as List;
+    return data.map((e) => e as int).toList();
+  }
+
+  Future<void> updateWorkingDays(List<int> workingDays) async {
+    await _api.put('/company/working-days', data: {
+      'working_days': workingDays,
+    });
+  }
 }

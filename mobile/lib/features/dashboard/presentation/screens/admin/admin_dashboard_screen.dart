@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -135,10 +135,10 @@ class AdminDashboardScreen extends StatelessWidget {
                               crossAxisSpacing: 16.w,
                               childAspectRatio: 0.8,
                               children: [
-                                _buildGridItem(context, 'Persetujuan', Icons.fact_check, AppColors.primary, () => context.push('/app/admin/approvals')),
-                                _buildGridItem(context, 'Karyawan', Icons.people, AppColors.infoCerulean, () => context.push('/app/admin/employees')),
-                                _buildGridItem(context, 'Shift', Icons.calendar_month, AppColors.warningAmber, () => context.push('/app/admin/shifts')),
-                                _buildGridItem(context, 'Log Absen', Icons.history, AppColors.successEmerald, () => context.push('/app/admin/attendance')),
+                                _buildGridItem(context, 'Persetujuan', Icons.fact_check, AppColors.primary, () => context.push('/admin/approvals')),
+                                _buildGridItem(context, 'Karyawan', Icons.people, AppColors.infoCerulean, () => context.push('/admin/employees')),
+                                _buildGridItem(context, 'Shift', Icons.calendar_month, AppColors.warningAmber, () => context.push('/admin/shifts')),
+                                _buildGridItem(context, 'Log Absen', Icons.history, AppColors.successEmerald, () => context.push('/admin/attendance-flags')),
                               ],
                             ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0),
                             
@@ -154,10 +154,10 @@ class AdminDashboardScreen extends StatelessWidget {
                               crossAxisSpacing: 16.w,
                               childAspectRatio: 0.8,
                               children: [
-                                _buildGridItem(context, 'Payroll', Icons.request_quote, AppColors.errorCrimson, () => context.push('/app/admin/payroll')),
-                                _buildGridItem(context, 'Master Data', Icons.storage, AppColors.primary, () => context.push('/app/admin/master')),
-                                _buildGridItem(context, 'Laporan', Icons.insert_chart, AppColors.infoCerulean, () => context.push('/app/admin/reports')),
-                                _buildGridItem(context, 'Settings', Icons.settings, Colors.grey[700]!, () => context.push('/app/admin/settings')),
+                                _buildGridItem(context, 'Payroll', Icons.request_quote, AppColors.errorCrimson, () => context.push('/admin/payroll')),
+                                _buildGridItem(context, 'Master Data', Icons.storage, AppColors.primary, () => context.push('/admin/org-settings')),
+                                _buildGridItem(context, 'Laporan', Icons.insert_chart, AppColors.infoCerulean, () => context.push('/admin/reports')),
+                                _buildGridItem(context, 'Settings', Icons.settings, Colors.grey[700]!, () => context.push('/admin/settings')),
                               ],
                             ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2, end: 0),
                             
@@ -206,3 +206,4 @@ class AdminDashboardScreen extends StatelessWidget {
     );
   }
 }
+

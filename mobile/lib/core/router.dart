@@ -37,6 +37,7 @@ import '../features/schedule_habit/presentation/screens/employee/habit_detail_sc
 // Leave, Approval, & Claims
 import '../features/leave/presentation/screens/employee/leave_request_form_screen.dart';
 import '../features/leave/presentation/screens/employee/leave_detail_screen.dart';
+import '../features/leave/presentation/screens/employee/leave_history_screen.dart';
 import '../features/approval/presentation/screens/manager/approval_inbox_screen.dart';
 import '../features/approval/presentation/screens/manager/approval_detail_screen.dart';
 import '../features/claims/presentation/screens/employee/claim_list_screen.dart';
@@ -260,8 +261,7 @@ final appRouter = GoRouter(
         builder: (_, __) => const AttendanceFlagReviewScreen()),
     GoRoute(
         path: '/admin/approvals',
-        builder: (_, __) =>
-            const LeaveRequestAdminScreen()), // Using LeaveRequestAdminScreen for generic admin approval demo
+        builder: (_, __) => const ApprovalInboxScreen()),
     GoRoute(
         path: '/admin/claims',
         builder: (_, __) => const ClaimDetailAdminScreen()),
@@ -343,7 +343,7 @@ final appRouter = GoRouter(
         StatefulShellBranch(routes: [
           GoRoute(
               path: '/app/leave',
-              builder: (_, __) => const ApprovalInboxScreen())
+              builder: (_, __) => const LeaveHistoryScreen())
         ]), // Swapped to Inbox for better default manager feel, but could be LeaveRequestsScreen. Let's use ApprovalInboxScreen
         StatefulShellBranch(routes: [
           GoRoute(
