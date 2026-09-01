@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -68,7 +68,7 @@ class AnnouncementDetailScreen extends StatelessWidget {
             InfoCard(
                 child: Text(
                     'Kepada seluruh karyawan,\n\nDengan ini kami mengundang seluruh karyawan untuk hadir di acara Townhall Q3 yang akan diadakan:\n\n'
-                    'ðŸ“… Selasa, 15 Juli 2025\nâ° 14:00 - 16:00 WIB\nðŸ“ Ruang Utama Lt. 3\n\n'
+                    '📅 Selasa, 15 Juli 2025\n⏰ 14:00 - 16:00 WIB\n📍 Ruang Utama Lt. 3\n\n'
                     'Agenda:\n1. Opening & Welcome\n2. Q2 Performance Review\n3. Q3 Strategy & Targets\n4. Q&A Session\n\n'
                     'Kehadiran seluruh karyawan sangat diharapkan. Bagi yang WFH, harap hadir ke kantor pada hari tersebut.\n\nTerima kasih,\nHR Department',
                     style: TextStyle(

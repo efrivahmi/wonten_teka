@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -102,7 +102,7 @@ class _AttendanceDisputeScreenState extends State<AttendanceDisputeScreen> {
                   child: TextFormField(
                       decoration: _inputDeco('08:00'), initialValue: '08:00')),
               SizedBox(width: 12.w),
-              Text('â€”',
+              Text('—',
                   style: TextStyle(
                       color: AppColors.onSurfaceVariant, fontSize: 18.sp)),
               SizedBox(width: 12.w),

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -50,7 +50,7 @@ class ApprovalDetailScreen extends StatelessWidget {
                                       .textTheme
                                       .titleMedium
                                       ?.copyWith(fontWeight: FontWeight.bold)),
-                              Text('Marketing â€¢ Staff',
+                              Text('Marketing • Staff',
                                   style: TextStyle(
                                       color: AppColors.onSurfaceVariant,
                                       fontSize: 13.sp)),

@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 /// Maps the Laravel LeaveType model.
 class LeaveTypeModel extends Equatable {
   final int id;
-  final int companyId;
+
   final String name;
   final String? code;
   final int? quotaPerYear;
@@ -15,7 +15,7 @@ class LeaveTypeModel extends Equatable {
 
   const LeaveTypeModel({
     required this.id,
-    required this.companyId,
+
     required this.name,
     this.code,
     this.quotaPerYear,
@@ -29,7 +29,7 @@ class LeaveTypeModel extends Equatable {
   factory LeaveTypeModel.fromJson(Map<String, dynamic> json) {
     return LeaveTypeModel(
       id: json['id'] as int,
-      companyId: json['company_id'] as int,
+
       name: json['name'] as String,
       code: json['code'] as String?,
       quotaPerYear: json['quota_per_year'] as int?,
@@ -91,7 +91,7 @@ class LeaveBalanceModel extends Equatable {
 /// Maps the Laravel LeaveRequest model.
 class LeaveRequestModel extends Equatable {
   final int id;
-  final int companyId;
+
   final int employeeId;
   final int leaveTypeId;
   final DateTime startDate;
@@ -105,7 +105,7 @@ class LeaveRequestModel extends Equatable {
 
   const LeaveRequestModel({
     required this.id,
-    required this.companyId,
+
     required this.employeeId,
     required this.leaveTypeId,
     required this.startDate,
@@ -125,7 +125,7 @@ class LeaveRequestModel extends Equatable {
   factory LeaveRequestModel.fromJson(Map<String, dynamic> json) {
     return LeaveRequestModel(
       id: json['id'] as int,
-      companyId: json['company_id'] as int,
+
       employeeId: json['employee_id'] as int,
       leaveTypeId: json['leave_type_id'] as int,
       startDate: DateTime.parse(json['start_date'] as String),

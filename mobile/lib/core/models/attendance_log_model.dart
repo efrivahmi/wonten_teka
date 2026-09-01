@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 class AttendanceLogModel extends Equatable {
   final int id;
   final int employeeId;
-  final int companyId;
+
   final DateTime checkInAt;
   final DateTime? checkOutAt;
   final Map<String, dynamic>? checkInGps;
@@ -20,7 +20,7 @@ class AttendanceLogModel extends Equatable {
   const AttendanceLogModel({
     required this.id,
     required this.employeeId,
-    required this.companyId,
+
     required this.checkInAt,
     this.checkOutAt,
     this.checkInGps,
@@ -46,7 +46,7 @@ class AttendanceLogModel extends Equatable {
     return AttendanceLogModel(
       id: json['id'] as int,
       employeeId: json['employee_id'] as int,
-      companyId: json['company_id'] as int,
+
       checkInAt: _parseAndLocalize(json['check_in_at'] as String),
       checkOutAt: json['check_out_at'] != null ? _parseAndLocalize(json['check_out_at'] as String) : null,
       checkInGps: (json['check_in_latitude'] != null && json['check_in_longitude'] != null)

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -17,8 +17,6 @@ class HomeDashboardScreen extends StatefulWidget {
 }
 
 class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
-  int _selectedTabIndex = 1;
-
   @override
   void initState() {
     super.initState();
@@ -54,9 +52,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     children: [
                       _buildHeader(),
                       SizedBox(height: 24.h),
-                      _buildTabs(),
+                      _buildGreeting(),
                       SizedBox(height: 24.h),
-                      _buildHeroCard(),
+                      _buildHeroCard(context),
                       SizedBox(height: 32.h),
                       _buildFeaturesGrid(context),
                       SizedBox(height: 32.h),
@@ -133,159 +131,122 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     );
   }
 
-  Widget _buildTabs() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, state) {
-            final userName = state is AuthAuthenticated ? state.user.name.split(' ').first : 'Karyawan';
-            return Row(
-              children: [
-                Icon(Icons.account_circle_outlined, size: 28.sp),
-                SizedBox(width: 8.w),
-                Text(
-                  'Hi, $userName!',
-                  style: TextStyle(
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.onSurface,
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-        SizedBox(height: 24.h),
-        Container(
-          padding: EdgeInsets.all(4.w),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceContainerHigh,
-            borderRadius: BorderRadius.circular(30.r),
-          ),
-          child: Row(
-            children: [
-              _buildTabItem(0, 'Personal'),
-              _buildTabItem(1, 'Operasional'),
-              _buildTabItem(2, 'Performa'),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTabItem(int index, String label) {
-    final isSelected = _selectedTabIndex == index;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _selectedTabIndex = index),
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 12.h),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.surfaceContainerLowest : Colors.transparent,
-            borderRadius: BorderRadius.circular(24.r),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    )
-                  ]
-                : [],
-          ),
-          child: Center(
-            child: Text(
-              label,
+  Widget _buildGreeting() {
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        final userName = state is AuthAuthenticated ? state.user.name.split(' ').first : 'Karyawan';
+        return Row(
+          children: [
+            Icon(Icons.account_circle_outlined, size: 28.sp),
+            SizedBox(width: 8.w),
+            Text(
+              'Hi, $userName!',
               style: TextStyle(
-                color: isSelected ? AppColors.onSurface : AppColors.onSurfaceVariant,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 14.sp,
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.onSurface,
               ),
             ),
-          ),
-        ),
-      ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildHeroCard() {
+  Widget _buildHeroCard(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.pastelTeal, AppColors.pastelOrange],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
+        color: AppColors.primary,
+        gradient: LinearGradient(
+          colors: [AppColors.primary, AppColors.errorCrimson.withValues(alpha: 0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24.r),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.pie_chart, color: AppColors.onSurface, size: 20.sp),
-                  SizedBox(width: 8.w),
-                  Text(
-                    'Sisa Cuti Tahunan',
-                    style: TextStyle(
-                      color: AppColors.onSurface,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14.sp,
-                    ),
-                  ),
-                ],
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-                child: Text(
-                  'Utama',
-                  style: TextStyle(
-                    color: AppColors.onSurface,
-                    fontSize: 10.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
+          Text(
+            'Kehadiran Hari Ini',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16.sp,
+            ),
           ),
           SizedBox(height: 16.h),
-          Text(
-            'Kuota Tersedia',
-            style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp),
-          ),
-          SizedBox(height: 4.h),
           Row(
             children: [
-              Text(
-                '12',
-                style: TextStyle(
-                  color: AppColors.onSurface,
-                  fontSize: 32.sp,
-                  fontWeight: FontWeight.w900,
+              Expanded(
+                child: _buildAttendanceButton(
+                  context,
+                  title: 'Absen Masuk',
+                  icon: Icons.login,
+                  color: AppColors.successEmerald,
+                  onTap: () => context.push('/app/attendance/check-in'),
                 ),
               ),
-              Text(
-                ' Hari',
-                style: TextStyle(
-                  color: AppColors.onSurface,
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w600,
+              SizedBox(width: 12.w),
+              Expanded(
+                child: _buildAttendanceButton(
+                  context,
+                  title: 'Absen Keluar',
+                  icon: Icons.logout,
+                  color: AppColors.error,
+                  onTap: () => context.push('/app/attendance/check-out'),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: _buildAttendanceButton(
+                  context,
+                  title: 'Lembur',
+                  icon: Icons.more_time,
+                  color: AppColors.secondaryContainer,
+                  onTap: () => context.push('/app/overtime/new'),
                 ),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAttendanceButton(BuildContext context, {required String title, required IconData icon, required Color color, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 28.sp),
+            SizedBox(height: 8.h),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.onSurface,
+                fontSize: 11.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -322,13 +283,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           runSpacing: 24.h,
           alignment: WrapAlignment.start,
           children: [
-            _buildFeatureItem(context, icon: Icons.login, label: 'Absen\nMasuk', color: AppColors.pastelTeal, route: '/app/attendance/check-in'),
-            _buildFeatureItem(context, icon: Icons.logout, label: 'Absen\nKeluar', color: AppColors.pastelOrange, route: '/app/attendance/check-out'),
-            _buildFeatureItem(context, icon: Icons.event_busy, label: 'Cuti', color: AppColors.pastelBlue, route: '/app/leave'),
-            _buildFeatureItem(context, icon: Icons.more_time, label: 'Lembur', color: AppColors.pastelPink, route: '/app/overtime'),
-            _buildFeatureItem(context, icon: Icons.history, label: 'Riwayat\nAbsen', color: AppColors.pastelGreen, route: '/app/attendance/history'),
-            _buildFeatureItem(context, icon: Icons.receipt_long, label: 'Klaim', color: AppColors.pastelPurple, route: '/app/claims'),
-            _buildFeatureItem(context, icon: Icons.payments, label: 'Slip\nGaji', color: AppColors.pastelOrange, route: '/app/payroll/payslips'),
+            _buildFeatureItem(context, icon: Icons.event_busy, label: 'Cuti', color: AppColors.primaryContainer, route: '/app/leave'),
+            _buildFeatureItem(context, icon: Icons.flight_takeoff, label: 'Dinas Luar', color: AppColors.secondaryContainer, route: '/app/attendance/business-trip-form'),
+            _buildFeatureItem(context, icon: Icons.edit_calendar, label: 'Lupa Absen', color: AppColors.tertiaryContainer, route: '/app/attendance/adjustment-form'),
+            _buildFeatureItem(context, icon: Icons.history, label: 'Riwayat', color: AppColors.primaryFixedDim, route: '/app/attendance'),
+            _buildFeatureItem(context, icon: Icons.receipt_long, label: 'Klaim', color: AppColors.secondaryContainer, route: '/app/claims'),
+            _buildFeatureItem(context, icon: Icons.payments, label: 'Slip\nGaji', color: AppColors.primaryContainer, route: '/app/payslip'),
+            _buildFeatureItem(context, icon: Icons.schedule, label: 'Jadwal', color: AppColors.tertiaryContainer, route: '/app/schedule/shifts'),
             GestureDetector(
               onTap: () => context.push('/app/all-features'),
               child: SizedBox(
@@ -388,7 +349,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               ),
               child: Icon(
                 icon,
-                color: AppColors.onSurface,
+                color: Colors.white,
                 size: 28.w,
               ),
             ),
@@ -446,14 +407,14 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               _buildPromoCard(
                 title: 'Townhall Meeting',
                 subtitle: '25 Agustus - 26 Agustus',
-                color: AppColors.pastelPurple,
+                color: AppColors.primaryFixedDim,
                 icon: Icons.campaign,
               ),
               SizedBox(width: 16.w),
               _buildPromoCard(
                 title: 'Klaim Medis Baru',
                 subtitle: 'Mulai 1 September',
-                color: AppColors.pastelTeal,
+                color: AppColors.secondaryFixed,
                 icon: Icons.health_and_safety,
               ),
             ],

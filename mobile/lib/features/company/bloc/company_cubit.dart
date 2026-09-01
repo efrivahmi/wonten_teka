@@ -84,7 +84,6 @@ class CompanyCubit extends Cubit<CompanyState> {
           if (a.id == announcementId) {
             return AnnouncementModel(
               id: a.id,
-              companyId: a.companyId,
               title: a.title,
               body: a.body,
               priority: a.priority,

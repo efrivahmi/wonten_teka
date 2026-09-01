@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 class CalendarEventModel extends Equatable {
   final int id;
-  final int companyId;
+
   final String title;
   final String? description;
   final DateTime startDate;
@@ -12,7 +12,7 @@ class CalendarEventModel extends Equatable {
 
   const CalendarEventModel({
     required this.id,
-    required this.companyId,
+
     required this.title,
     this.description,
     required this.startDate,
@@ -24,7 +24,7 @@ class CalendarEventModel extends Equatable {
   factory CalendarEventModel.fromJson(Map<String, dynamic> json) {
     return CalendarEventModel(
       id: json['id'] as int,
-      companyId: json['company_id'] as int,
+
       title: json['title'] as String,
       description: json['description'] as String?,
       startDate: DateTime.parse(json['start_date'] as String),
@@ -40,7 +40,7 @@ class CalendarEventModel extends Equatable {
 
 class AnnouncementModel extends Equatable {
   final int id;
-  final int companyId;
+
   final String title;
   final String body;
   final String priority; // 'low', 'normal', 'high', 'urgent'
@@ -50,7 +50,7 @@ class AnnouncementModel extends Equatable {
 
   const AnnouncementModel({
     required this.id,
-    required this.companyId,
+
     required this.title,
     required this.body,
     this.priority = 'normal',
@@ -68,7 +68,7 @@ class AnnouncementModel extends Equatable {
 
     return AnnouncementModel(
       id: json['id'] as int,
-      companyId: json['company_id'] as int,
+
       title: json['title'] as String,
       body: json['body'] as String? ?? '',
       priority: json['priority'] as String? ?? 'normal',

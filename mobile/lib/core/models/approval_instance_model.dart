@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 /// Maps the Laravel ApprovalInstance model with polymorphic `approvable` relation.
 class ApprovalInstanceModel extends Equatable {
   final int id;
-  final int companyId;
+
   final String approvableType; // e.g. 'App\\Models\\LeaveRequest'
   final int approvableId;
   final String status; // 'pending', 'approved', 'rejected'
@@ -13,7 +13,7 @@ class ApprovalInstanceModel extends Equatable {
 
   const ApprovalInstanceModel({
     required this.id,
-    required this.companyId,
+
     required this.approvableType,
     required this.approvableId,
     this.status = 'pending',
@@ -38,7 +38,7 @@ class ApprovalInstanceModel extends Equatable {
   factory ApprovalInstanceModel.fromJson(Map<String, dynamic> json) {
     return ApprovalInstanceModel(
       id: json['id'] as int,
-      companyId: json['company_id'] as int,
+
       approvableType: json['approvable_type'] as String? ?? '',
       approvableId: json['approvable_id'] as int? ?? 0,
       status: json['status'] as String? ?? 'pending',

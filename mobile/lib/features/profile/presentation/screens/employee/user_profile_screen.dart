@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -112,7 +112,7 @@ class UserProfileScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 4.h),
                       Text(
-                        '$position â€¢ $department',
+                        '$position • $department',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.onSurfaceVariant,
                         ),

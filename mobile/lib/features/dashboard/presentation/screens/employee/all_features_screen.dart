@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,7 +28,6 @@ class AllFeaturesScreen extends StatelessWidget {
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, authState) {
           final isAdmin = authState is AuthAuthenticated && authState.user.isAdmin;
-          final isManager = authState is AuthAuthenticated && authState.user.isManager;
           
           return SingleChildScrollView(
             padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
@@ -39,12 +38,12 @@ class AllFeaturesScreen extends StatelessWidget {
                   context,
                   title: 'Presensi',
                   features: [
-                    _FeatureItem(icon: Icons.login, label: 'Absen Masuk', color: AppColors.pastelTeal, route: '/app/attendance/check-in'),
-                    _FeatureItem(icon: Icons.logout, label: 'Absen Keluar', color: AppColors.pastelOrange, route: '/app/attendance/check-out'),
-                    _FeatureItem(icon: Icons.history, label: 'Riwayat', color: AppColors.pastelBlue, route: '/app/attendance/history'),
-                    _FeatureItem(icon: Icons.edit_calendar, label: 'Lupa Absen', color: AppColors.pastelPink, route: '/app/attendance/adjustment'),
-                    _FeatureItem(icon: Icons.flight_takeoff, label: 'Dinas Luar', color: AppColors.pastelPurple, route: '/app/attendance/business-trip'),
-                    _FeatureItem(icon: Icons.schedule, label: 'Jadwal Shift', color: AppColors.pastelGreen, route: '/app/schedule'),
+                    _FeatureItem(icon: Icons.login, label: 'Absen Masuk', color: AppColors.successEmerald, route: '/app/attendance/check-in'),
+                    _FeatureItem(icon: Icons.logout, label: 'Absen Keluar', color: AppColors.error, route: '/app/attendance/check-out'),
+                    _FeatureItem(icon: Icons.history, label: 'Riwayat', color: AppColors.primaryFixedDim, route: '/app/attendance'),
+                    _FeatureItem(icon: Icons.edit_calendar, label: 'Lupa Absen', color: AppColors.tertiaryContainer, route: '/app/attendance/adjustment-form'),
+                    _FeatureItem(icon: Icons.flight_takeoff, label: 'Dinas Luar', color: AppColors.secondaryContainer, route: '/app/attendance/business-trip-form'),
+                    _FeatureItem(icon: Icons.schedule, label: 'Jadwal Shift', color: AppColors.tertiaryContainer, route: '/app/schedule/shifts'),
                   ],
                 ),
                 _buildDivider(),
@@ -52,9 +51,9 @@ class AllFeaturesScreen extends StatelessWidget {
                   context,
                   title: 'Pengajuan',
                   features: [
-                    _FeatureItem(icon: Icons.event_busy, label: 'Cuti', color: AppColors.pastelOrange, route: '/app/leave'),
-                    _FeatureItem(icon: Icons.more_time, label: 'Lembur', color: AppColors.pastelBlue, route: '/app/overtime'),
-                    _FeatureItem(icon: Icons.receipt_long, label: 'Klaim', color: AppColors.pastelTeal, route: '/app/claims'),
+                    _FeatureItem(icon: Icons.event_busy, label: 'Cuti', color: AppColors.primaryContainer, route: '/app/leave'),
+                    _FeatureItem(icon: Icons.more_time, label: 'Lembur', color: AppColors.secondaryContainer, route: '/app/overtime'),
+                    _FeatureItem(icon: Icons.receipt_long, label: 'Klaim', color: AppColors.secondaryContainer, route: '/app/claims'),
                   ],
                 ),
                 _buildDivider(),
@@ -62,7 +61,7 @@ class AllFeaturesScreen extends StatelessWidget {
                   context,
                   title: 'Keuangan',
                   features: [
-                    _FeatureItem(icon: Icons.payments, label: 'Slip Gaji', color: AppColors.pastelGreen, route: '/app/payroll/payslips'),
+                    _FeatureItem(icon: Icons.payments, label: 'Slip Gaji', color: AppColors.primaryContainer, route: '/app/payslip'),
                   ],
                 ),
                 _buildDivider(),
@@ -70,20 +69,20 @@ class AllFeaturesScreen extends StatelessWidget {
                   context,
                   title: 'Lainnya',
                   features: [
-                    _FeatureItem(icon: Icons.calendar_month, label: 'Kalender', color: AppColors.pastelPurple, route: '/app/calendar'),
-                    _FeatureItem(icon: Icons.track_changes, label: 'Habit Tracker', color: AppColors.pastelOrange, route: '/app/habit'),
-                    _FeatureItem(icon: Icons.task_alt, label: 'Tasks', color: AppColors.pastelPink, route: '/app/tasks'),
+                    _FeatureItem(icon: Icons.calendar_month, label: 'Kalender', color: AppColors.tertiaryContainer, route: '/app/calendar'),
+                    _FeatureItem(icon: Icons.track_changes, label: 'Habit Tracker', color: AppColors.primaryFixedDim, route: '/app/habits'),
+                    _FeatureItem(icon: Icons.task_alt, label: 'Tasks', color: AppColors.primaryContainer, route: '/app/tasks'),
                   ],
                 ),
-                if (isManager || isAdmin) ...[
+                if (isAdmin) ...[
                   _buildDivider(),
                   _buildCategorySection(
                     context,
                     title: 'Persetujuan',
                     features: [
-                      _FeatureItem(icon: Icons.inbox, label: 'Approval Inbox', color: AppColors.pastelTeal, route: '/app/approvals'),
-                      if (isAdmin) _FeatureItem(icon: Icons.phonelink_setup, label: 'Device Approval', color: AppColors.pastelOrange, route: '/admin/device-approvals'),
-                      if (isAdmin) _FeatureItem(icon: Icons.flag, label: 'Attendance Flags', color: AppColors.pastelPink, route: '/admin/attendance-flags'),
+                      _FeatureItem(icon: Icons.inbox, label: 'Approval Inbox', color: AppColors.primaryContainer, route: '/admin/approvals'),
+                      if (isAdmin) _FeatureItem(icon: Icons.phonelink_setup, label: 'Device Approval', color: AppColors.secondaryContainer, route: '/admin/devices'),
+                      if (isAdmin) _FeatureItem(icon: Icons.flag, label: 'Attendance Flags', color: AppColors.error, route: '/admin/attendance-flags'),
                     ],
                   ),
                 ],
@@ -93,12 +92,12 @@ class AllFeaturesScreen extends StatelessWidget {
                     context,
                     title: 'Kelola (Admin)',
                     features: [
-                      _FeatureItem(icon: Icons.dashboard, label: 'Dashboard Admin', color: AppColors.pastelBlue, route: '/admin/dashboard'),
-                      _FeatureItem(icon: Icons.people, label: 'Pegawai', color: AppColors.pastelPurple, route: '/admin/employees'),
-                      _FeatureItem(icon: Icons.settings_suggest, label: 'Shift Templates', color: AppColors.pastelTeal, route: '/admin/shift-templates'),
-                      _FeatureItem(icon: Icons.date_range, label: 'Leave Types', color: AppColors.pastelGreen, route: '/admin/leave-types'),
-                      _FeatureItem(icon: Icons.analytics, label: 'Analytics', color: AppColors.pastelOrange, route: '/admin/department-analytics'),
-                      _FeatureItem(icon: Icons.settings, label: 'Settings', color: AppColors.pastelPink, route: '/admin/organization-settings'),
+                      _FeatureItem(icon: Icons.dashboard, label: 'Dashboard Admin', color: AppColors.tertiaryContainer, route: '/admin/dashboard'),
+                      _FeatureItem(icon: Icons.people, label: 'Pegawai', color: AppColors.primaryFixedDim, route: '/admin/employees'),
+                      _FeatureItem(icon: Icons.settings_suggest, label: 'Shift Templates', color: AppColors.primaryContainer, route: '/admin/shifts'),
+                      _FeatureItem(icon: Icons.date_range, label: 'Leave Types', color: AppColors.secondaryContainer, route: '/admin/leave-types'),
+                      _FeatureItem(icon: Icons.analytics, label: 'Analytics', color: AppColors.primaryFixedDim, route: '/admin/department-analytics'),
+                      _FeatureItem(icon: Icons.settings, label: 'Settings', color: AppColors.tertiaryContainer, route: '/admin/org-settings'),
                     ],
                   ),
                 ],
@@ -144,7 +143,7 @@ class AllFeaturesScreen extends StatelessWidget {
                       ),
                       child: Icon(
                         item.icon,
-                        color: AppColors.onSurface,
+                        color: Colors.white,
                         size: 28.w,
                       ),
                     ),

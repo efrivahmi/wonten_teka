@@ -2,14 +2,14 @@ import 'package:equatable/equatable.dart';
 
 class ClaimCategoryModel extends Equatable {
   final int id;
-  final int companyId;
+
   final String name;
   final bool requiresReceipt;
   final double? maxAmount;
 
   const ClaimCategoryModel({
     required this.id,
-    required this.companyId,
+
     required this.name,
     this.requiresReceipt = false,
     this.maxAmount,
@@ -18,7 +18,7 @@ class ClaimCategoryModel extends Equatable {
   factory ClaimCategoryModel.fromJson(Map<String, dynamic> json) {
     return ClaimCategoryModel(
       id: json['id'] as int,
-      companyId: json['company_id'] as int,
+
       name: json['name'] as String,
       requiresReceipt: json['requires_receipt'] as bool? ?? false,
       maxAmount: (json['max_amount'] as num?)?.toDouble(),
@@ -31,7 +31,7 @@ class ClaimCategoryModel extends Equatable {
 
 class ClaimModel extends Equatable {
   final int id;
-  final int companyId;
+
   final int employeeId;
   final int claimCategoryId;
   final double amount;
@@ -44,7 +44,7 @@ class ClaimModel extends Equatable {
 
   const ClaimModel({
     required this.id,
-    required this.companyId,
+
     required this.employeeId,
     required this.claimCategoryId,
     required this.amount,
@@ -61,7 +61,7 @@ class ClaimModel extends Equatable {
   factory ClaimModel.fromJson(Map<String, dynamic> json) {
     return ClaimModel(
       id: json['id'] as int,
-      companyId: json['company_id'] as int,
+
       employeeId: json['employee_id'] as int,
       claimCategoryId: json['claim_category_id'] as int,
       amount: (json['amount'] as num).toDouble(),

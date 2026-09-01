@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -113,7 +113,7 @@ class _CompanyDirectoryScreenState extends State<CompanyDirectoryScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(emp['name']!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp)),
-                              Text('${emp['role']} â€¢ ${emp['department']}', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp)),
+                              Text('${emp['role']} • ${emp['department']}', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp)),
                             ],
                           ),
                         ),
