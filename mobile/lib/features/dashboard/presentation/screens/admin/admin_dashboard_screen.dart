@@ -7,7 +7,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../auth/bloc/auth_bloc.dart';
-import '../../../../../core/widgets/main_sidebar_drawer.dart';
 import '../../widgets/admin_dashboard_calendar.dart';
 
 class AdminDashboardScreen extends StatelessWidget {

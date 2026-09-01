@@ -22,6 +22,7 @@ class UserModel extends Equatable {
   });
 
   bool get isAdmin => roles.contains('admin') || roles.contains('super_admin');
+  bool get isManager => roles.contains('manager');
   bool get isEmployee => roles.contains('employee') || roles.isEmpty;
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
