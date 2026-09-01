@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,6 +22,11 @@ class _OrganizationSettingsScreenState
   bool _isLoadingDays = true;
   bool _isSavingGeofence = false;
   bool _isSavingDays = false;
+  bool _isSavingAttendance = false;
+
+  bool _requireFace = true;
+  bool _requireGps = true;
+  int _gracePeriod = 15;
 
   LatLng? _selectedLocation;
   double _radius = 100.0;
@@ -160,10 +165,31 @@ class _OrganizationSettingsScreenState
     }
   }
 
+  Future<void> _saveAttendanceRules() async {
+    setState(() => _isSavingAttendance = true);
+    try {
+      // In a real app, save this to Company settings
+      await Future.delayed(const Duration(seconds: 1));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Aturan Absensi berhasil disimpan!'), backgroundColor: AppColors.successEmerald),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menyimpan: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSavingAttendance = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         backgroundColor: AppColors.surfaceContainerLow,
         appBar: AppBar(
@@ -184,9 +210,10 @@ class _OrganizationSettingsScreenState
             labelColor: AppColors.primary,
             unselectedLabelColor: AppColors.onSurfaceVariant,
             indicatorColor: AppColors.primary,
-            tabs: [
+            tabs: const [
               Tab(text: 'Geofence'),
               Tab(text: 'Hari Kerja'),
+              Tab(text: 'Absensi'),
             ],
           ),
         ),
@@ -195,6 +222,7 @@ class _OrganizationSettingsScreenState
           children: [
             _buildGeofenceTab(),
             _buildWorkingDaysTab(),
+            _buildAttendanceTab(),
           ],
         ),
       ),
@@ -461,6 +489,94 @@ class _OrganizationSettingsScreenState
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.r),
                 ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAttendanceTab() {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(16.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Aturan Absensi Karyawan', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+          SizedBox(height: 8.h),
+          Text('Tentukan aturan keamanan saat karyawan melakukan Check-In dan Check-Out.', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant)),
+          SizedBox(height: 24.h),
+          InfoCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                SwitchListTile(
+                  value: _requireFace,
+                  activeColor: AppColors.primary,
+                  onChanged: (val) => setState(() => _requireFace = val),
+                  title: const Text('Wajib Face Verification', style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: const Text('Karyawan wajib mengunggah foto selfie saat absen.'),
+                  secondary: const Icon(Icons.face_retouching_natural, color: AppColors.infoCerulean),
+                ),
+                const Divider(height: 1, color: AppColors.outlineVariant),
+                SwitchListTile(
+                  value: _requireGps,
+                  activeColor: AppColors.primary,
+                  onChanged: (val) => setState(() => _requireGps = val),
+                  title: const Text('Wajib GPS / Lokasi', style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: const Text('Karyawan wajib menyalakan GPS (Fake GPS akan diblokir).'),
+                  secondary: const Icon(Icons.gps_fixed, color: AppColors.warningAmber),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 24.h),
+          Text('Toleransi Keterlambatan (Grace Period)', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+          SizedBox(height: 8.h),
+          InfoCard(
+            child: Row(
+              children: [
+                Icon(Icons.timer, color: AppColors.errorCrimson, size: 32.sp),
+                SizedBox(width: 16.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('$_gracePeriod Menit', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+                      Text('Batas waktu sebelum dihitung terlambat.', style: TextStyle(fontSize: 12.sp, color: AppColors.onSurfaceVariant)),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 120.w,
+                  child: Slider(
+                    value: _gracePeriod.toDouble(),
+                    min: 0,
+                    max: 60,
+                    divisions: 12,
+                    activeColor: AppColors.primary,
+                    label: '$_gracePeriod Menit',
+                    onChanged: (val) => setState(() => _gracePeriod = val.toInt()),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 32.h),
+          SizedBox(
+            width: double.infinity,
+            height: 48.h,
+            child: ElevatedButton.icon(
+              onPressed: _isSavingAttendance ? null : _saveAttendanceRules,
+              icon: _isSavingAttendance
+                  ? SizedBox(width: 16.w, height: 16.w, child: const CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.save),
+              label: Text(_isSavingAttendance ? 'Menyimpan...' : 'Simpan Aturan Absensi'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
               ),
             ),
           ),

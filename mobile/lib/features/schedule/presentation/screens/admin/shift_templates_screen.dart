@@ -156,11 +156,31 @@ class _TemplateCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(12.r),
-            border: Border(left: BorderSide(color: color, width: 6.w))),
-        child:
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              Container(
+                width: 6.w,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+              ),
+              SizedBox(width: 16.w),
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(
               children: [
@@ -209,7 +229,11 @@ class _TemplateCard extends StatelessWidget {
                         child: Text('Hapus',
                             style: TextStyle(color: AppColors.errorCrimson))),
                   ]),
-        ]),
-      );
+            ],
+          ),
+        ),
+      ],
+    ),
+  ),
+);
 }
-

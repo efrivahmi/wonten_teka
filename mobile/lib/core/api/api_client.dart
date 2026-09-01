@@ -12,9 +12,9 @@ class ApiClient {
   late final Dio _dio;
   final SecureStorage _storage;
 
-  /// Production server URL (AWS EC2 with Nginx).
+  /// Production server URL (cPanel).
   static const String _productionBaseUrl =
-      'http://www.great-symbols-begin-freely.st.a.dcdg.xyz/api';
+      'https://presensi.lemdiklattarunanusantaraindonesia.id/api';
 
   /// Local development URL (via USB `adb reverse tcp:8000 tcp:8000`).
   static const String _localBaseUrl = 'http://127.0.0.1:8000/api';

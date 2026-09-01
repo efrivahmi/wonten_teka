@@ -171,7 +171,13 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
           }
 
           if (_selectedFilter != 'Semua') {
-            requests = requests.where((r) => r.requestType == _selectedFilter).toList();
+            if (_selectedFilter == 'Cuti / Dinas') {
+              requests = requests.where((r) => r.requestType == 'Cuti' || r.requestType == 'Dinas Luar').toList();
+            } else if (_selectedFilter == 'Lainnya') {
+              requests = requests.where((r) => r.requestType != 'Cuti' && r.requestType != 'Dinas Luar' && r.requestType != 'Lembur' && r.requestType != 'Lupa Absen').toList();
+            } else {
+              requests = requests.where((r) => r.requestType == _selectedFilter).toList();
+            }
           }
 
           Widget content;
@@ -304,6 +310,26 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                                   ],
                                 ),
                               ],
+                              if (req.requestType == 'Lupa Absen') ...[
+                                SizedBox(height: 8.h),
+                                Row(
+                                  children: [
+                                    Icon(Icons.history_toggle_off, size: 14.w, color: AppColors.primary),
+                                    SizedBox(width: 6.w),
+                                    Text("${req.approvable?['date']} (${req.approvable?['check_in']} - ${req.approvable?['check_out']})", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                                  ],
+                                ),
+                              ],
+                              if (req.requestType == 'Dinas Luar') ...[
+                                SizedBox(height: 8.h),
+                                Row(
+                                  children: [
+                                    Icon(Icons.card_travel, size: 14.w, color: AppColors.primary),
+                                    SizedBox(width: 6.w),
+                                    Text("${req.approvable?['start_date']} - ${req.approvable?['end_date']} di ${req.approvable?['location']}", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                                  ],
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -341,7 +367,7 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                 scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                 child: Row(
-                  children: ['Semua', 'Cuti', 'Lembur', 'Tukar Shift', 'Klaim'].map((filter) {
+                  children: ['Semua', 'Cuti / Dinas', 'Lembur', 'Lupa Absen', 'Lainnya'].map((filter) {
                     final isSelected = _selectedFilter == filter;
                     return Padding(
                       padding: EdgeInsets.only(right: 8.w),

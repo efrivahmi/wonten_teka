@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Models;
 
@@ -13,7 +13,7 @@ class OvertimeRequest extends Model
     use HasFactory, BelongsToCompany, Approvable;
 
     protected $fillable = [
-        'company_id', 'employee_id', 'date', 'start_time', 'end_time', 'reason', 'status',
+        'company_id', 'employee_id', 'date', 'start_time', 'end_time', 'overtime_type', 'reason', 'attachment_url', 'status',
     ];
 
     protected function casts(): array

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -34,15 +34,7 @@ class _DailyAttendanceTableScreenState extends State<DailyAttendanceTableScreen>
         final List<dynamic> rawData = response.data['data'];
         setState(() {
           _logs = rawData.map((json) {
-            // Need to mock the 'employee' relation inside AttendanceLogModel if needed, 
-            // but we can extract it into the flags or manually parse it for the table.
-            final log = AttendanceLogModel.fromJson(json as Map<String, dynamic>);
-            // Temporary hack to attach employee name if returned by backend:
-            if (json['employee'] != null && json['employee']['full_name'] != null) {
-              log.flags ??= {};
-              log.flags!['employee_name'] = json['employee']['full_name'];
-            }
-            return log;
+            return AttendanceLogModel.fromJson(json as Map<String, dynamic>);
           }).toList();
           _isLoading = false;
         });
@@ -50,7 +42,7 @@ class _DailyAttendanceTableScreenState extends State<DailyAttendanceTableScreen>
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: \')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error fetching data')));
       }
     }
   }
@@ -103,7 +95,7 @@ class _DailyAttendanceTableScreenState extends State<DailyAttendanceTableScreen>
                         DataColumn(label: Text('Aksi')),
                       ],
                       rows: _logs.map((log) {
-                        final empName = log.flags?['employee_name'] ?? 'Unknown';
+                        final empName = log.employeeName ?? 'Unknown';
                         final checkInStr = DateFormat('HH:mm').format(log.checkInAt);
                         final checkOutStr = log.checkOutAt != null
                             ? DateFormat('HH:mm').format(log.checkOutAt!)

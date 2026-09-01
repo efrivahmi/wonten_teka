@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -6,8 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/models/attendance_log_model.dart';
-import '../../widgets/info_card.dart';
-import '../../../../../core/api/api_client.dart'; // To get baseUrl or just hardcode
+import '../../../../../core/widgets/info_card.dart';
 
 class AttendanceDetailScreen extends StatelessWidget {
   final AttendanceLogModel log;
@@ -19,9 +18,8 @@ class AttendanceDetailScreen extends StatelessWidget {
     LatLng? checkInLocation;
     if (log.checkInGps != null && log.checkInGps!['latitude'] != null) {
       checkInLocation = LatLng(
-        double.parse(log.checkInGps!['latitude'].toString()),
-        double.parse(log.checkInGps!['longitude'].toString())
-      );
+          double.parse(log.checkInGps!['latitude'].toString()),
+          double.parse(log.checkInGps!['longitude'].toString()));
     }
 
     String address = 'Lokasi GPS Tersimpan';
@@ -30,7 +28,8 @@ class AttendanceDetailScreen extends StatelessWidget {
     }
 
     // Backend base URL for images
-    const String baseUrl = 'http://www.great-symbols-begin-freely.st.a.dcdg.xyz/storage/';
+    const String baseUrl =
+        'https://presensi.lemdiklattarunanusantaraindonesia.id/storage/';
 
     return Scaffold(
       backgroundColor: AppColors.surfaceContainerLow,
@@ -58,7 +57,9 @@ class AttendanceDetailScreen extends StatelessWidget {
                   Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(DateFormat('EEEE, d MMM yyyy', 'id_ID').format(log.checkInAt),
+                        Text(
+                            DateFormat('EEEE, d MMM yyyy', 'id_ID')
+                                .format(log.checkInAt),
                             style: Theme.of(context)
                                 .textTheme
                                 .titleMedium
@@ -116,7 +117,10 @@ class AttendanceDetailScreen extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.5)),
                       SizedBox(height: 4.h),
-                      Text(log.checkOutAt != null ? DateFormat('HH:mm').format(log.checkOutAt!) : '--:--',
+                      Text(
+                          log.checkOutAt != null
+                              ? DateFormat('HH:mm').format(log.checkOutAt!)
+                              : '--:--',
                           style: Theme.of(context)
                               .textTheme
                               .headlineSmall
@@ -155,7 +159,8 @@ class AttendanceDetailScreen extends StatelessWidget {
                       padding:
                           EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                       decoration: BoxDecoration(
-                          color: AppColors.successEmerald.withValues(alpha: 0.1),
+                          color:
+                              AppColors.successEmerald.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8.r)),
                       child: Text('Normal',
                           style: TextStyle(
@@ -183,45 +188,49 @@ class AttendanceDetailScreen extends StatelessWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12.r),
-                child: checkInLocation != null 
-                  ? FlutterMap(
-                      options: MapOptions(
-                        initialCenter: checkInLocation,
-                        initialZoom: 16.0,
-                        interactionOptions: const InteractionOptions(
-                          flags: InteractiveFlag.none, // Make map static for detail view
-                        )
-                      ),
-                      children: [
-                        TileLayer(
-                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                          userAgentPackageName: 'com.example.wonten_teka',
-                        ),
-                        MarkerLayer(
-                          markers: [
-                            Marker(
-                              point: checkInLocation,
-                              width: 40,
-                              height: 40,
-                              child: const Icon(Icons.location_pin, color: Colors.red, size: 40),
-                            ),
-                          ],
-                        ),
-                      ],
-                    )
-                  : Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                child: checkInLocation != null
+                    ? FlutterMap(
+                        options: MapOptions(
+                            initialCenter: checkInLocation,
+                            initialZoom: 16.0,
+                            interactionOptions: const InteractionOptions(
+                              flags: InteractiveFlag
+                                  .none, // Make map static for detail view
+                            )),
                         children: [
-                          Icon(Icons.location_off, size: 32.w, color: AppColors.onSurfaceVariant),
-                          SizedBox(height: 8.h),
-                          Text('Data lokasi tidak tersedia', style: TextStyle(color: AppColors.onSurfaceVariant))
+                          TileLayer(
+                            urlTemplate:
+                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            userAgentPackageName: 'com.example.wonten_teka',
+                          ),
+                          MarkerLayer(
+                            markers: [
+                              Marker(
+                                point: checkInLocation,
+                                width: 40,
+                                height: 40,
+                                child: const Icon(Icons.location_pin,
+                                    color: Colors.red, size: 40),
+                              ),
+                            ],
+                          ),
                         ],
                       )
-                    ),
+                    : Center(
+                        child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.location_off,
+                              size: 32.w, color: AppColors.onSurfaceVariant),
+                          SizedBox(height: 8.h),
+                          const Text('Data lokasi tidak tersedia',
+                              style:
+                                  TextStyle(color: AppColors.onSurfaceVariant))
+                        ],
+                      )),
               ),
             ),
-            
+
             // Address Label
             Padding(
               padding: EdgeInsets.only(top: 8.h),
@@ -235,11 +244,9 @@ class AttendanceDetailScreen extends StatelessWidget {
                       color: AppColors.primaryContainer, size: 16.w),
                   SizedBox(width: 8.w),
                   Expanded(
-                      child: Text(
-                          address,
+                      child: Text(address,
                           style: TextStyle(
-                              fontSize: 12.sp,
-                              color: AppColors.onSurface))),
+                              fontSize: 12.sp, color: AppColors.onSurface))),
                 ]),
               ),
             ),
@@ -257,28 +264,34 @@ class AttendanceDetailScreen extends StatelessWidget {
                   child: InfoCard(
                     child: Column(
                       children: [
-                        Text('Masuk', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold)),
+                        Text('Masuk',
+                            style: TextStyle(
+                                fontSize: 12.sp, fontWeight: FontWeight.bold)),
                         SizedBox(height: 8.h),
-                        if (log.checkInPhotoUrl != null && log.checkInPhotoUrl!.isNotEmpty)
+                        if (log.checkInPhotoUrl != null &&
+                            log.checkInPhotoUrl!.isNotEmpty)
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(8.r),
-                            child: Image.network(
-                              "\\", 
-                              height: 120.h, 
-                              width: double.infinity, 
-                              fit: BoxFit.cover, 
-                              errorBuilder: (_,__,___) => Container(
+                              borderRadius: BorderRadius.circular(8.r),
+                              child: Image.network(
+                                "$baseUrl${log.checkInPhotoUrl}",
                                 height: 120.h,
-                                color: Colors.grey[200],
-                                child: const Icon(Icons.broken_image, color: Colors.grey),
-                              ),
-                            )
-                          )
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  height: 120.h,
+                                  color: Colors.grey[200],
+                                  child: const Icon(Icons.broken_image,
+                                      color: Colors.grey),
+                                ),
+                              ))
                         else
                           Container(
                             height: 120.h,
                             color: Colors.grey[100],
-                            child: Center(child: Icon(Icons.face, color: AppColors.onSurfaceVariant, size: 48.w)),
+                            child: Center(
+                                child: Icon(Icons.face,
+                                    color: AppColors.onSurfaceVariant,
+                                    size: 48.w)),
                           ),
                       ],
                     ),
@@ -289,28 +302,34 @@ class AttendanceDetailScreen extends StatelessWidget {
                   child: InfoCard(
                     child: Column(
                       children: [
-                        Text('Keluar', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold)),
+                        Text('Keluar',
+                            style: TextStyle(
+                                fontSize: 12.sp, fontWeight: FontWeight.bold)),
                         SizedBox(height: 8.h),
-                        if (log.checkOutPhotoUrl != null && log.checkOutPhotoUrl!.isNotEmpty)
+                        if (log.checkOutPhotoUrl != null &&
+                            log.checkOutPhotoUrl!.isNotEmpty)
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(8.r),
-                            child: Image.network(
-                              "\\", 
-                              height: 120.h, 
-                              width: double.infinity, 
-                              fit: BoxFit.cover, 
-                              errorBuilder: (_,__,___) => Container(
+                              borderRadius: BorderRadius.circular(8.r),
+                              child: Image.network(
+                                "$baseUrl${log.checkOutPhotoUrl}",
                                 height: 120.h,
-                                color: Colors.grey[200],
-                                child: const Icon(Icons.broken_image, color: Colors.grey),
-                              ),
-                            )
-                          )
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  height: 120.h,
+                                  color: Colors.grey[200],
+                                  child: const Icon(Icons.broken_image,
+                                      color: Colors.grey),
+                                ),
+                              ))
                         else
                           Container(
                             height: 120.h,
                             color: Colors.grey[100],
-                            child: Center(child: Icon(Icons.face, color: AppColors.onSurfaceVariant, size: 48.w)),
+                            child: Center(
+                                child: Icon(Icons.face,
+                                    color: AppColors.onSurfaceVariant,
+                                    size: 48.w)),
                           ),
                       ],
                     ),
@@ -346,7 +365,7 @@ class AttendanceDetailScreen extends StatelessWidget {
     if (duration == null) return '--';
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
-    return '\j \m';
+    return '${hours}j ${minutes}m';
   }
 
   Widget _buildStatusBadge(String status) {

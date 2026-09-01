@@ -36,14 +36,18 @@ class ShiftTemplateModel extends Equatable {
   final String name;
   final String? startTime;
   final String? endTime;
-  final String? color;
+  final int? gracePeriodMinutes;
+  final bool isDefault;
+  final bool isActive;
 
   const ShiftTemplateModel({
     required this.id,
     required this.name,
     this.startTime,
     this.endTime,
-    this.color,
+    this.gracePeriodMinutes,
+    this.isDefault = false,
+    this.isActive = true,
   });
 
   factory ShiftTemplateModel.fromJson(Map<String, dynamic> json) {
@@ -52,7 +56,9 @@ class ShiftTemplateModel extends Equatable {
       name: json['name'] as String,
       startTime: json['start_time'] as String?,
       endTime: json['end_time'] as String?,
-      color: json['color'] as String?,
+      gracePeriodMinutes: json['grace_period_minutes'] as int?,
+      isDefault: json['is_default'] as bool? ?? false,
+      isActive: json['is_active'] as bool? ?? true,
     );
   }
 

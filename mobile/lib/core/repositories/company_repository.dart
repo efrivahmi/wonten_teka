@@ -28,6 +28,22 @@ class CompanyRepository {
     await _api.post('/announcements/$announcementId/acknowledge');
   }
 
+  Future<void> createAnnouncement(Map<String, dynamic> data) async {
+    await _api.post('/admin/announcements', data: data);
+  }
+
+  Future<void> createEvent(Map<String, dynamic> data) async {
+    await _api.post('/admin/events', data: data);
+  }
+
+  Future<void> updateEvent(int id, Map<String, dynamic> data) async {
+    await _api.put('/admin/events/$id', data: data);
+  }
+
+  Future<void> deleteEvent(int id) async {
+    await _api.delete('/admin/events/$id');
+  }
+
   Future<Map<String, dynamic>> getGeofence() async {
     final response = await _api.get('/company/geofence');
     return response.data as Map<String, dynamic>;

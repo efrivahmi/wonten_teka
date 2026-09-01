@@ -107,4 +107,60 @@ class CompanyCubit extends Cubit<CompanyState> {
       }
     }
   }
+
+  Future<void> updateGeofence({required double latitude, required double longitude, required double radius}) async {
+    try {
+      await _repo.updateGeofence(latitude: latitude, longitude: longitude, radius: radius);
+      if (state is CompanyLoaded) {
+        final current = state as CompanyLoaded;
+        emit(CompanyLoaded(
+          calendarEvents: current.calendarEvents,
+          announcements: current.announcements,
+          attendanceLogs: current.attendanceLogs,
+          workingDays: current.workingDays,
+          geofence: {'latitude': latitude, 'longitude': longitude, 'geofence_radius_meters': radius},
+        ));
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updateWorkingDays(List<int> workingDays) async {
+    try {
+      await _repo.updateWorkingDays(workingDays);
+      if (state is CompanyLoaded) {
+        final current = state as CompanyLoaded;
+        emit(CompanyLoaded(
+          calendarEvents: current.calendarEvents,
+          announcements: current.announcements,
+          attendanceLogs: current.attendanceLogs,
+          workingDays: workingDays,
+          geofence: current.geofence,
+        ));
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> createAnnouncement(Map<String, dynamic> data) async {
+    await _repo.createAnnouncement(data);
+    await loadAll();
+  }
+
+  Future<void> createEvent(Map<String, dynamic> data) async {
+    await _repo.createEvent(data);
+    await loadAll();
+  }
+
+  Future<void> updateEvent(int id, Map<String, dynamic> data) async {
+    await _repo.updateEvent(id, data);
+    await loadAll();
+  }
+
+  Future<void> deleteEvent(int id) async {
+    await _repo.deleteEvent(id);
+    await loadAll();
+  }
 }

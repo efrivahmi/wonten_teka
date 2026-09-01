@@ -28,6 +28,8 @@ class ApprovalInstanceModel extends Equatable {
     if (approvableType.contains('OvertimeRequest')) return 'Lembur';
     if (approvableType.contains('ShiftExchangeRequest')) return 'Tukar Shift';
     if (approvableType.contains('Claim')) return 'Klaim';
+    if (approvableType.contains('AttendanceAdjustmentRequest')) return 'Lupa Absen';
+    if (approvableType.contains('BusinessTripRequest')) return 'Dinas Luar';
     return 'Persetujuan';
   }
 

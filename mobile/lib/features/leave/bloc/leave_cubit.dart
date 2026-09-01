@@ -93,4 +93,53 @@ class LeaveCubit extends Cubit<LeaveState> {
       emit(const LeaveError('Gagal mengajukan cuti.'));
     }
   }
+
+  // Admin Methods
+  Future<void> loadAdminTypes() async {
+    emit(LeaveLoading());
+    try {
+      final types = await _repo.getAdminLeaveTypes();
+      emit(LeaveLoaded(types: types));
+    } on ApiException catch (e) {
+      emit(LeaveError(e.message));
+    } catch (e) {
+      emit(const LeaveError('Gagal memuat tipe cuti admin.'));
+    }
+  }
+
+  Future<void> createLeaveType(Map<String, dynamic> data) async {
+    emit(LeaveLoading());
+    try {
+      await _repo.createLeaveType(data);
+      await loadAdminTypes();
+    } on ApiException catch (e) {
+      emit(LeaveError(e.message));
+    } catch (e) {
+      emit(const LeaveError('Gagal membuat tipe cuti.'));
+    }
+  }
+
+  Future<void> updateLeaveType(int id, Map<String, dynamic> data) async {
+    emit(LeaveLoading());
+    try {
+      await _repo.updateLeaveType(id, data);
+      await loadAdminTypes();
+    } on ApiException catch (e) {
+      emit(LeaveError(e.message));
+    } catch (e) {
+      emit(const LeaveError('Gagal memperbarui tipe cuti.'));
+    }
+  }
+
+  Future<void> deleteLeaveType(int id) async {
+    emit(LeaveLoading());
+    try {
+      await _repo.deleteLeaveType(id);
+      await loadAdminTypes();
+    } on ApiException catch (e) {
+      emit(LeaveError(e.message));
+    } catch (e) {
+      emit(const LeaveError('Gagal menghapus tipe cuti.'));
+    }
+  }
 }

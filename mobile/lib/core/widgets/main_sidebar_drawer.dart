@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,8 +21,11 @@ class MainSidebarDrawer extends StatelessWidget {
           isAdmin = state.user.isAdmin;
           isManager = state.user.isManager;
           userName = state.user.employee?.fullName ?? state.user.name;
-          if (isAdmin) roleName = 'Administrator';
-          else if (isManager) roleName = 'Manager';
+          if (isAdmin) {
+            roleName = 'Administrator';
+          } else if (isManager) {
+            roleName = 'Manager';
+          }
         }
 
         return Drawer(
@@ -54,18 +57,19 @@ class MainSidebarDrawer extends StatelessWidget {
                         child: Text('MASTER DATA', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: AppColors.onSurfaceVariant)),
                       ),
                       ExpansionTile(
-                        leading: Icon(Icons.storage, color: AppColors.primary),
+                        leading: const Icon(Icons.storage, color: AppColors.primary),
                         title: const Text('Data Utama', style: TextStyle(fontWeight: FontWeight.w600)),
                         childrenPadding: EdgeInsets.only(left: 16.w),
                         children: [
                           _buildListTile(context, 'Karyawan', Icons.people_outline, '/admin/employees'),
                           _buildListTile(context, 'Kategori Shift', Icons.calendar_month, '/admin/shifts'),
                           _buildListTile(context, 'Jadwal Shift', Icons.assignment_ind, '/admin/shift-assignments'),
+                          _buildListTile(context, 'Tipe Cuti', Icons.flight_takeoff, '/admin/leave-types'),
                           _buildListTile(context, 'Konfigurasi Payroll', Icons.settings_suggest, '/admin/payroll-config'),
                         ],
                       ),
                       ExpansionTile(
-                        leading: Icon(Icons.insert_chart, color: AppColors.infoCerulean),
+                        leading: const Icon(Icons.insert_chart, color: AppColors.infoCerulean),
                         title: const Text('Laporan & Analitik', style: TextStyle(fontWeight: FontWeight.w600)),
                         childrenPadding: EdgeInsets.only(left: 16.w),
                         children: [
@@ -85,7 +89,7 @@ class MainSidebarDrawer extends StatelessWidget {
                       child: Text('PERSONAL', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: AppColors.onSurfaceVariant)),
                     ),
                     _buildListTile(context, 'Riwayat Absensi', Icons.fingerprint, '/app/attendance'),
-                    _buildListTile(context, 'Jadwal Shift Saya', Icons.schedule, '/app/shift-schedule'),
+                    _buildListTile(context, 'Jadwal Shift Saya', Icons.schedule, '/app/schedule/shifts'),
                     _buildListTile(context, 'Riwayat Cuti', Icons.event_busy, '/app/leave'),
                     _buildListTile(context, 'Klaim / Reimburse', Icons.receipt_long, '/app/claims'),
                     _buildListTile(context, 'Slip Gaji', Icons.request_quote, '/app/payroll'),

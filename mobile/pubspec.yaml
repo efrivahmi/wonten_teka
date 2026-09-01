@@ -25,6 +25,7 @@ dependencies:
   device_info_plus: ^10.1.2
   flutter_map: ^7.0.2
   latlong2: ^0.9.1
+  url_launcher: ^6.3.0
   # Networking & State Management
   dio: ^5.4.0
   flutter_bloc: ^8.1.0

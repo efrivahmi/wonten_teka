@@ -1,10 +1,12 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'widgets/bottom_nav_shell.dart';
 
 // Models
 import 'models/company_models.dart';
 import 'models/attendance_log_model.dart';
 import 'models/payslip_model.dart';
+import 'models/leave_models.dart';
 
 // Pre-auth
 import '../features/onboarding/presentation/screens/employee/splash_screen.dart';
@@ -17,16 +19,17 @@ import '../features/attendance/presentation/screens/employee/face_enrollment_scr
 import '../features/onboarding/presentation/screens/employee/app_tour_guide_screen.dart';
 
 // Main Navigation Shell
-import 'widgets/bottom_nav_shell.dart';
-
 // Dashboard & Attendance
 import '../features/dashboard/presentation/screens/employee/home_dashboard_screen.dart';
+import '../features/dashboard/presentation/screens/employee/all_features_screen.dart';
 import '../features/attendance/presentation/screens/employee/attendance_history_screen.dart';
 import '../features/attendance/presentation/screens/employee/face_check_in_screen.dart';
 import '../features/attendance/presentation/screens/employee/check_in_success_screen.dart';
 import '../features/attendance/presentation/screens/employee/attendance_detail_screen.dart';
 import '../features/attendance/presentation/screens/attendance_report_screen.dart';
 import '../features/attendance/presentation/screens/employee/attendance_dispute_screen.dart';
+import '../features/attendance/presentation/screens/employee/attendance_adjustment_form_screen.dart';
+import '../features/attendance/presentation/screens/employee/business_trip_form_screen.dart';
 
 // Schedule & Habits
 import '../features/schedule/presentation/screens/employee/shift_schedule_screen.dart';
@@ -35,9 +38,9 @@ import '../features/schedule_habit/presentation/screens/employee/habit_form_scre
 import '../features/schedule_habit/presentation/screens/employee/habit_detail_screen.dart';
 
 // Leave, Approval, & Claims
+import '../features/leave/presentation/screens/employee/leave_history_screen.dart';
 import '../features/leave/presentation/screens/employee/leave_request_form_screen.dart';
 import '../features/leave/presentation/screens/employee/leave_detail_screen.dart';
-import '../features/leave/presentation/screens/employee/leave_history_screen.dart';
 import '../features/approval/presentation/screens/manager/approval_inbox_screen.dart';
 import '../features/approval/presentation/screens/manager/approval_detail_screen.dart';
 import '../features/claims/presentation/screens/employee/claim_list_screen.dart';
@@ -77,7 +80,7 @@ import '../features/company/presentation/screens/admin/employee_edit_admin_scree
 import '../features/attendance/presentation/screens/admin/attendance_report_admin_screen.dart';
 import '../features/attendance/presentation/screens/admin/attendance_flag_review_screen.dart';
 import '../features/attendance/presentation/screens/admin/daily_attendance_table_screen.dart';
-import '../features/leave/presentation/screens/admin/leave_request_admin_screen.dart';
+
 import '../features/claims/presentation/screens/admin/claim_detail_admin_screen.dart';
 import '../features/approval/presentation/screens/manager/team_approvals_screen.dart';
 import '../features/company/presentation/screens/manager/team_performance_screen.dart';
@@ -87,8 +90,11 @@ import '../features/payroll/presentation/screens/admin/payroll_run_detail_screen
 import '../features/schedule/presentation/screens/admin/shift_templates_screen.dart';
 import '../features/schedule/presentation/screens/admin/shift_template_form_screen.dart';
 import '../features/schedule/presentation/screens/admin/shift_assignment_grid_screen.dart';
+import '../features/leave/presentation/screens/admin/leave_types_admin_screen.dart';
+import '../features/leave/presentation/screens/admin/leave_type_form_screen.dart';
 import '../features/calendar/presentation/screens/admin/create_announcement_screen.dart';
 import '../features/company/presentation/screens/admin/organization_settings_screen.dart';
+
 import '../features/company/presentation/screens/admin/department_analytics_screen.dart';
 import '../features/company/presentation/screens/admin/export_center_screen.dart';
 import '../features/company/presentation/screens/admin/audit_logs_screen.dart';
@@ -119,20 +125,26 @@ final appRouter = GoRouter(
     GoRoute(path: '/app/tour', builder: (_, __) => const AppTourGuideScreen()),
 
     // Independent full-screen routes (no bottom nav)
-    GoRoute(
-        path: '/app/attendance/check-in',
-        builder: (_, __) => const FaceCheckInScreen()),
-    GoRoute(
-        path: '/app/attendance/check-out',
-        builder: (_, __) => const FaceCheckInScreen(isCheckOut: true)),
-    GoRoute(
-        path: '/app/attendance/success',
-        builder: (_, state) {
-          final extra = state.extra as Map<String, dynamic>? ?? {};
-          final log = extra['log'] as AttendanceLogModel;
-          final isCheckOut = extra['isCheckOut'] as bool? ?? false;
-          return CheckInSuccessScreen(log: log, isCheckOut: isCheckOut);
-        }),
+      GoRoute(
+          path: '/app/attendance/check-in',
+          builder: (_, __) => const FaceCheckInScreen()),
+      GoRoute(
+          path: '/app/attendance/check-out',
+          builder: (_, __) => const FaceCheckInScreen(isCheckOut: true)),
+      GoRoute(
+          path: '/app/attendance/success',
+          builder: (_, state) {
+            final extra = state.extra as Map<String, dynamic>? ?? {};
+            final log = extra['log'] as AttendanceLogModel;
+            final isCheckOut = extra['isCheckOut'] as bool? ?? false;
+            return CheckInSuccessScreen(log: log, isCheckOut: isCheckOut);
+          }),
+      GoRoute(
+        path: '/app/attendance/adjustment-form',
+        builder: (_, __) => const AttendanceAdjustmentFormScreen()),
+      GoRoute(
+        path: '/app/attendance/business-trip-form',
+        builder: (_, __) => const BusinessTripFormScreen()),
     GoRoute(
         path: '/app/attendance/detail',
         builder: (_, state) {
@@ -158,6 +170,9 @@ final appRouter = GoRouter(
         path: '/app/habits/detail',
         builder: (_, __) => const HabitDetailScreen()),
 
+    GoRoute(
+        path: '/app/leave',
+        builder: (_, __) => const LeaveHistoryScreen()),
     GoRoute(
         path: '/app/leave/new',
         builder: (_, __) => const LeaveRequestFormScreen()),
@@ -301,6 +316,15 @@ final appRouter = GoRouter(
         path: '/admin/shift-assignments',
         builder: (_, __) => const ShiftAssignmentGridScreen()),
     GoRoute(
+        path: '/admin/leave-types',
+        builder: (_, __) => const LeaveTypesAdminScreen()),
+    GoRoute(
+        path: '/admin/leave-types/form',
+        builder: (_, state) {
+          final leaveType = state.extra as LeaveTypeModel?;
+          return LeaveTypeFormScreen(leaveType: leaveType);
+        }),
+    GoRoute(
         path: '/admin/announcements/new',
         builder: (_, __) => const CreateAnnouncementScreen()),
     GoRoute(
@@ -329,31 +353,45 @@ final appRouter = GoRouter(
         path: '/admin/devices',
         builder: (_, __) => const DeviceApprovalAdminScreen()),
 
-    // Main Shell
+    // Main features (tabs)
     StatefulShellRoute.indexedStack(
-      builder: (context, state, navigationShell) =>
-          BottomNavShell(navigationShell: navigationShell),
+      builder: (context, state, navigationShell) {
+        return BottomNavShell(navigationShell: navigationShell);
+      },
       branches: [
-        StatefulShellBranch(routes: [
-          GoRoute(
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
               path: '/app/home',
-              builder: (_, __) => const HomeDashboardScreen())
-        ]),
-        StatefulShellBranch(routes: [
-          GoRoute(
-              path: '/app/attendance',
-              builder: (_, __) => const AttendanceHistoryScreen())
-        ]),
-        StatefulShellBranch(routes: [
-          GoRoute(
-              path: '/app/payroll',
-              builder: (_, __) => const PayslipListScreen())
-        ]),
-        StatefulShellBranch(routes: [
-          GoRoute(
-              path: '/app/profile',
-              builder: (_, __) => const UserProfileScreen())
-        ]),
+              builder: (context, state) => const HomeDashboardScreen(),
+            ),
+            GoRoute(
+              path: '/app/all-features',
+              builder: (context, state) => const AllFeaturesScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+                path: '/app/attendance',
+                builder: (_, __) => const AttendanceHistoryScreen()),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+                path: '/app/payroll',
+                builder: (_, __) => const PayslipListScreen()),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+                path: '/app/profile',
+                builder: (_, __) => const UserProfileScreen()),
+          ],
+        ),
       ],
     ),
   ],

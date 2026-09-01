@@ -101,19 +101,30 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
             SizedBox(height: 24.h),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
+              child: ElevatedButton.icon(
                 onPressed: () {
-                  context.pop(); // close dialog
-                  context.pop(); // pop form screen
-                  context.read<LeaveCubit>().loadAll(); // reload history
+                  context.pop();
+                  context.pop();
+                  context.read<LeaveCubit>().loadAll();
                 },
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryContainer,
-                    foregroundColor: AppColors.onPrimary,
+                    backgroundColor: AppColors.successEmerald,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 12.h),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.r))),
-                child: const Text('Kembali'),
+                icon: const Icon(Icons.send),
+                label: const Text('Konfirmasi via WhatsApp'),
               ),
+            ),
+            SizedBox(height: 12.h),
+            TextButton(
+              onPressed: () {
+                context.pop(); // close dialog
+                context.pop(); // pop form screen
+                context.read<LeaveCubit>().loadAll(); // reload history
+              },
+              child: const Text('Kembali'),
             ),
           ],
         ),
@@ -324,3 +335,4 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
     );
   }
 }
+

@@ -15,6 +15,7 @@ class AttendanceLogModel extends Equatable {
   final String? deviceId;
   final Map<String, dynamic>? flags;
   final String status; // 'present', 'flagged', 'late'
+  final String? employeeName;
 
   const AttendanceLogModel({
     required this.id,
@@ -30,6 +31,7 @@ class AttendanceLogModel extends Equatable {
     this.deviceId,
     this.flags,
     this.status = 'present',
+    this.employeeName,
   });
 
   bool get isFlagged => status == 'flagged';
@@ -61,6 +63,9 @@ class AttendanceLogModel extends Equatable {
       deviceId: json['device_id']?.toString(),
       flags: json['flags'] as Map<String, dynamic>?,
       status: json['status'] as String? ?? 'present',
+      employeeName: (json['employee'] != null && json['employee']['full_name'] != null) 
+          ? json['employee']['full_name'] 
+          : null,
     );
   }
 

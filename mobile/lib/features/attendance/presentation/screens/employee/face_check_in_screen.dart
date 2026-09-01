@@ -20,7 +20,8 @@ import '../../widgets/camera_preview_widget.dart';
 
 class FaceCheckInScreen extends StatefulWidget {
   final bool isCheckOut;
-  const FaceCheckInScreen({super.key, this.isCheckOut = false});
+  final bool isOvertime;
+  const FaceCheckInScreen({super.key, this.isCheckOut = false, this.isOvertime = false});
 
   @override
   State<FaceCheckInScreen> createState() => _FaceCheckInScreenState();
@@ -85,8 +86,10 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
       Position? position;
       try {
         position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-          timeLimit: const Duration(seconds: 5),
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: 5),
+          ),
         );
       } catch (e) {
         // Fallback if getCurrentPosition times out
@@ -97,6 +100,8 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
         if (mounted) setState(() => _locationStatus = "Gagal mendapatkan lokasi GPS.");
         return;
       }
+      
+      if (!mounted) return;
       
       bool inRadius = true; // Fallback if no geofence data is available
       final companyState = context.read<CompanyCubit>().state;
@@ -201,6 +206,7 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
             flags: {
               'is_mock_location': isMock,
               'address': _currentAddress,
+              'is_overtime': widget.isOvertime,
             },
           );
         } else {
@@ -213,6 +219,7 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
             flags: {
               'is_mock_location': isMock,
               'address': _currentAddress,
+              'is_overtime': widget.isOvertime,
             },
           );
         }

@@ -42,4 +42,27 @@ class LeaveRepository {
     final data = response.data as Map<String, dynamic>;
     return LeaveRequestModel.fromJson(data['data'] as Map<String, dynamic>);
   }
+
+  // Admin Methods
+  Future<List<LeaveTypeModel>> getAdminLeaveTypes() async {
+    final response = await _api.get('/admin/leave-types');
+    final data = response.data as Map<String, dynamic>;
+    return (data['data'] as List).map((e) => LeaveTypeModel.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<LeaveTypeModel> createLeaveType(Map<String, dynamic> data) async {
+    final response = await _api.post('/admin/leave-types', data: data);
+    final resData = response.data as Map<String, dynamic>;
+    return LeaveTypeModel.fromJson(resData['data'] as Map<String, dynamic>);
+  }
+
+  Future<LeaveTypeModel> updateLeaveType(int id, Map<String, dynamic> data) async {
+    final response = await _api.put('/admin/leave-types/$id', data: data);
+    final resData = response.data as Map<String, dynamic>;
+    return LeaveTypeModel.fromJson(resData['data'] as Map<String, dynamic>);
+  }
+
+  Future<void> deleteLeaveType(int id) async {
+    await _api.delete('/admin/leave-types/$id');
+  }
 }

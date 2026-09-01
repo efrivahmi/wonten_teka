@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('attendance_logs', function (Blueprint $table) {
-            $table->string('photo_path')->nullable()->after('face_match_score');
+        Schema::table('overtime_requests', function (Blueprint $table) {
+            $table->string('overtime_type')->default('Hari Kerja')->after('end_time');
+            $table->string('attachment_url')->nullable()->after('reason');
         });
     }
 
@@ -21,8 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('attendance_logs', function (Blueprint $table) {
-            $table->dropColumn('photo_path');
+        Schema::table('overtime_requests', function (Blueprint $table) {
+            $table->dropColumn(['overtime_type', 'attachment_url']);
         });
     }
 };

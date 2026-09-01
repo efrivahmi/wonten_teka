@@ -60,6 +60,21 @@ class OvertimeFormScreen extends StatelessWidget {
                             ),
                           ),
                           SizedBox(height: 24.h),
+
+                          Text('Jenis Lembur', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                          SizedBox(height: 8.h),
+                          DropdownButtonFormField<String>(
+                            decoration: InputDecoration(
+                              filled: true, fillColor: Colors.grey[50],
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide.none),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide(color: Colors.grey[200]!)),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                            ),
+                            value: 'Hari Kerja',
+                            items: ['Hari Kerja', 'Hari Libur'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                            onChanged: (_) {},
+                          ),
+                          SizedBox(height: 24.h),
                           
                           Row(
                             children: [
@@ -116,6 +131,30 @@ class OvertimeFormScreen extends StatelessWidget {
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide.none),
                               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide(color: Colors.grey[200]!)),
                               contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                            ),
+                          ),
+                          SizedBox(height: 24.h),
+                          
+                          Text('Bukti / Foto Pekerjaan', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                          SizedBox(height: 8.h),
+                          InkWell(
+                            onTap: () {},
+                            borderRadius: BorderRadius.circular(16.r),
+                            child: Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.symmetric(vertical: 32.h),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[50],
+                                border: Border.all(color: Colors.grey[300]!, style: BorderStyle.solid),
+                                borderRadius: BorderRadius.circular(16.r),
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(Icons.add_a_photo, color: Colors.grey[400], size: 48.sp),
+                                  SizedBox(height: 12.h),
+                                  Text('Tap untuk mengunggah foto', style: TextStyle(color: Colors.grey[500])),
+                                ],
+                              ),
                             ),
                           ),
                           SizedBox(height: 32.h),

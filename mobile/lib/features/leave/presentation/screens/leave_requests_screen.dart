@@ -169,8 +169,8 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                               padding: EdgeInsets.only(right: 8.w),
                               child: _LeaveBalanceCard(
                                 label: balance.leaveType?.name ?? 'Cuti',
-                                used: balance.used,
-                                total: balance.allocated,
+                                used: balance.usedDays,
+                                total: balance.entitledDays,
                                 color: AppColors.infoCerulean,
                               ),
                             ),

@@ -15,10 +15,19 @@ class ShiftLoading extends ShiftState {}
 
 class ShiftLoaded extends ShiftState {
   final List<ShiftAssignmentModel> shifts;
+  final List<ShiftTemplateModel> adminTemplates;
+  final List<ShiftAssignmentModel> adminAssignments;
   final bool hasNextPage;
-  const ShiftLoaded(this.shifts, {this.hasNextPage = false});
+  
+  const ShiftLoaded({
+    this.shifts = const [],
+    this.adminTemplates = const [],
+    this.adminAssignments = const [],
+    this.hasNextPage = false,
+  });
+  
   @override
-  List<Object?> get props => [shifts];
+  List<Object?> get props => [shifts, adminTemplates, adminAssignments];
 }
 
 class ShiftError extends ShiftState {
@@ -39,11 +48,82 @@ class ShiftCubit extends Cubit<ShiftState> {
     emit(ShiftLoading());
     try {
       final result = await _repo.getUpcoming(page: page);
-      emit(ShiftLoaded(result.data, hasNextPage: result.hasNextPage));
+      if (state is ShiftLoaded) {
+        final current = state as ShiftLoaded;
+        emit(ShiftLoaded(
+          shifts: result.data,
+          adminTemplates: current.adminTemplates,
+          adminAssignments: current.adminAssignments,
+          hasNextPage: result.hasNextPage,
+        ));
+      } else {
+        emit(ShiftLoaded(shifts: result.data, hasNextPage: result.hasNextPage));
+      }
     } on ApiException catch (e) {
       emit(ShiftError(e.message));
     } catch (e) {
       emit(const ShiftError('Gagal memuat jadwal shift.'));
+    }
+  }
+
+  // Admin Methods
+  Future<void> loadAdminTemplates() async {
+    emit(ShiftLoading());
+    try {
+      final templates = await _repo.getAdminTemplates();
+      emit(ShiftLoaded(adminTemplates: templates));
+    } catch (e) {
+      emit(const ShiftError('Gagal memuat template shift.'));
+    }
+  }
+
+  Future<void> createTemplate(Map<String, dynamic> data) async {
+    emit(ShiftLoading());
+    try {
+      await _repo.createTemplate(data);
+      await loadAdminTemplates();
+    } catch (e) {
+      emit(const ShiftError('Gagal membuat template.'));
+    }
+  }
+
+  Future<void> updateTemplate(int id, Map<String, dynamic> data) async {
+    emit(ShiftLoading());
+    try {
+      await _repo.updateTemplate(id, data);
+      await loadAdminTemplates();
+    } catch (e) {
+      emit(const ShiftError('Gagal memperbarui template.'));
+    }
+  }
+
+  Future<void> deleteTemplate(int id) async {
+    emit(ShiftLoading());
+    try {
+      await _repo.deleteTemplate(id);
+      await loadAdminTemplates();
+    } catch (e) {
+      emit(const ShiftError('Gagal menghapus template.'));
+    }
+  }
+
+  Future<void> loadAdminAssignments({int page = 1}) async {
+    emit(ShiftLoading());
+    try {
+      final res = await _repo.getAdminAssignments(page: page);
+      emit(ShiftLoaded(adminAssignments: res.data, hasNextPage: res.hasNextPage));
+    } catch (e) {
+      emit(const ShiftError('Gagal memuat penugasan shift.'));
+    }
+  }
+
+  Future<void> assignShift(Map<String, dynamic> data) async {
+    emit(ShiftLoading());
+    try {
+      await _repo.assignShift(data);
+      await loadAdminAssignments();
+    } catch (e) {
+      emit(const ShiftError('Gagal menugaskan shift.'));
     }
   }
 }

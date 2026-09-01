@@ -46,6 +46,14 @@ class AppColors {
   static const Color warningAmber = Color(0xFFF59E0B);
   static const Color infoCerulean = Color(0xFF0EA5E9);
 
+  // Feature Grid Pastel Colors
+  static const Color pastelPink = Color(0xFFFFCCFF);
+  static const Color pastelOrange = Color(0xFFFFD699);
+  static const Color pastelBlue = Color(0xFFB3CCFF);
+  static const Color pastelGreen = Color(0xFFB3FFB3);
+  static const Color pastelTeal = Color(0xFF99E6E6);
+  static const Color pastelPurple = Color(0xFFCCCCFF);
+
   // Outline
   static const Color outline = Color(0xFF8D716A);
   static const Color outlineVariant = Color(0xFFE1BFB8);

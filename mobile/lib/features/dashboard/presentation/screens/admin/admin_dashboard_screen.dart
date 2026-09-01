@@ -22,7 +22,6 @@ class AdminDashboardScreen extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: AppColors.surfaceContainerLowest,
-          drawer: const MainSidebarDrawer(),
           body: Stack(
             children: [
               // Hero Background
@@ -50,13 +49,6 @@ class AdminDashboardScreen extends StatelessWidget {
                       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
                       child: Row(
                         children: [
-                          Builder(
-                            builder: (context) => IconButton(
-                              icon: const Icon(Icons.menu, color: Colors.white),
-                              onPressed: () => Scaffold.of(context).openDrawer(),
-                            ),
-                          ),
-                          SizedBox(width: 8.w),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,8 +78,24 @@ class AdminDashboardScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // 1. Quick Stats (Dummy Aggregates)
                             _buildQuickStats(context),
+                            SizedBox(height: 24.h),
+                            
+                            // 2. Admin Features Grid
+                            // 2. Admin Features Grids (Categorized)
+                            _buildSectionHeader('Kepegawaian'),
+                            SizedBox(height: 12.h),
+                            _buildKepegawaianGrid(context),
+                            SizedBox(height: 24.h),
+
+                            _buildSectionHeader('Kehadiran & Jadwal'),
+                            SizedBox(height: 12.h),
+                            _buildKehadiranGrid(context),
+                            SizedBox(height: 24.h),
+
+                            _buildSectionHeader('Pengaturan Perusahaan'),
+                            SizedBox(height: 12.h),
+                            _buildPengaturanGrid(context),
                             SizedBox(height: 24.h),
 
                             // 2. Attendance Bar Chart
@@ -184,6 +192,108 @@ class AdminDashboardScreen extends StatelessWidget {
         Text(value, style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
         Text(label, style: TextStyle(fontSize: 12.sp, color: AppColors.onSurfaceVariant)),
       ],
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Row(
+      children: [
+        Container(
+          width: 4.w,
+          height: 16.h,
+          decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(4.r)),
+        ),
+        SizedBox(width: 8.w),
+        Text(
+          title,
+          style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: AppColors.onSurface),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildKepegawaianGrid(BuildContext context) {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 3,
+      mainAxisSpacing: 16.h,
+      crossAxisSpacing: 16.w,
+      children: [
+        _buildActionCard(context, 'Data Karyawan', Icons.people, () => context.push('/admin/employees')),
+        _buildActionCard(context, 'Persetujuan Cuti', Icons.fact_check, () => context.push('/admin/approvals')),
+      ],
+    );
+  }
+
+  Widget _buildKehadiranGrid(BuildContext context) {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 3,
+      mainAxisSpacing: 16.h,
+      crossAxisSpacing: 16.w,
+      children: [
+        _buildActionCard(context, 'Laporan Kehadiran', Icons.event_note, () => context.push('/admin/attendance-daily')),
+        _buildActionCard(context, 'Anomali Absen', Icons.warning_amber, () => context.push('/admin/attendance-flags')),
+        _buildActionCard(context, 'Device Karyawan', Icons.devices, () => context.push('/admin/devices')),
+        _buildActionCard(context, 'Jadwal Shift', Icons.event_available, () => context.push('/admin/shifts')),
+      ],
+    );
+  }
+
+  Widget _buildPengaturanGrid(BuildContext context) {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 3,
+      mainAxisSpacing: 16.h,
+      crossAxisSpacing: 16.w,
+      children: [
+        _buildActionCard(context, 'Tipe Cuti', Icons.flight_takeoff, () => context.push('/admin/leave-types')),
+        _buildActionCard(context, 'Konfigurasi Payroll', Icons.request_quote, () => context.push('/admin/payroll-config')),
+        _buildActionCard(context, 'Pengaturan Sistem', Icons.settings, () => context.push('/admin/org-settings')),
+      ],
+    );
+  }
+
+  Widget _buildActionCard(BuildContext context, String title, IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16.r),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: AppColors.errorCrimson.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: AppColors.errorCrimson, size: 26.sp),
+            ),
+            SizedBox(height: 12.h),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600, color: AppColors.onSurface),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

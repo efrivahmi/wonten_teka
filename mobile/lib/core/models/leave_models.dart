@@ -5,16 +5,24 @@ class LeaveTypeModel extends Equatable {
   final int id;
   final int companyId;
   final String name;
-  final int? maxDaysPerYear;
+  final String? code;
+  final int? quotaPerYear;
+  final bool isPaid;
   final bool requiresAttachment;
+  final bool isCarryOverAllowed;
+  final int? maxCarryOverDays;
   final bool isActive;
 
   const LeaveTypeModel({
     required this.id,
     required this.companyId,
     required this.name,
-    this.maxDaysPerYear,
+    this.code,
+    this.quotaPerYear,
+    this.isPaid = true,
     this.requiresAttachment = false,
+    this.isCarryOverAllowed = false,
+    this.maxCarryOverDays,
     this.isActive = true,
   });
 
@@ -23,8 +31,12 @@ class LeaveTypeModel extends Equatable {
       id: json['id'] as int,
       companyId: json['company_id'] as int,
       name: json['name'] as String,
-      maxDaysPerYear: json['max_days_per_year'] as int?,
+      code: json['code'] as String?,
+      quotaPerYear: json['quota_per_year'] as int?,
+      isPaid: json['is_paid'] as bool? ?? true,
       requiresAttachment: json['requires_attachment'] as bool? ?? false,
+      isCarryOverAllowed: json['is_carry_over_allowed'] as bool? ?? false,
+      maxCarryOverDays: json['max_carry_over_days'] as int?,
       isActive: json['is_active'] as bool? ?? true,
     );
   }
@@ -38,28 +50,34 @@ class LeaveBalanceModel extends Equatable {
   final int id;
   final int employeeId;
   final int leaveTypeId;
-  final int allocated;
-  final int used;
+  final int entitledDays;
+  final int usedDays;
+  final int carriedOverDays;
+  final int remainingDays;
   final LeaveTypeModel? leaveType;
 
   const LeaveBalanceModel({
     required this.id,
     required this.employeeId,
     required this.leaveTypeId,
-    required this.allocated,
-    required this.used,
+    required this.entitledDays,
+    required this.usedDays,
+    this.carriedOverDays = 0,
+    required this.remainingDays,
     this.leaveType,
   });
 
-  int get remaining => allocated - used;
+  int get remaining => remainingDays;
 
   factory LeaveBalanceModel.fromJson(Map<String, dynamic> json) {
     return LeaveBalanceModel(
       id: json['id'] as int,
       employeeId: json['employee_id'] as int,
       leaveTypeId: json['leave_type_id'] as int,
-      allocated: json['allocated'] as int? ?? 0,
-      used: json['used'] as int? ?? 0,
+      entitledDays: json['entitled_days'] as int? ?? 0,
+      usedDays: json['used_days'] as int? ?? 0,
+      carriedOverDays: json['carried_over_days'] as int? ?? 0,
+      remainingDays: json['remaining_days'] as int? ?? 0,
       leaveType: json['leave_type'] != null
           ? LeaveTypeModel.fromJson(json['leave_type'] as Map<String, dynamic>)
           : null,
@@ -67,7 +85,7 @@ class LeaveBalanceModel extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, employeeId, leaveTypeId, allocated, used];
+  List<Object?> get props => [id, employeeId, leaveTypeId, entitledDays, usedDays];
 }
 
 /// Maps the Laravel LeaveRequest model.
