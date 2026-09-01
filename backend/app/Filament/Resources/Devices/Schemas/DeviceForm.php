@@ -16,9 +16,6 @@ class DeviceForm
                 Select::make('employee_id')
                     ->relationship('employee', 'id')
                     ->required(),
-                Select::make('company_id')
-                    ->relationship('company', 'name')
-                    ->required(),
                 TextInput::make('device_fingerprint')
                     ->required(),
                 TextInput::make('device_name'),

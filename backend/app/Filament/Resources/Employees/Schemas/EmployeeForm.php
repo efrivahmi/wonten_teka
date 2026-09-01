@@ -16,9 +16,6 @@ class EmployeeForm
     {
         return $schema
             ->components([
-                Select::make('company_id')
-                    ->relationship('company', 'name')
-                    ->required(),
                 Select::make('user_id')
                     ->relationship('user', 'name'),
                 TextInput::make('full_name')
