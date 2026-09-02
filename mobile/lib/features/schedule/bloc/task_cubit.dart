@@ -4,7 +4,7 @@ import '../../../core/api/api_exceptions.dart';
 import '../../../core/models/task_device_models.dart';
 import '../../../core/repositories/task_repository.dart';
 
-import '../notification_service.dart';
+import '../../tasks/notification_service.dart';
 
 abstract class TaskState extends Equatable {
   const TaskState();
@@ -28,6 +28,13 @@ class TaskLoaded extends TaskState {
 class TaskError extends TaskState {
   final String message;
   const TaskError(this.message);
+  @override
+  List<Object?> get props => [message];
+}
+
+class TaskActionSuccess extends TaskState {
+  final String message;
+  const TaskActionSuccess(this.message);
   @override
   List<Object?> get props => [message];
 }
@@ -106,7 +113,38 @@ class TaskCubit extends Cubit<TaskState> {
         final current = state as TaskLoaded;
         emit(TaskError(e is ApiException ? e.message : 'Gagal menambah tugas'));
         emit(TaskLoaded(current.tasks, current.dateStr));
+      } else {
+        emit(TaskError(e is ApiException ? e.message : 'Gagal menambah tugas'));
       }
+    }
+  }
+
+  // Compatibility methods for schedule_habit feature
+  Future<void> loadTasks() async {
+    final todayStr = DateTime.now().toIso8601String().split('T').first;
+    await loadTasksByDate(todayStr);
+  }
+
+  Future<void> createTask({required String title, required String recurrenceRule, required String reminderTime}) async {
+    final todayStr = DateTime.now().toIso8601String().split('T').first;
+    final timeStr = reminderTime.length > 5 ? reminderTime.substring(0, 5) : reminderTime;
+    try {
+      await addTask(title, recurrenceRule, todayStr, timeStr);
+      emit(const TaskActionSuccess('Habit berhasil ditambahkan'));
+      await loadTasksByDate(todayStr);
+    } catch (e) {
+      emit(TaskError('Gagal menambahkan habit: $e'));
+    }
+  }
+
+  Future<void> completeTask(int id) async {
+    final todayStr = DateTime.now().toIso8601String().split('T').first;
+    try {
+      await toggleTask(id, false, todayStr);
+      emit(const TaskActionSuccess('Habit diselesaikan'));
+      await loadTasksByDate(todayStr);
+    } catch (e) {
+      emit(TaskError('Gagal menyelesaikan habit: $e'));
     }
   }
 }

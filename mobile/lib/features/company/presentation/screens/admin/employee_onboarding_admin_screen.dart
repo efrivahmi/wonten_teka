@@ -218,7 +218,9 @@ class _EmployeeOnboardingAdminScreenState
                   children: _roles.map((role) {
                     return RadioListTile<String>(
                       value: role['value']!,
+                      // ignore: deprecated_member_use
                       groupValue: _selectedRole,
+                      // ignore: deprecated_member_use
                       onChanged: (v) => setState(() => _selectedRole = v!),
                       title: Text(
                         role['label']!,

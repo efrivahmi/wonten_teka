@@ -46,6 +46,8 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
             iosInfo.identifierForVendor ?? iosInfo.utsname.machine;
       }
       
+      if (!mounted) return;
+
       // Auto check status before asking user to bind
       try {
         final deviceRepo = context.read<DeviceRepository>();

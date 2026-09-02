@@ -173,7 +173,7 @@ class AllFeaturesScreen extends StatelessWidget {
   Widget _buildDivider() {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 24.h),
-      child: Divider(color: AppColors.surfaceContainerHigh, thickness: 1),
+      child: const Divider(color: AppColors.surfaceContainerHigh, thickness: 1),
     );
   }
 }

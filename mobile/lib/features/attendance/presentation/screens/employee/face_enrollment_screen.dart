@@ -139,9 +139,9 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
 
     try {
       final storage = SecureStorage();
+      final attendanceRepo = context.read<AttendanceRepository>();
       final deviceId = await storage.getDeviceFingerprint() ?? 'unknown-device';
       
-      final attendanceRepo = context.read<AttendanceRepository>();
       await attendanceRepo.enrollFace(
         faceEmbeddings: _capturedEmbeddings.isNotEmpty ? _capturedEmbeddings : [[0.0]],
         deviceId: deviceId,

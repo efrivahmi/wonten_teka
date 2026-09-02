@@ -51,7 +51,12 @@ class _LeaveTypesAdminScreenState extends State<LeaveTypesAdminScreen> {
         foregroundColor: AppColors.primary,
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/admin/leave-types/form').then((_) => context.read<LeaveCubit>().loadAdminTypes()),
+        onPressed: () async {
+          await context.push('/admin/leave-types/form');
+          if (context.mounted) {
+            context.read<LeaveCubit>().loadAdminTypes();
+          }
+        },
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         child: const Icon(Icons.add),
@@ -68,7 +73,7 @@ class _LeaveTypesAdminScreenState extends State<LeaveTypesAdminScreen> {
           }
           if (state is LeaveLoaded) {
             if (state.types.isEmpty) {
-              return Center(
+              return const Center(
                 child: Text('Belum ada tipe cuti. Silakan tambah.', style: TextStyle(color: AppColors.onSurfaceVariant)),
               );
             }
@@ -119,8 +124,11 @@ class _LeaveTypesAdminScreenState extends State<LeaveTypesAdminScreen> {
             ),
             IconButton(
               icon: const Icon(Icons.edit, color: AppColors.primary),
-              onPressed: () {
-                context.push('/admin/leave-types/form', extra: type).then((_) => context.read<LeaveCubit>().loadAdminTypes());
+              onPressed: () async {
+                await context.push('/admin/leave-types/form', extra: type);
+                if (mounted) {
+                  context.read<LeaveCubit>().loadAdminTypes();
+                }
               },
             ),
             IconButton(

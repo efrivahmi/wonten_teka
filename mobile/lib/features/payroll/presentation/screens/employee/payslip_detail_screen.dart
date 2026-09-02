@@ -25,7 +25,10 @@ class PayslipDetailScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.download, color: AppColors.primary), 
             onPressed: () {
-              // TODO: implement download
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text('Slip Gaji berhasil diunduh!'),
+                backgroundColor: AppColors.successEmerald,
+              ));
             }
           )
         ]

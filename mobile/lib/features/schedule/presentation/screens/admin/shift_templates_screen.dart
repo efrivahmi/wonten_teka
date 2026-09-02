@@ -48,8 +48,10 @@ class _ShiftTemplatesScreenState extends State<ShiftTemplatesScreen> {
       await _api.delete('/admin/shifts/$id');
       _loadTemplates();
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Gagal menghapus: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Gagal menghapus: $e')));
+      }
     }
   }
 

@@ -51,7 +51,9 @@ class EmployeeDetailAdminScreen extends StatelessWidget {
                   await context.push('/admin/employees/edit', extra: employee);
               if (result == true) {
                 // Return true to EmployeeManagementScreen so it reloads
-                context.pop(true);
+                if (context.mounted) {
+                  context.pop(true);
+                }
               }
             },
           ),
@@ -187,6 +189,7 @@ class EmployeeDetailAdminScreen extends StatelessWidget {
 
     if (confirm == true) {
       try {
+        if (!context.mounted) return;
         final api = context.read<ApiClient>();
         await api.delete('/admin/employees/$empId');
 

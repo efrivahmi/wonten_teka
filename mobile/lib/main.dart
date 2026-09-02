@@ -142,7 +142,9 @@ class WontenTekaApp extends StatelessWidget {
                 }
 
                 // Fire-and-forget sync of face data for offline/fast recognition
-                context.read<AttendanceCubit>().syncFaceData();
+                if (context.mounted) {
+                  context.read<AttendanceCubit>().syncFaceData();
+                }
 
                 // 3. Unified Dashboard Routing (All Roles start at Usage/Employee Home)
                 appRouter.go('/app/home');

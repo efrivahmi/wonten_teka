@@ -70,7 +70,7 @@ class OvertimeFormScreen extends StatelessWidget {
                               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide(color: Colors.grey[200]!)),
                               contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
                             ),
-                            value: 'Hari Kerja',
+                            initialValue: 'Hari Kerja',
                             items: ['Hari Kerja', 'Hari Libur'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
                             onChanged: (_) {},
                           ),

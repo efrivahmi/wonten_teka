@@ -89,7 +89,12 @@ class _LeaveHistoryScreenState extends State<LeaveHistoryScreen> {
     return Scaffold(
       backgroundColor: AppColors.surfaceContainerLowest,
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/app/leave/new').then((_) => context.read<LeaveCubit>().loadAll()),
+        onPressed: () async {
+          await context.push('/app/leave/new');
+          if (context.mounted) {
+            context.read<LeaveCubit>().loadAll();
+          }
+        },
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text('Ajukan Cuti', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),

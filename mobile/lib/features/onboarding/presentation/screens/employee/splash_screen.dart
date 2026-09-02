@@ -29,12 +29,17 @@ class _SplashScreenState extends State<SplashScreen> {
     final storage = SecureStorage();
     final hasToken = await storage.hasToken();
 
+    if (!mounted) return;
+
     if (hasToken) {
       // If token exists, trigger session check. The BlocListener in main.dart will handle the rest.
       context.read<AuthBloc>().add(AuthCheckSession());
     } else {
       // No token, check if user has seen tour
       final hasSeenTour = await storage.hasSeenTour();
+      
+      if (!mounted) return;
+
       if (hasSeenTour) {
         context.go('/login');
       } else {

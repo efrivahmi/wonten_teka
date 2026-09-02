@@ -210,7 +210,7 @@ class _OrganizationSettingsScreenState
             labelColor: AppColors.primary,
             unselectedLabelColor: AppColors.onSurfaceVariant,
             indicatorColor: AppColors.primary,
-            tabs: const [
+            tabs: [
               Tab(text: 'Geofence'),
               Tab(text: 'Hari Kerja'),
               Tab(text: 'Absensi'),
@@ -513,7 +513,7 @@ class _OrganizationSettingsScreenState
               children: [
                 SwitchListTile(
                   value: _requireFace,
-                  activeColor: AppColors.primary,
+                  activeThumbColor: AppColors.primary,
                   onChanged: (val) => setState(() => _requireFace = val),
                   title: const Text('Wajib Face Verification', style: TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: const Text('Karyawan wajib mengunggah foto selfie saat absen.'),
@@ -522,7 +522,7 @@ class _OrganizationSettingsScreenState
                 const Divider(height: 1, color: AppColors.outlineVariant),
                 SwitchListTile(
                   value: _requireGps,
-                  activeColor: AppColors.primary,
+                  activeThumbColor: AppColors.primary,
                   onChanged: (val) => setState(() => _requireGps = val),
                   title: const Text('Wajib GPS / Lokasi', style: TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: const Text('Karyawan wajib menyalakan GPS (Fake GPS akan diblokir).'),

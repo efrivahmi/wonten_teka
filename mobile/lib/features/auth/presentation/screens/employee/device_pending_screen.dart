@@ -41,10 +41,10 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
 
     try {
       final storage = SecureStorage();
+      final deviceRepo = context.read<DeviceRepository>();
       final fingerprint = await storage.getDeviceFingerprint();
 
       if (fingerprint != null) {
-        final deviceRepo = context.read<DeviceRepository>();
         final device = await deviceRepo.getStatus(fingerprint);
 
         if (device.status == 'active') {

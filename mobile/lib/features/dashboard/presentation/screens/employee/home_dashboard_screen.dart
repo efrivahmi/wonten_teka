@@ -274,7 +274,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             ),
             TextButton(
               onPressed: () => context.push('/app/all-features'),
-              child: Text(
+              child: const Text(
                 'Atur',
                 style: TextStyle(
                   color: AppColors.primary,
@@ -396,7 +396,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             ),
             TextButton(
               onPressed: () {},
-              child: Text(
+              child: const Text(
                 'Lihat Semua',
                 style: TextStyle(
                   color: AppColors.primary,
@@ -493,7 +493,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             ),
             TextButton(
               onPressed: () => _showAddTaskDialog(context),
-              child: Text(
+              child: const Text(
                 'Catat Tugas Baru',
                 style: TextStyle(
                   color: AppColors.primary,
@@ -515,7 +515,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 return Center(
                   child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 20.h),
-                    child: Text('Tidak ada tugas di hari ini.', style: TextStyle(color: Colors.grey)),
+                    child: const Text('Tidak ada tugas di hari ini.', style: TextStyle(color: Colors.grey)),
                   ),
                 );
               }

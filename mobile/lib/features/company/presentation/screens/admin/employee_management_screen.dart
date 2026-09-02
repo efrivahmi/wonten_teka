@@ -74,6 +74,47 @@ class _EmployeeManagementScreenState extends State<EmployeeManagementScreen> {
     });
   }
 
+  void _showFilterDialog() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20.r))),
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.all(24.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Filter Karyawan', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
+              SizedBox(height: 16.h),
+              ListTile(
+                title: const Text('Semua'),
+                onTap: () {
+                  setState(() => _filteredEmployees = _employees);
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: const Text('Aktif'),
+                onTap: () {
+                  setState(() => _filteredEmployees = _employees.where((e) => e['is_active'] == true || e['is_active'] == 1).toList());
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: const Text('Nonaktif'),
+                onTap: () {
+                  setState(() => _filteredEmployees = _employees.where((e) => e['is_active'] == false || e['is_active'] == 0).toList());
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -134,9 +175,7 @@ class _EmployeeManagementScreenState extends State<EmployeeManagementScreen> {
                         icon: Icon(Icons.search, color: Colors.grey[400]),
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.filter_list, color: AppColors.primary),
-                          onPressed: () {
-                            // TODO: Show filters
-                          },
+                          onPressed: _showFilterDialog,
                         ),
                       ),
                       onChanged: (value) {
