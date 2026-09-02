@@ -66,6 +66,17 @@ class AuthRepository {
     }
   }
 
+  /// Complete the employee profile for a newly registered user.
+  Future<UserModel> completeProfile(Map<String, dynamic> data) async {
+    await _api.post('/employee/complete-profile', data: data);
+    return await getMe();
+  }
+
+  Future<Map<String, dynamic>> getEmployeeOptions() async {
+    final response = await _api.get('/employee/options');
+    return response.data as Map<String, dynamic>;
+  }
+
   /// Check if a token exists in secure storage.
   Future<bool> hasToken() => _storage.hasToken();
 }

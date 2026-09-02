@@ -66,7 +66,11 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
           }
         }
       } catch (_) {
-        // Device not registered yet, ignore and show bind button
+        // Device not registered yet, automatically attempt to bind
+        if (mounted) {
+          _handleBindDevice();
+          return;
+        }
       }
 
       if (mounted) {

@@ -122,7 +122,14 @@ class WontenTekaApp extends StatelessWidget {
                   return;
                 }
 
-                // 1. Force Face Enrollment Check
+                // 1. Force Profile Completion Check
+                final hasEmployeeProfile = state.user.employee != null;
+                if (!hasEmployeeProfile) {
+                  appRouter.go('/complete-profile');
+                  return;
+                }
+
+                // 2. Force Face Enrollment Check
                 final isFaceEnrolled = state.user.employee?.faceEnrolled ?? false;
                 if (!isFaceEnrolled) {
                   appRouter.go('/face-enrollment');
@@ -132,7 +139,7 @@ class WontenTekaApp extends StatelessWidget {
                 // Fire-and-forget sync of face data for offline/fast recognition
                 context.read<AttendanceCubit>().syncFaceData();
 
-                // 2. Unified Dashboard Routing (All Roles start at Usage/Employee Home)
+                // 3. Unified Dashboard Routing (All Roles start at Usage/Employee Home)
                 appRouter.go('/app/home');
               } catch (e) {
                 // If anything fails during routing checks, go to device binding as safe default

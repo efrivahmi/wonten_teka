@@ -22,6 +22,13 @@ class AuthLoginRequested extends AuthEvent {
   List<Object?> get props => [email, password];
 }
 
+class AuthCompleteProfileRequested extends AuthEvent {
+  final Map<String, dynamic> profileData;
+  const AuthCompleteProfileRequested(this.profileData);
+  @override
+  List<Object?> get props => [profileData];
+}
+
 class AuthLogoutRequested extends AuthEvent {}
 
 // ── States ─────────────────────────────────────────────────────────────────
@@ -63,6 +70,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         super(AuthInitial()) {
     on<AuthCheckSession>(_onCheckSession);
     on<AuthLoginRequested>(_onLogin);
+    on<AuthCompleteProfileRequested>(_onCompleteProfile);
     on<AuthLogoutRequested>(_onLogout);
   }
 
@@ -114,6 +122,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(e.message));
     } catch (e) {
       emit(const AuthError('Terjadi kesalahan. Silakan coba lagi.'));
+    }
+  }
+
+  Future<void> _onCompleteProfile(AuthCompleteProfileRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final user = await _authRepository.completeProfile(event.profileData);
+      emit(AuthAuthenticated(user));
+    } on ValidationException catch (e) {
+      emit(AuthError(e.allErrors.join('\n'), fieldErrors: e.errors));
+    } on NetworkException {
+      emit(const AuthError('Tidak ada koneksi internet. Silakan cek jaringan Anda.'));
+    } on ApiException catch (e) {
+      emit(AuthError(e.message));
+    } catch (e) {
+      emit(const AuthError('Terjadi kesalahan saat melengkapi profil. Silakan coba lagi.'));
     }
   }
 

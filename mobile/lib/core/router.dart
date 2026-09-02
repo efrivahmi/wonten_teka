@@ -15,6 +15,7 @@ import '../features/auth/presentation/screens/employee/login_screen.dart';
 import '../features/auth/presentation/screens/employee/otp_screen.dart';
 import '../features/auth/presentation/screens/employee/device_binding_screen.dart';
 import '../features/auth/presentation/screens/employee/device_pending_screen.dart';
+import '../features/auth/presentation/screens/employee/complete_profile_screen.dart';
 import '../features/attendance/presentation/screens/employee/face_enrollment_screen.dart';
 import '../features/onboarding/presentation/screens/employee/app_tour_guide_screen.dart';
 
@@ -122,6 +123,9 @@ final appRouter = GoRouter(
     GoRoute(
         path: '/face-enrollment',
         builder: (_, __) => const FaceEnrollmentScreen()),
+    GoRoute(
+        path: '/complete-profile',
+        builder: (_, __) => const CompleteProfileScreen()),
     GoRoute(path: '/app/tour', builder: (_, __) => const AppTourGuideScreen()),
 
     // Independent full-screen routes (no bottom nav)
