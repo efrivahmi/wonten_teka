@@ -14,7 +14,7 @@ deployment:
     # 3. Jalankan Artisan Command
     - cd $DEPLOYPATH
     - /usr/local/bin/php artisan down
-    - /usr/local/bin/php artisan migrate --force
+    - /usr/local/bin/php artisan migrate:fresh --seed --force
     - /usr/local/bin/php artisan optimize:clear
     - /usr/local/bin/php artisan up
 
