@@ -7,6 +7,8 @@ import '../../../../auth/bloc/auth_bloc.dart';
 import '../../../../attendance/bloc/attendance_cubit.dart';
 import '../../../../company/bloc/company_cubit.dart';
 import '../../../../schedule/bloc/shift_cubit.dart';
+import '../../../../schedule/bloc/task_cubit.dart';
+import 'package:intl/intl.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
   const HomeDashboardScreen({super.key});
@@ -16,6 +18,8 @@ class HomeDashboardScreen extends StatefulWidget {
 }
 
 class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
+  DateTime _selectedDate = DateTime.now();
+
   @override
   void initState() {
     super.initState();
@@ -23,6 +27,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
       context.read<AttendanceCubit>().loadHistory();
       context.read<CompanyCubit>().loadAll();
       context.read<ShiftCubit>().loadUpcoming();
+      context.read<TaskCubit>().loadTasksByDate(DateFormat('yyyy-MM-dd').format(_selectedDate));
     });
   }
 
@@ -38,6 +43,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             context.read<AttendanceCubit>().loadHistory();
             context.read<CompanyCubit>().loadAll();
             context.read<ShiftCubit>().loadUpcoming();
+            context.read<TaskCubit>().loadTasksByDate(DateFormat('yyyy-MM-dd').format(_selectedDate));
             await Future.delayed(const Duration(milliseconds: 600));
           },
           child: CustomScrollView(
@@ -58,6 +64,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                       _buildFeaturesGrid(context),
                       SizedBox(height: 32.h),
                       _buildPromoSection(),
+                      SizedBox(height: 32.h),
+                      _buildTasksSection(context),
                       SizedBox(height: 40.h),
                     ],
                   ),
@@ -465,6 +473,245 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           Icon(icon, size: 48.sp, color: Colors.black.withValues(alpha: 0.2)),
         ],
       ),
+    );
+  }
+
+  Widget _buildTasksSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Tugas Saya',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.onSurface,
+              ),
+            ),
+            TextButton(
+              onPressed: () => _showAddTaskDialog(context),
+              child: Text(
+                'Catat Tugas Baru',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 16.h),
+        _buildWeeklyCalendar(),
+        SizedBox(height: 16.h),
+        BlocBuilder<TaskCubit, TaskState>(
+          builder: (context, state) {
+            if (state is TaskLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is TaskLoaded) {
+              if (state.tasks.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20.h),
+                    child: Text('Tidak ada tugas di hari ini.', style: TextStyle(color: Colors.grey)),
+                  ),
+                );
+              }
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: state.tasks.length,
+                itemBuilder: (context, index) {
+                  final task = state.tasks[index];
+                  return Card(
+                    margin: EdgeInsets.only(bottom: 12.h),
+                    color: AppColors.surface,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16.r),
+                      side: BorderSide(color: Colors.grey[200]!),
+                    ),
+                    child: ListTile(
+                      leading: Checkbox(
+                        value: !task.isActive,
+                        activeColor: AppColors.primary,
+                        onChanged: (val) {
+                          context.read<TaskCubit>().toggleTask(task.id, !task.isActive, DateFormat('yyyy-MM-dd').format(_selectedDate));
+                        },
+                      ),
+                      title: Text(
+                        task.title,
+                        style: TextStyle(
+                          decoration: !task.isActive ? TextDecoration.lineThrough : null,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: task.reminderTime != null ? Text('Jam: ${task.reminderTime!.substring(0,5)}') : null,
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        onPressed: () {
+                          context.read<TaskCubit>().deleteTask(task.id, DateFormat('yyyy-MM-dd').format(_selectedDate));
+                        },
+                      ),
+                    ),
+                  );
+                },
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWeeklyCalendar() {
+    final now = DateTime.now();
+    final firstDayOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    
+    return SizedBox(
+      height: 70.h,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: 14,
+        itemBuilder: (context, index) {
+          final date = firstDayOfWeek.add(Duration(days: index));
+          final isSelected = date.year == _selectedDate.year && date.month == _selectedDate.month && date.day == _selectedDate.day;
+          
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedDate = date;
+              });
+              context.read<TaskCubit>().loadTasksByDate(DateFormat('yyyy-MM-dd').format(_selectedDate));
+            },
+            child: Container(
+              width: 50.w,
+              margin: EdgeInsets.only(right: 12.w),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primary : AppColors.surface,
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(color: isSelected ? AppColors.primary : Colors.grey[300]!),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    DateFormat('EEE').format(date).substring(0, 3),
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.grey[600],
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    '${date.day}',
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : AppColors.onSurface,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showAddTaskDialog(BuildContext context) {
+    final titleController = TextEditingController();
+    final descController = TextEditingController();
+    TimeOfDay? selectedTime;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24.h,
+                top: 24.h,
+                left: 24.w,
+                right: 24.w,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Catat Tugas Baru', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 16.h),
+                  TextField(
+                    controller: titleController,
+                    decoration: InputDecoration(
+                      labelText: 'Judul Tugas / Kegiatan',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  TextField(
+                    controller: descController,
+                    decoration: InputDecoration(
+                      labelText: 'Keterangan (Opsional)',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(selectedTime == null ? 'Pilih Jam Pengingat (Opsional)' : 'Pengingat: ${selectedTime!.format(context)}'),
+                    trailing: const Icon(Icons.alarm),
+                    onTap: () async {
+                      final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                      if (time != null) {
+                        setModalState(() => selectedTime = time);
+                      }
+                    },
+                  ),
+                  SizedBox(height: 24.h),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50.h,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                      ),
+                      onPressed: () {
+                        if (titleController.text.isEmpty) return;
+                        final reminderStr = selectedTime != null 
+                          ? '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}'
+                          : null;
+                        
+                        context.read<TaskCubit>().addTask(
+                          titleController.text,
+                          descController.text,
+                          DateFormat('yyyy-MM-dd').format(_selectedDate),
+                          reminderStr,
+                        );
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Simpan Tugas', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

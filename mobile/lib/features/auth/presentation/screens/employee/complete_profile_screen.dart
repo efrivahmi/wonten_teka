@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -49,8 +50,31 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   @override
   void initState() {
     super.initState();
+    
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final user = authState.user;
+      _fullNameController.text = user.name;
+      _emailController.text = user.email;
+      
+      final emp = user.employee;
+      if (emp != null) {
+        if (emp.fullName.isNotEmpty) _fullNameController.text = emp.fullName;
+        if (emp.phone != null) _phoneController.text = emp.phone!;
+        if (emp.address != null) _addressController.text = emp.address!;
+        if (emp.department != null) _department = emp.department;
+        if (emp.position != null) _position = emp.position;
+        if (emp.gender != null) _gender = emp.gender;
+        if (emp.joinDate != null) {
+          _joinDateController.text = emp.joinDate!.toIso8601String().split('T')[0];
+        }
+      }
+    }
+
     _fetchOptions();
-    _fetchLocationAndAddress();
+    if (_addressController.text.isEmpty) {
+      _fetchLocationAndAddress();
+    }
   }
 
   Future<void> _fetchLocationAndAddress() async {
@@ -229,54 +253,59 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       ),
                       SizedBox(height: 24.h),
                       Text(
-                        'Welcome! Please complete your employee profile.',
+                        'Selamat datang! Silakan lengkapi profil karyawan Anda.',
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
                       SizedBox(height: 24.h),
                       TextFormField(
                         controller: _fullNameController,
-                        decoration: const InputDecoration(labelText: 'Full name*'),
+                        decoration: const InputDecoration(labelText: 'Nama Lengkap*'),
                         validator: (v) => v!.isEmpty ? 'Required' : null,
                       ),
                       SizedBox(height: 16.h),
                       TextFormField(
                         controller: _emailController,
-                        decoration: const InputDecoration(labelText: 'Email address*'),
+                        decoration: const InputDecoration(labelText: 'Alamat Email*'),
                         keyboardType: TextInputType.emailAddress,
                         validator: (v) => v!.isEmpty ? 'Required' : null,
                       ),
                       SizedBox(height: 16.h),
                       TextFormField(
                         controller: _phoneController,
-                        decoration: const InputDecoration(labelText: 'Phone'),
+                        decoration: const InputDecoration(labelText: 'Nomor Telepon'),
                         keyboardType: TextInputType.phone,
                       ),
                       SizedBox(height: 16.h),
                       TextFormField(
                         controller: _nikController,
-                        decoration: const InputDecoration(labelText: 'NIK (Will be encrypted)'),
-                        obscureText: true,
+                        decoration: const InputDecoration(labelText: 'NIK KTP'),
+                        keyboardType: TextInputType.number,
+                        maxLength: 16,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       ),
                       SizedBox(height: 16.h),
                       TextFormField(
                         controller: _npwpController,
-                        decoration: const InputDecoration(labelText: 'NPWP (Will be encrypted)'),
-                        obscureText: true,
+                        decoration: const InputDecoration(labelText: 'Nomor NPWP'),
+                        keyboardType: TextInputType.number,
+                        maxLength: 16,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       ),
                       SizedBox(height: 16.h),
                       TextFormField(
                         controller: _dobController,
                         readOnly: true,
                         onTap: () => _selectDate(_dobController),
-                        decoration: const InputDecoration(labelText: 'Date of birth (YYYY-MM-DD)'),
+                        decoration: const InputDecoration(labelText: 'Tanggal Lahir (YYYY-MM-DD)'),
                       ),
                       SizedBox(height: 16.h),
                       DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(labelText: 'Gender'),
+                        isExpanded: true,
+                        decoration: const InputDecoration(labelText: 'Jenis Kelamin'),
                         initialValue: _gender,
                         items: const [
-                          DropdownMenuItem(value: 'male', child: Text('Male')),
-                          DropdownMenuItem(value: 'female', child: Text('Female')),
+                          DropdownMenuItem(value: 'male', child: Text('Laki-laki')),
+                          DropdownMenuItem(value: 'female', child: Text('Perempuan')),
                         ],
                         onChanged: (v) => setState(() => _gender = v),
                       ),
@@ -284,7 +313,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       TextFormField(
                         controller: _addressController,
                         decoration: InputDecoration(
-                          labelText: 'Address',
+                          labelText: 'Alamat Domisili',
                           suffixIcon: IconButton(
                             icon: const Icon(Icons.my_location),
                             onPressed: _fetchLocationAndAddress,
@@ -295,14 +324,16 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       ),
                       SizedBox(height: 16.h),
                       DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(labelText: 'Department'),
+                        isExpanded: true,
+                        decoration: const InputDecoration(labelText: 'Departemen'),
                         initialValue: _department,
                         items: _departments.map((dep) => DropdownMenuItem(value: dep, child: Text(dep))).toList(),
                         onChanged: (v) => setState(() => _department = v),
                       ),
                       SizedBox(height: 16.h),
                       DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(labelText: 'Position'),
+                        isExpanded: true,
+                        decoration: const InputDecoration(labelText: 'Posisi / Jabatan'),
                         initialValue: _position,
                         items: _positions.map((pos) => DropdownMenuItem(value: pos, child: Text(pos))).toList(),
                         onChanged: (v) => setState(() => _position = v),
@@ -312,24 +343,26 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         controller: _joinDateController,
                         readOnly: true,
                         onTap: () => _selectDate(_joinDateController),
-                        decoration: const InputDecoration(labelText: 'Join date (YYYY-MM-DD)'),
+                        decoration: const InputDecoration(labelText: 'Tanggal Bergabung (YYYY-MM-DD)'),
                       ),
                       SizedBox(height: 16.h),
                       DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(labelText: 'Employment status*'),
+                        isExpanded: true,
+                        decoration: const InputDecoration(labelText: 'Status Kepegawaian*'),
                         initialValue: _employmentStatus,
                         items: const [
                           DropdownMenuItem(value: 'permanent', child: Text('Karyawan Tetap')),
                           DropdownMenuItem(value: 'contract', child: Text('Karyawan Kontrak')),
-                          DropdownMenuItem(value: 'probation', child: Text('Probation')),
-                          DropdownMenuItem(value: 'intern', child: Text('Intern')),
+                          DropdownMenuItem(value: 'probation', child: Text('Masa Percobaan')),
+                          DropdownMenuItem(value: 'intern', child: Text('Magang')),
                         ],
                         validator: (v) => v == null || v.isEmpty ? 'Pilih status' : null,
                         onChanged: (v) => setState(() => _employmentStatus = v),
                       ),
                       SizedBox(height: 16.h),
                       DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(labelText: 'PTKP status*'),
+                        isExpanded: true,
+                        decoration: const InputDecoration(labelText: 'Status PTKP*'),
                         initialValue: _ptkpStatus,
                         items: const [
                           DropdownMenuItem(value: 'TK/0', child: Text('TK/0 - Tidak Kawin, 0 Tanggungan')),
@@ -351,18 +384,23 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       SizedBox(height: 16.h),
                       TextFormField(
                         controller: _bpjsKesController,
-                        decoration: const InputDecoration(labelText: 'BPJS Kesehatan (Will be encrypted)'),
-                        obscureText: true,
+                        decoration: const InputDecoration(labelText: 'Nomor BPJS Kesehatan'),
+                        keyboardType: TextInputType.number,
+                        maxLength: 13,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       ),
                       SizedBox(height: 16.h),
                       TextFormField(
                         controller: _bpjsKetController,
-                        decoration: const InputDecoration(labelText: 'BPJS Ketenagakerjaan (Will be encrypted)'),
-                        obscureText: true,
+                        decoration: const InputDecoration(labelText: 'Nomor BPJS Ketenagakerjaan'),
+                        keyboardType: TextInputType.number,
+                        maxLength: 16,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       ),
                       SizedBox(height: 16.h),
                       DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(labelText: 'Bank name'),
+                        isExpanded: true,
+                        decoration: const InputDecoration(labelText: 'Nama Bank'),
                         initialValue: _bankName,
                         items: _popularBanks.map((bank) => DropdownMenuItem(value: bank, child: Text(bank))).toList(),
                         onChanged: (v) => setState(() => _bankName = v),
@@ -370,13 +408,15 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       SizedBox(height: 16.h),
                       TextFormField(
                         controller: _bankAccountController,
-                        decoration: const InputDecoration(labelText: 'Bank Account Number (Will be encrypted)'),
-                        obscureText: true,
+                        decoration: const InputDecoration(labelText: 'Nomor Rekening Bank'),
+                        keyboardType: TextInputType.number,
+                        maxLength: 20,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       ),
                       SizedBox(height: 16.h),
                       TextFormField(
                         controller: _bankHolderController,
-                        decoration: const InputDecoration(labelText: 'Bank Account Holder'),
+                        decoration: const InputDecoration(labelText: 'Nama Pemilik Rekening'),
                       ),
                       SizedBox(height: 32.h),
                       SizedBox(
@@ -386,7 +426,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                           onPressed: state is AuthLoading ? null : _submitProfile,
                           child: state is AuthLoading
                               ? const CircularProgressIndicator(color: Colors.white)
-                              : const Text('Complete Profile'),
+                              : const Text('Lengkapi Profil'),
                         ),
                       ),
                       SizedBox(height: 24.h),

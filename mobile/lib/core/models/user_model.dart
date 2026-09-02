@@ -68,6 +68,8 @@ class EmployeeModel extends Equatable {
   final DateTime? joinDate;
   final bool faceEnrolled;
   final DateTime? faceEnrolledAt;
+  final String? gender;
+  final String? address;
 
   const EmployeeModel({
     required this.id,
@@ -80,7 +82,13 @@ class EmployeeModel extends Equatable {
     this.joinDate,
     this.faceEnrolled = false,
     this.faceEnrolledAt,
+    this.gender,
+    this.address,
   });
+
+  bool get isProfileCompleted => 
+    gender != null && gender!.isNotEmpty &&
+    address != null && address!.isNotEmpty;
 
   factory EmployeeModel.fromJson(Map<String, dynamic> json) {
     return EmployeeModel(
@@ -96,6 +104,8 @@ class EmployeeModel extends Equatable {
       faceEnrolledAt: json['face_enrolled_at'] != null
           ? DateTime.tryParse(json['face_enrolled_at'])
           : null,
+      gender: json['gender'] as String?,
+      address: json['address'] as String?,
     );
   }
 
@@ -110,8 +120,10 @@ class EmployeeModel extends Equatable {
         'join_date': joinDate?.toIso8601String(),
         'face_enrolled': faceEnrolled,
         'face_enrolled_at': faceEnrolledAt?.toIso8601String(),
+        'gender': gender,
+        'address': address,
       };
 
   @override
-  List<Object?> get props => [id, employeeNumber, fullName, department, position];
+  List<Object?> get props => [id, employeeNumber, fullName, department, position, gender, address];
 }

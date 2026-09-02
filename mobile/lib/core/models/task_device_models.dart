@@ -5,6 +5,7 @@ class PersonalTaskModel extends Equatable {
   final int employeeId;
   final String title;
   final String? description;
+  final DateTime? taskDate;
   final String recurrenceRule;
   final String? reminderTime;
   final int streakCount;
@@ -17,6 +18,7 @@ class PersonalTaskModel extends Equatable {
     required this.employeeId,
     required this.title,
     this.description,
+    this.taskDate,
     this.recurrenceRule = 'daily',
     this.reminderTime,
     this.streakCount = 0,
@@ -39,6 +41,7 @@ class PersonalTaskModel extends Equatable {
       employeeId: json['employee_id'] as int,
       title: json['title'] as String,
       description: json['description'] as String?,
+      taskDate: json['task_date'] != null ? DateTime.parse(json['task_date'] as String) : null,
       recurrenceRule: json['recurrence_rule'] as String? ?? 'daily',
       reminderTime: json['reminder_time'] as String?,
       streakCount: json['streak_count'] as int? ?? 0,

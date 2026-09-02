@@ -120,4 +120,9 @@ class AttendanceRepository {
       AttendanceLogModel.fromJson,
     );
   }
+
+  Future<Map<String, dynamic>> getTodayInfo() async {
+    final response = await _api.get('/attendance/today-info');
+    return response.data as Map<String, dynamic>;
+  }
 }

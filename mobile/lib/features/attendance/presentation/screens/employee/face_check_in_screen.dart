@@ -14,6 +14,7 @@ import 'package:geocoding/geocoding.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/storage/secure_storage.dart';
 import '../../../../../core/services/face_matcher_service.dart';
+import '../../../../../core/repositories/attendance_repository.dart';
 import '../../../../company/bloc/company_cubit.dart';
 import '../../../bloc/attendance_cubit.dart';
 import '../../widgets/camera_preview_widget.dart';
@@ -44,11 +45,13 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
   
   // Debug panel state
   bool _showDebug = false;
+  Future<Map<String, dynamic>>? _todayInfoFuture;
 
   @override
   void initState() {
     super.initState();
     _checkLocation();
+    _todayInfoFuture = context.read<AttendanceRepository>().getTodayInfo();
   }
 
   Future<void> _checkLocation() async {
@@ -418,6 +421,51 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                                   ),
                                   
                                   SizedBox(height: 24.h),
+
+                                  // Info Card
+                                  FutureBuilder<Map<String, dynamic>>(
+                                    future: _todayInfoFuture,
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return const Center(child: CircularProgressIndicator());
+                                      }
+                                      if (snapshot.hasData && snapshot.data != null) {
+                                        final data = snapshot.data!;
+                                        final shift = data['shift'] ?? {};
+                                        final role = data['role'] ?? {};
+                                        return Container(
+                                          margin: EdgeInsets.only(bottom: 12.h),
+                                          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                                          decoration: BoxDecoration(
+                                            color: Colors.blue.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(16.r),
+                                            border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Icon(Icons.work_outline, color: Colors.blue[700], size: 18.w),
+                                                  SizedBox(width: 8.w),
+                                                  Text(role['position'] ?? 'Karyawan', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp, color: Colors.blue[800])),
+                                                ],
+                                              ),
+                                              SizedBox(height: 8.h),
+                                              Row(
+                                                children: [
+                                                  Icon(Icons.schedule, color: Colors.grey[700], size: 16.w),
+                                                  SizedBox(width: 6.w),
+                                                  Text("${shift['name']} (${shift['start_time']} - ${shift['end_time']})", style: TextStyle(fontSize: 12.sp, color: Colors.grey[800])),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }
+                                      return const SizedBox();
+                                    }
+                                  ),
                                   
                                   // Location Indicator (Compact inside card)
                                   Container(

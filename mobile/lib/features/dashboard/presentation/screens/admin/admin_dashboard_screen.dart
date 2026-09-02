@@ -73,10 +73,21 @@ class AdminDashboardScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.notifications_none,
-                                color: Colors.white),
-                            onPressed: () => context.push('/app/notifications'),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.notifications_none,
+                                    color: Colors.white),
+                                onPressed: () => context.push('/app/notifications'),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.logout,
+                                    color: Colors.white),
+                                onPressed: () {
+                                  context.read<AuthBloc>().add(AuthLogoutRequested());
+                                },
+                              ),
+                            ],
                           ),
                         ],
                       ),

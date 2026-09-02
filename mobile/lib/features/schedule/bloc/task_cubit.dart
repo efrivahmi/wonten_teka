@@ -4,6 +4,8 @@ import '../../../core/api/api_exceptions.dart';
 import '../../../core/models/task_device_models.dart';
 import '../../../core/repositories/task_repository.dart';
 
+import '../notification_service.dart';
+
 abstract class TaskState extends Equatable {
   const TaskState();
   @override
@@ -15,16 +17,12 @@ class TaskLoading extends TaskState {}
 
 class TaskLoaded extends TaskState {
   final List<PersonalTaskModel> tasks;
-  const TaskLoaded(this.tasks);
-  @override
-  List<Object?> get props => [tasks];
-}
+  final String dateStr;
 
-class TaskActionSuccess extends TaskState {
-  final String message;
-  const TaskActionSuccess(this.message);
+  const TaskLoaded(this.tasks, this.dateStr);
+
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [tasks, dateStr];
 }
 
 class TaskError extends TaskState {
@@ -41,51 +39,74 @@ class TaskCubit extends Cubit<TaskState> {
       : _repo = repository,
         super(TaskInitial());
 
-  Future<void> loadTasks() async {
+  Future<void> loadTasksByDate(String dateStr) async {
     emit(TaskLoading());
     try {
-      final tasks = await _repo.getAll();
-      emit(TaskLoaded(tasks));
-    } on ApiException catch (e) {
-      emit(TaskError(e.message));
+      final tasks = await _repo.getTasksByDate(dateStr);
+      emit(TaskLoaded(tasks, dateStr));
     } catch (e) {
-      emit(const TaskError('Gagal memuat task pribadi.'));
+      String message = 'Gagal memuat tugas.';
+      if (e is ApiException) {
+        message = e.message;
+      }
+      emit(TaskError(message));
     }
   }
 
-  Future<void> createTask({
-    required String title,
-    String? description,
-    String? recurrenceRule,
-    String? reminderTime,
-  }) async {
-    emit(TaskLoading());
+  Future<void> toggleTask(int id, bool currentStatus, String dateStr) async {
     try {
-      await _repo.create(
+      await _repo.toggleTaskCompletion(id, !currentStatus);
+      await loadTasksByDate(dateStr); // Reload tasks
+    } catch (e) {
+      // Ignore errors for now
+    }
+  }
+
+  Future<void> deleteTask(int id, String dateStr) async {
+    try {
+      await _repo.delete(id);
+      NotificationService().cancelAlarm(id);
+      await loadTasksByDate(dateStr);
+    } catch (e) {
+      // Ignore errors for now
+    }
+  }
+
+  Future<void> addTask(String title, String? description, String taskDate, String? reminderTime) async {
+    try {
+      final task = await _repo.create(
         title: title,
         description: description,
-        recurrenceRule: recurrenceRule,
+        taskDate: taskDate,
         reminderTime: reminderTime,
       );
-      emit(const TaskActionSuccess('Task berhasil dibuat.'));
-      loadTasks(); // Reload the list
-    } on ApiException catch (e) {
-      emit(TaskError(e.message));
+      
+      if (reminderTime != null) {
+        final timeParts = reminderTime.split(':');
+        final dateParts = taskDate.split('-');
+        final scheduledDate = DateTime(
+          int.parse(dateParts[0]),
+          int.parse(dateParts[1]),
+          int.parse(dateParts[2]),
+          int.parse(timeParts[0]),
+          int.parse(timeParts[1]),
+        );
+        
+        await NotificationService().scheduleAlarm(
+          id: task.id,
+          title: 'Pengingat Tugas: $title',
+          body: description ?? 'Waktunya mengerjakan tugas Anda!',
+          scheduledDate: scheduledDate,
+        );
+      }
+      
+      await loadTasksByDate(taskDate);
     } catch (e) {
-      emit(const TaskError('Gagal membuat task.'));
-    }
-  }
-
-  Future<void> completeTask(int taskId) async {
-    emit(TaskLoading());
-    try {
-      final result = await _repo.complete(taskId);
-      emit(TaskActionSuccess(result['message'] as String? ?? 'Task selesai!'));
-      loadTasks(); // Reload to get updated streaks
-    } on ApiException catch (e) {
-      emit(TaskError(e.message));
-    } catch (e) {
-      emit(const TaskError('Gagal menyelesaikan task.'));
+      if (state is TaskLoaded) {
+        final current = state as TaskLoaded;
+        emit(TaskError(e is ApiException ? e.message : 'Gagal menambah tugas'));
+        emit(TaskLoaded(current.tasks, current.dateStr));
+      }
     }
   }
 }

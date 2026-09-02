@@ -75,7 +75,6 @@ class AttendanceController extends Controller
     {
         $user = $request->user();
         $employee = $user->employee;
-        $company = $user->company;
 
         if (!$employee) {
             return response()->json(['message' => 'Employee profile not found.'], 403);
@@ -103,19 +102,23 @@ class AttendanceController extends Controller
         $status = 'present';
         $flags = $request->flags ?? [];
 
+        // Fetch Geofence Settings
+        $geofenceSetting = \App\Models\Setting::where('key', 'geofence')->first();
+        $geofence = $geofenceSetting ? $geofenceSetting->value : null;
+
         // Geofence Check - Reject if not set
-        if (empty($company->latitude) || empty($company->longitude)) {
+        if (!$geofence || empty($geofence['latitude']) || empty($geofence['longitude'])) {
             return response()->json(['message' => 'Harap hubungi admin terlebih dahulu. Titik lokasi absensi belum diatur.'], 422);
         }
 
         $distance = $this->calculateDistanceMeters(
             $request->latitude,
             $request->longitude,
-            $company->latitude,
-            $company->longitude
+            $geofence['latitude'],
+            $geofence['longitude']
         );
 
-        if ($distance > ($company->geofence_radius_meters ?? 50)) {
+        if ($distance > ($geofence['geofence_radius_meters'] ?? 50)) {
             return response()->json(['message' => 'Di luar jangkauan area absensi. Silakan mendekat ke lokasi kantor.'], 422);
         }
 
@@ -187,7 +190,7 @@ class AttendanceController extends Controller
 
         if ($status === 'flagged') {
             app(\App\Services\NotificationService::class)->sendToAdmin(
-                $company->id,
+                1, // Global company ID
                 'Suspicious Check-in Flagged',
                 "{$employee->full_name} had a suspicious check-in."
             );
@@ -203,7 +206,6 @@ class AttendanceController extends Controller
     {
         $user = $request->user();
         $employee = $user->employee;
-        $company = $user->company;
 
         $flags = $request->flags;
         if (is_string($flags)) {
@@ -236,17 +238,21 @@ class AttendanceController extends Controller
             return response()->json(['message' => 'Already checked out today.'], 422);
         }
 
+        // Fetch Geofence Settings
+        $geofenceSetting = \App\Models\Setting::where('key', 'geofence')->first();
+        $geofence = $geofenceSetting ? $geofenceSetting->value : null;
+
         // Geofence check for checkout
-        if (empty($company->latitude) || empty($company->longitude)) {
+        if (!$geofence || empty($geofence['latitude']) || empty($geofence['longitude'])) {
             return response()->json(['message' => 'Harap hubungi admin terlebih dahulu. Titik lokasi absensi belum diatur.'], 422);
         }
         $distance = $this->calculateDistanceMeters(
             $request->latitude,
             $request->longitude,
-            $company->latitude,
-            $company->longitude
+            $geofence['latitude'],
+            $geofence['longitude']
         );
-        if ($distance > ($company->geofence_radius_meters ?? 50)) {
+        if ($distance > ($geofence['geofence_radius_meters'] ?? 50)) {
             return response()->json(['message' => 'Di luar jangkauan area absensi. Silakan mendekat ke lokasi kantor.'], 422);
         }
 
@@ -298,5 +304,46 @@ class AttendanceController extends Controller
             ->paginate(15);
             
         return response()->json($history);
+    }
+
+    /**
+     * Get attendance info for today (Shift, Role, Tasks)
+     */
+    public function todayInfo(Request $request)
+    {
+        $employee = $request->user()->employee;
+        if (!$employee) {
+            return response()->json(['message' => 'Employee profile not found.'], 403);
+        }
+
+        // 1. Determine Shift
+        $shiftAssignment = \App\Models\ShiftAssignment::where('employee_id', $employee->id)
+            ->whereDate('date', Carbon::today())
+            ->first();
+
+        $shiftTemplate = $shiftAssignment 
+            ? $shiftAssignment->shiftTemplate 
+            : \App\Models\ShiftTemplate::query()->where('is_default', true)->first();
+
+        $shift = $shiftTemplate ? [
+            'name' => $shiftTemplate->name,
+            'start_time' => Carbon::parse($shiftTemplate->start_time)->format('H:i'),
+            'end_time' => Carbon::parse($shiftTemplate->end_time)->format('H:i'),
+        ] : [
+            'name' => 'Shift Regular (Default)',
+            'start_time' => '08:00',
+            'end_time' => '17:00'
+        ];
+
+        // 2. Determine Role
+        $role = [
+            'employment_status' => $employee->employment_status,
+            'position' => $employee->position ?? $employee->department ?? 'Karyawan',
+        ];
+
+        return response()->json([
+            'shift' => $shift,
+            'role' => $role,
+        ]);
     }
 }

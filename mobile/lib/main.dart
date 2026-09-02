@@ -95,6 +95,11 @@ class WontenTekaApp extends StatelessWidget {
               appRouter.go('/login');
             } else if (state is AuthAuthenticated) {
               try {
+                if (state.user.isAdmin) {
+                  appRouter.go('/admin/dashboard');
+                  return;
+                }
+
                 // 0. Force Device Binding Check via Backend
                 final deviceRepo = context.read<DeviceRepository>();
                 final storage = SecureStorage();
@@ -124,7 +129,7 @@ class WontenTekaApp extends StatelessWidget {
 
                 // 1. Force Profile Completion Check
                 final hasEmployeeProfile = state.user.employee != null;
-                if (!hasEmployeeProfile) {
+                if (!hasEmployeeProfile || !state.user.employee!.isProfileCompleted) {
                   appRouter.go('/complete-profile');
                   return;
                 }
