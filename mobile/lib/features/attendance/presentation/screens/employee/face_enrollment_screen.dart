@@ -172,8 +172,6 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
     if (authState is AuthAuthenticated) {
       if (authState.user.isAdmin) {
         context.go('/admin/dashboard');
-      } else if (authState.user.isManager) {
-        context.go('/manager/dashboard');
       } else {
         context.go('/app/home');
       }

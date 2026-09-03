@@ -124,7 +124,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
           _departments = (options['departments'] as List).map((e) => e.toString()).toList();
           _positions = (options['positions'] as List).map((e) => e.toString()).toList();
           if (_departments.isEmpty) _departments = ['HR', 'IT', 'Finance', 'Marketing', 'Lainnya'];
-          if (_positions.isEmpty) _positions = ['Staff', 'Manager', 'Supervisor', 'Lainnya'];
+          if (_positions.isEmpty) _positions = ['Staff', 'Lainnya'];
           _isLoadingOptions = false;
         });
       }
@@ -132,7 +132,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       if (mounted) {
         setState(() {
           _departments = ['HR', 'IT', 'Finance', 'Marketing', 'Lainnya'];
-          _positions = ['Staff', 'Manager', 'Supervisor', 'Lainnya'];
+          _positions = ['Staff', 'Lainnya'];
           _isLoadingOptions = false;
         });
       }

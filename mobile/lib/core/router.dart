@@ -70,10 +70,8 @@ import '../features/overtime/presentation/screens/employee/overtime_list_screen.
 import '../features/overtime/presentation/screens/employee/overtime_form_screen.dart';
 import '../features/overtime/presentation/screens/employee/overtime_detail_screen.dart';
 
-// Admin & Manager
+// Admin 
 import '../features/dashboard/presentation/screens/admin/admin_dashboard_screen.dart';
-import '../features/dashboard/presentation/screens/manager/manager_dashboard_screen.dart';
-import '../features/dashboard/presentation/screens/hr/hr_employee_dashboard_screen.dart';
 import '../features/company/presentation/screens/admin/employee_management_screen.dart';
 import '../features/company/presentation/screens/admin/employee_detail_admin_screen.dart';
 import '../features/company/presentation/screens/admin/employee_onboarding_admin_screen.dart';
@@ -83,8 +81,6 @@ import '../features/attendance/presentation/screens/admin/attendance_flag_review
 import '../features/attendance/presentation/screens/admin/daily_attendance_table_screen.dart';
 
 import '../features/claims/presentation/screens/admin/claim_detail_admin_screen.dart';
-import '../features/approval/presentation/screens/manager/team_approvals_screen.dart';
-import '../features/company/presentation/screens/manager/team_performance_screen.dart';
 import '../features/payroll/presentation/screens/admin/payroll_configuration_screen.dart';
 import '../features/payroll/presentation/screens/admin/payroll_run_list_screen.dart';
 import '../features/payroll/presentation/screens/admin/payroll_run_detail_screen.dart';
@@ -243,16 +239,10 @@ final appRouter = GoRouter(
         path: '/app/overtime/detail',
         builder: (_, __) => const OvertimeDetailScreen()),
 
-    // Admin & Manager routes
+    // Admin routes
     GoRoute(
         path: '/admin/dashboard',
         builder: (_, __) => const AdminDashboardScreen()),
-    GoRoute(
-        path: '/manager/dashboard',
-        builder: (_, __) => const ManagerDashboardScreen()),
-    GoRoute(
-        path: '/admin/hr-dashboard',
-        builder: (_, __) => const HREmployeeDashboardScreen()),
     GoRoute(
         path: '/admin/employees',
         builder: (_, __) => const EmployeeManagementScreen()),
@@ -288,12 +278,6 @@ final appRouter = GoRouter(
     GoRoute(
         path: '/admin/claims',
         builder: (_, __) => const ClaimDetailAdminScreen()),
-    GoRoute(
-        path: '/manager/approvals',
-        builder: (_, __) => const TeamApprovalsScreen()),
-    GoRoute(
-        path: '/manager/team-performance',
-        builder: (_, __) => const TeamPerformanceScreen()),
     GoRoute(
         path: '/admin/payroll-config',
         builder: (_, __) => const PayrollConfigurationScreen()),

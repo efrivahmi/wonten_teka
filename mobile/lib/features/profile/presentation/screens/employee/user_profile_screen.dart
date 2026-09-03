@@ -19,15 +19,11 @@ class UserProfileScreen extends StatelessWidget {
         final department = user?.employee?.department ?? '-';
         final employeeNumber = user?.employee?.employeeNumber ?? '-';
         final roleBadge = user?.isAdmin == true
-            ? 'Super Admin'
-            : user?.isManager == true
-                ? 'Manager'
-                : 'Karyawan';
+            ? 'Administrator'
+            : 'Karyawan';
         final roleBadgeColor = user?.isAdmin == true
             ? AppColors.errorCrimson
-            : user?.isManager == true
-                ? AppColors.warningAmber
-                : AppColors.infoCerulean;
+            : AppColors.infoCerulean;
 
         return Scaffold(
           backgroundColor: AppColors.surface,

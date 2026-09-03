@@ -114,9 +114,19 @@ class AdminDashboardScreen extends StatelessWidget {
                             _buildKehadiranGrid(context),
                             SizedBox(height: 24.h),
 
-                            _buildSectionHeader('Pengaturan Perusahaan'),
+                            _buildSectionHeader('Penggajian'),
                             SizedBox(height: 12.h),
-                            _buildPengaturanGrid(context),
+                            _buildPayrollGrid(context),
+                            SizedBox(height: 24.h),
+
+                            _buildSectionHeader('Komunikasi & Informasi'),
+                            SizedBox(height: 12.h),
+                            _buildKomunikasiGrid(context),
+                            SizedBox(height: 24.h),
+
+                            _buildSectionHeader('Sistem & Data'),
+                            SizedBox(height: 12.h),
+                            _buildSistemGrid(context),
                             SizedBox(height: 24.h),
 
                             // 2. Attendance Bar Chart
@@ -274,8 +284,10 @@ class AdminDashboardScreen extends StatelessWidget {
       children: [
         _buildActionCard(context, 'Data Karyawan', Icons.people,
             () => context.push('/admin/employees')),
-        _buildActionCard(context, 'Persetujuan Cuti', Icons.fact_check,
+        _buildActionCard(context, 'Persetujuan', Icons.fact_check,
             () => context.push('/admin/approvals')),
+        _buildActionCard(context, 'Analitik Dept', Icons.analytics,
+            () => context.push('/admin/department-analytics')),
       ],
     );
   }
@@ -288,8 +300,10 @@ class AdminDashboardScreen extends StatelessWidget {
       mainAxisSpacing: 16.h,
       crossAxisSpacing: 16.w,
       children: [
-        _buildActionCard(context, 'Laporan Kehadiran', Icons.event_note,
+        _buildActionCard(context, 'Laporan Harian', Icons.event_note,
             () => context.push('/admin/attendance-daily')),
+        _buildActionCard(context, 'Rekap Absen', Icons.summarize,
+            () => context.push('/admin/reports')),
         _buildActionCard(context, 'Anomali Absen', Icons.warning_amber,
             () => context.push('/admin/attendance-flags')),
         _buildActionCard(context, 'Device Karyawan', Icons.devices,
@@ -300,7 +314,39 @@ class AdminDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPengaturanGrid(BuildContext context) {
+  Widget _buildPayrollGrid(BuildContext context) {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 3,
+      mainAxisSpacing: 16.h,
+      crossAxisSpacing: 16.w,
+      children: [
+        _buildActionCard(context, 'Konfigurasi', Icons.request_quote,
+            () => context.push('/admin/payroll-config')),
+        _buildActionCard(context, 'Proses Penggajian', Icons.point_of_sale,
+            () => context.push('/admin/payroll')),
+      ],
+    );
+  }
+
+  Widget _buildKomunikasiGrid(BuildContext context) {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 3,
+      mainAxisSpacing: 16.h,
+      crossAxisSpacing: 16.w,
+      children: [
+        _buildActionCard(context, 'Kalender Acara', Icons.event,
+            () => context.push('/admin/events')),
+        _buildActionCard(context, 'Buat Pengumuman', Icons.campaign,
+            () => context.push('/admin/announcements/new')),
+      ],
+    );
+  }
+
+  Widget _buildSistemGrid(BuildContext context) {
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -310,10 +356,14 @@ class AdminDashboardScreen extends StatelessWidget {
       children: [
         _buildActionCard(context, 'Tipe Cuti', Icons.flight_takeoff,
             () => context.push('/admin/leave-types')),
-        _buildActionCard(context, 'Konfigurasi Payroll', Icons.request_quote,
-            () => context.push('/admin/payroll-config')),
-        _buildActionCard(context, 'Pengaturan Sistem', Icons.settings,
+        _buildActionCard(context, 'Sistem Organisasi', Icons.settings,
             () => context.push('/admin/org-settings')),
+        _buildActionCard(context, 'Export Data', Icons.download,
+            () => context.push('/admin/export')),
+        _buildActionCard(context, 'Audit Logs', Icons.history,
+            () => context.push('/admin/audit-logs')),
+        _buildActionCard(context, 'Pengaturan Admin', Icons.manage_accounts,
+            () => context.push('/admin/settings')),
       ],
     );
   }

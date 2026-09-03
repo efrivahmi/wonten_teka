@@ -13,18 +13,14 @@ class MainSidebarDrawer extends StatelessWidget {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         bool isAdmin = false;
-        bool isManager = false;
         String userName = 'Pengguna';
         String roleName = 'Karyawan';
         
         if (state is AuthAuthenticated) {
           isAdmin = state.user.isAdmin;
-          isManager = state.user.isManager;
           userName = state.user.employee?.fullName ?? state.user.name;
           if (isAdmin) {
             roleName = 'Administrator';
-          } else if (isManager) {
-            roleName = 'Manager';
           }
         }
 
@@ -39,15 +35,13 @@ class MainSidebarDrawer extends StatelessWidget {
                   children: [
                     _buildListTile(context, 'Beranda', Icons.home, '/app/home'),
                     
-                    if (isAdmin || isManager) ...[
+                    if (isAdmin) ...[
                       const Divider(),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                        child: Text('MANAJEMEN', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: AppColors.onSurfaceVariant)),
+                        child: Text('ADMINISTRATOR', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: AppColors.onSurfaceVariant, letterSpacing: 1.2)),
                       ),
-                      if (isAdmin) _buildListTile(context, 'Admin Dashboard', Icons.admin_panel_settings, '/admin/dashboard', color: AppColors.errorCrimson),
-                      _buildListTile(context, 'Persetujuan', Icons.fact_check, '/admin/approvals'),
-                      _buildListTile(context, 'Tim Saya', Icons.groups, '/admin/employees'), // For both admin and manager
+                      _buildListTile(context, 'Dasbor Admin', Icons.admin_panel_settings, '/admin/dashboard'),
                     ],
 
                     if (isAdmin) ...[

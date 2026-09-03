@@ -49,10 +49,7 @@ class _EmployeeEditAdminScreenState extends State<EmployeeEditAdminScreen> {
   ];
   final _roles = [
     {'value': 'employee', 'label': 'Karyawan'},
-    {'value': 'supervisor', 'label': 'Supervisor / Manager'},
-    {'value': 'hr_admin', 'label': 'HR Admin'},
-    {'value': 'finance_admin', 'label': 'Finance Admin'},
-    {'value': 'company_admin', 'label': 'Company Admin'},
+    {'value': 'admin', 'label': 'Administrator'},
   ];
 
   @override
