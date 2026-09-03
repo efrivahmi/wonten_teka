@@ -25,17 +25,9 @@ class DeviceController extends Controller
             return response()->json(['message' => 'User is not linked to an employee.'], 403);
         }
 
-        // Check if THIS physical device is already bound to ANOTHER active employee
-        $deviceBoundToOther = Device::where('device_fingerprint', $request->device_fingerprint)
-            ->where('employee_id', '!=', $employee->id)
-            ->where('status', 'active')
-            ->first();
-            
-        if ($deviceBoundToOther) {
-            return response()->json([
-                'message' => 'Perangkat ini sudah terdaftar pada akun lain. Hubungi admin untuk melepas perangkat (Unbind).'
-            ], 403);
-        }
+        // Auto-approve if this is the employee's first device ever
+        $hasAnyDevice = $employee->devices()->exists();
+        $status = $hasAnyDevice ? 'pending_approval' : 'active';
 
         // Check if employee already has an active device
         $activeDevice = $employee->devices()->active()->first();
@@ -45,21 +37,31 @@ class DeviceController extends Controller
             return response()->json(['device' => $activeDevice, 'message' => 'Device already registered and active.']);
         }
 
-        // Auto-approve if this is the employee's first device ever
-        $hasAnyDevice = $employee->devices()->exists();
-        $status = $hasAnyDevice ? 'pending_approval' : 'active';
-
-        // Create new device
-        $device = Device::create([
-            'employee_id' => $employee->id,
+        // Check if THIS physical device is already bound to ANOTHER active employee
+        $deviceBoundToOther = Device::where('device_fingerprint', $request->device_fingerprint)
+            ->where('employee_id', '!=', $employee->id)
+            ->where('status', 'active')
+            ->first();
             
-            'device_fingerprint' => $request->device_fingerprint,
-            'device_name' => $request->device_name,
-            'device_model' => $request->device_model,
-            'os_version' => $request->os_version,
-            'app_version' => $request->app_version,
-            'status' => $status,
-        ]);
+        if ($deviceBoundToOther) {
+            // Force pending if trying to transfer from another account
+            $status = 'pending_approval';
+        }
+
+        // Create new device or update existing if it somehow exists (e.g. revoked or previously pending)
+        $device = Device::updateOrCreate(
+            [
+                'employee_id' => $employee->id,
+                'device_fingerprint' => $request->device_fingerprint,
+            ],
+            [
+                'device_name' => $request->device_name,
+                'device_model' => $request->device_model,
+                'os_version' => $request->os_version,
+                'app_version' => $request->app_version,
+                'status' => $status,
+            ]
+        );
 
         return response()->json([
             'device' => $device,
