@@ -59,19 +59,19 @@ const EmployeeDashboard = () => {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col items-center justify-center">
+                        <div className="bg-slate-50 rounded-xl p-4 flex flex-col items-center justify-center border border-slate-100">
                             <LogIn className="h-6 w-6 text-emerald-500 mb-2" />
-                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Jam Masuk</p>
-                            <p className="text-xl font-bold text-slate-800">
-                                {todayInfo?.check_in_time || '--:--'}
-                            </p>
+                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Jam Masuk</span>
+                            <span className="text-xl font-bold text-slate-800">
+                                {todayInfo?.check_in_time ? new Date(todayInfo.check_in_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                            </span>
                         </div>
-                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col items-center justify-center">
+                        <div className="bg-slate-50 rounded-xl p-4 flex flex-col items-center justify-center border border-slate-100">
                             <LogOut className="h-6 w-6 text-rose-500 mb-2" />
-                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Jam Keluar</p>
-                            <p className="text-xl font-bold text-slate-800">
-                                {todayInfo?.check_out_time || '--:--'}
-                            </p>
+                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Jam Keluar</span>
+                            <span className="text-xl font-bold text-slate-800">
+                                {todayInfo?.check_out_time ? new Date(todayInfo.check_out_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -108,26 +108,10 @@ const EmployeeDashboard = () => {
                     </div>
                     
                     <div className="mt-auto border-t border-slate-100 pt-6">
-                        <h3 className="text-sm font-bold text-slate-800 mb-3 text-center uppercase tracking-wider">Aksi Absensi (Simulasi Web)</h3>
+                        <h3 className="text-sm font-bold text-slate-800 mb-3 text-center uppercase tracking-wider">Aksi Absensi</h3>
                         <div className="grid grid-cols-2 gap-3">
                             <button 
-                                onClick={async () => {
-                                    try {
-                                        setLoading(true);
-                                        await api.post('/attendance/check-in', {
-                                            latitude: -6.1754, // Simulasi Jakarta (sesuai geofence DB)
-                                            longitude: 106.8272,
-                                            face_match_score: 0.95,
-                                            device_id: 'web-browser-simulator'
-                                        });
-                                        await fetchData();
-                                        alert('Berhasil Check-In!');
-                                    } catch (e) {
-                                        alert('Gagal Check-In: ' + (e.response?.data?.message || 'Error Server'));
-                                    } finally {
-                                        setLoading(false);
-                                    }
-                                }}
+                                onClick={() => window.location.href = '/employee/attendance?action=check-in'}
                                 disabled={todayInfo?.check_in_time}
                                 className={`flex items-center justify-center px-4 py-3 rounded-xl font-bold transition-all ${
                                     !todayInfo?.check_in_time 
@@ -140,23 +124,7 @@ const EmployeeDashboard = () => {
                             </button>
                             
                             <button 
-                                onClick={async () => {
-                                    try {
-                                        setLoading(true);
-                                        await api.post('/attendance/check-out', {
-                                            latitude: -6.1754,
-                                            longitude: 106.8272,
-                                            face_match_score: 0.95,
-                                            device_id: 'web-browser-simulator'
-                                        });
-                                        await fetchData();
-                                        alert('Berhasil Check-Out!');
-                                    } catch (e) {
-                                        alert('Gagal Check-Out: ' + (e.response?.data?.message || 'Error Server'));
-                                    } finally {
-                                        setLoading(false);
-                                    }
-                                }}
+                                onClick={() => window.location.href = '/employee/attendance?action=check-out'}
                                 disabled={!todayInfo?.check_in_time || todayInfo?.check_out_time}
                                 className={`flex items-center justify-center px-4 py-3 rounded-xl font-bold transition-all ${
                                     todayInfo?.check_in_time && !todayInfo?.check_out_time 
