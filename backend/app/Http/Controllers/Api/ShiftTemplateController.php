@@ -37,6 +37,7 @@ class ShiftTemplateController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'category' => 'nullable|string|max:50',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i',
             'grace_period_minutes' => 'nullable|integer|min:0',
@@ -48,7 +49,7 @@ class ShiftTemplateController extends Controller
 
         // If this is set to default, unset other defaults
         if (isset($validated['is_default']) && $validated['is_default']) {
-            ShiftTemplate::update(['is_default' => false]);
+            ShiftTemplate::query()->update(['is_default' => false]);
         }
 
         $template = ShiftTemplate::create($validated);
@@ -73,6 +74,7 @@ class ShiftTemplateController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'category' => 'nullable|string|max:50',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i',
             'grace_period_minutes' => 'nullable|integer|min:0',
@@ -82,7 +84,7 @@ class ShiftTemplateController extends Controller
 
         // If this is set to default, unset other defaults
         if (isset($validated['is_default']) && $validated['is_default'] && !$template->is_default) {
-            ShiftTemplate::update(['is_default' => false]);
+            ShiftTemplate::query()->update(['is_default' => false]);
         }
 
         $template->update($validated);
