@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../bloc/company_cubit.dart';
 // Note: In a real app we'd use flutter_map and latlong2 here. 
-// For now, this is a placeholder UI for the Geofence setup as requested.
 
 class GeofenceSettingsScreen extends StatefulWidget {
   const GeofenceSettingsScreen({super.key});

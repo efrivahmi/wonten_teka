@@ -190,9 +190,17 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
       if (registeredEmbeddingStr != null) {
         try {
           final List<dynamic> jsonList = jsonDecode(registeredEmbeddingStr);
-          final registeredEmbedding = jsonList.map((e) => (e as num).toDouble()).toList();
-          faceMatchScore = FaceMatcherService.calculateCosineSimilarity(
-              _liveEmbedding, registeredEmbedding);
+          final references = jsonList.isNotEmpty && jsonList.first is List
+              ? jsonList.cast<List<dynamic>>()
+              : <List<dynamic>>[jsonList];
+          for (final reference in references) {
+            final embedding = reference.map((e) => (e as num).toDouble()).toList();
+            final similarity = FaceMatcherService.calculateCosineSimilarity(
+              _liveEmbedding,
+              embedding,
+            );
+            if (similarity > faceMatchScore) faceMatchScore = similarity;
+          }
         } catch (_) {}
       }
 

@@ -50,9 +50,8 @@ class AttendanceRepository {
     };
     
     if (flags != null) {
-      flags.forEach((key, value) {
-        data['flags[$key]'] = value;
-      });
+      data['flags'] = flags;
+      data['address'] = flags['address'];
     }
 
     dynamic requestData;
@@ -90,9 +89,8 @@ class AttendanceRepository {
     };
     
     if (flags != null) {
-      flags.forEach((key, value) {
-        data['flags[$key]'] = value;
-      });
+      data['flags'] = flags;
+      data['address'] = flags['address'];
     }
 
     dynamic requestData;

@@ -144,10 +144,7 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget> {
                 embedding.add((landmark.position.y - face.boundingBox.top) / face.boundingBox.height);
               }
             }
-            if (embedding.isEmpty) {
-              embedding = [0.1, 0.2, 0.3, 0.4]; // Fallback
-            }
-            widget.onFaceEmbeddingGenerated!(embedding);
+            if (embedding.isNotEmpty) widget.onFaceEmbeddingGenerated!(embedding);
           }
         }
 

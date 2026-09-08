@@ -51,7 +51,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
   @override
   void initState() {
     super.initState();
-    _simulateScanning();
+    _runScanLoop();
   }
 
   void _handleFaceValidation(bool isDetected, bool isProper, double angleY, bool isTooDark) {
@@ -61,9 +61,9 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
     if (isProper) {
       if (_currentStep == 0 && angleY > -10 && angleY < 10) {
         isAngleCorrect = true;
-      } else if (_currentStep == 1 && angleY < -15) { // Looking left
+      } else if (_currentStep == 1 && angleY > 15) { // Front camera is mirrored
         isAngleCorrect = true;
-      } else if (_currentStep == 2 && angleY > 15) { // Looking right
+      } else if (_currentStep == 2 && angleY < -15) {
         isAngleCorrect = true;
       }
     }
@@ -88,7 +88,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
     }
   }
 
-  void _simulateScanning() async {
+  void _runScanLoop() async {
     while (_isScanning) {
       if (!mounted) return;
       await Future.delayed(const Duration(milliseconds: 100));
@@ -102,7 +102,8 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
           if (_latestEmbedding.isNotEmpty) {
             _capturedEmbeddings.add(List.from(_latestEmbedding));
           } else {
-            _capturedEmbeddings.add([0.1, 0.2, 0.3]); // Fallback
+            setState(() => _scanProgress = 0.0);
+            continue;
           }
           
           if (_currentStep < 2) {
@@ -143,12 +144,12 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
       final deviceId = await storage.getDeviceFingerprint() ?? 'unknown-device';
       
       await attendanceRepo.enrollFace(
-        faceEmbeddings: _capturedEmbeddings.isNotEmpty ? _capturedEmbeddings : [[0.0]],
+        faceEmbeddings: _capturedEmbeddings,
         deviceId: deviceId,
       );
 
       if (_capturedEmbeddings.isNotEmpty) {
-        await storage.saveFaceEmbedding(jsonEncode(_capturedEmbeddings[0]));
+        await storage.saveFaceEmbedding(jsonEncode(_capturedEmbeddings));
       }
 
       if (mounted) {
@@ -424,7 +425,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                                _capturedImage = null;
                                _errorMessage = null;
                             });
-                            _simulateScanning();
+                            _runScanLoop();
                           } : _navigateToDashboard),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryContainer,

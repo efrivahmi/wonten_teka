@@ -65,16 +65,6 @@ class _DailyAttendanceTableScreenState extends State<DailyAttendanceTableScreen>
                 fontWeight: FontWeight.bold,
               ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.download, color: AppColors.primary),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Mengekspor Laporan (Mock)...')),
-              );
-            },
-          ),
-        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

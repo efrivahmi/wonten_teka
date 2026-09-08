@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use App\Services\FaceDescriptorService;
 
 class AttendanceController extends Controller
 {
@@ -90,6 +91,8 @@ class AttendanceController extends Controller
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'face_match_score' => 'required|numeric',
+            'face_descriptor' => 'nullable|array|size:128',
+            'face_descriptor.*' => 'numeric|between:-10,10',
             'device_id' => 'required|string',
             'address' => 'nullable|string',
             'flags' => 'nullable|array',
@@ -144,9 +147,10 @@ class AttendanceController extends Controller
 
         if ($shiftAssignmentId) {
             $assignment = \App\Models\ShiftAssignment::find($shiftAssignmentId);
-            if ($assignment && $assignment->employee_id == $employee->id) {
-                $shiftTemplate = $assignment->shiftTemplate;
+            if (!$assignment || $assignment->employee_id !== $employee->id) {
+                return response()->json(['message' => 'Shift tidak terdaftar untuk karyawan ini.'], 422);
             }
+            $shiftTemplate = $assignment->shiftTemplate;
         } else if ($shiftTemplateId) {
             $shiftTemplate = \App\Models\ShiftTemplate::find($shiftTemplateId);
         }
@@ -159,10 +163,15 @@ class AttendanceController extends Controller
             $flags['shift_name'] = $shiftTemplate->name;
             $startTime = Carbon::parse($shiftTemplate->start_time);
             $gracePeriod = $shiftTemplate->grace_period_minutes ?? 0;
-            
+
             $lateThreshold = $startTime->copy()->addMinutes($gracePeriod);
+
             if (now()->greaterThan($lateThreshold)) {
                 $status = 'late';
+            } elseif (now()->greaterThan($startTime)) {
+                $status = 'present'; // Dalam toleransi
+            } else {
+                $status = 'on_time'; // Tepat waktu
             }
         } else {
             $flags['shift_name'] = 'Shift Regular';
@@ -172,9 +181,18 @@ class AttendanceController extends Controller
             $status = 'flagged';
         }
 
-        if ($request->face_match_score < 0.8) {
-            $status = 'flagged';
-            $flags['low_face_match_score'] = true;
+        $faceMatchScore = (float) $request->face_match_score;
+        if ($request->filled('face_descriptor')) {
+            $biometric = EmployeeBiometric::where('employee_id', $employee->id)->first();
+            abort_unless($biometric?->web_face_embedding, 422, 'Data wajah web belum didaftarkan.');
+            $faceMatchScore = app(FaceDescriptorService::class)->verifyWebDescriptor(
+                $request->input('face_descriptor'),
+                $biometric->web_face_embedding
+            );
+        } elseif ($faceMatchScore < 0.8) {
+            return response()->json([
+                'message' => 'Gagal verifikasi wajah. Tingkat kemiripan di bawah 80%. Silakan coba lagi dengan pencahayaan yang baik.'
+            ], 422);
         }
 
         $existingLogQuery = AttendanceLog::where('employee_id', $employee->id)
@@ -206,7 +224,7 @@ class AttendanceController extends Controller
             'check_in_latitude' => $request->latitude,
             'check_in_longitude' => $request->longitude,
             'check_in_address' => $request->address,
-            'check_in_face_score' => $request->face_match_score,
+            'check_in_face_score' => $faceMatchScore,
             'device_id' => $device ? $device->id : null,
             'check_in_photo_url' => $photoPath,
             'flags' => $flags,
@@ -237,11 +255,13 @@ class AttendanceController extends Controller
             $flags = json_decode($flags, true);
             $request->merge(['flags' => $flags]);
         }
-        
+
         $validator = Validator::make($request->all(), [
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'face_match_score' => 'required|numeric',
+            'face_descriptor' => 'nullable|array|size:128',
+            'face_descriptor.*' => 'numeric|between:-10,10',
             'device_id' => 'required|string',
             'address' => 'nullable|string',
             'flags' => 'nullable|array',
@@ -251,6 +271,20 @@ class AttendanceController extends Controller
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $faceMatchScore = (float) $request->face_match_score;
+        if ($request->filled('face_descriptor')) {
+            $biometric = EmployeeBiometric::where('employee_id', $employee->id)->first();
+            abort_unless($biometric?->web_face_embedding, 422, 'Data wajah web belum didaftarkan.');
+            $faceMatchScore = app(FaceDescriptorService::class)->verifyWebDescriptor(
+                $request->input('face_descriptor'),
+                $biometric->web_face_embedding
+            );
+        } elseif ($faceMatchScore < 0.8) {
+            return response()->json([
+                'message' => 'Gagal verifikasi wajah. Tingkat kemiripan di bawah 80%. Silakan coba lagi.'
+            ], 422);
         }
 
         $shiftAssignmentId = $request->shift_assignment_id;
@@ -321,7 +355,7 @@ class AttendanceController extends Controller
             'check_out_latitude' => $request->latitude,
             'check_out_longitude' => $request->longitude,
             'check_out_address' => $request->address,
-            'check_out_face_score' => $request->face_match_score,
+            'check_out_face_score' => $faceMatchScore,
             'check_out_photo_url' => $photoPath,
             'flags' => $mergedFlags,
         ]);
@@ -343,9 +377,9 @@ class AttendanceController extends Controller
                   ->whereYear('check_in_at', $year);
         }
         
-        $history = $query->orderBy('check_in_at', 'desc')->get();
+        $history = $query->orderBy('check_in_at', 'desc')->paginate(31);
         
-        $history->transform(function ($log) {
+        $history->getCollection()->transform(function ($log) {
             if ($log->check_in_photo_url) {
                 $log->check_in_photo_url = asset('storage/' . $log->check_in_photo_url);
             }
@@ -355,7 +389,7 @@ class AttendanceController extends Controller
             return $log;
         });
             
-        return response()->json(['data' => $history]);
+        return response()->json($history);
     }
 
     /**
@@ -439,9 +473,58 @@ class AttendanceController extends Controller
             }
         }
 
+        // --- Calculate Monthly Stats ---
+        $currentMonth = Carbon::today()->month;
+        $currentYear = Carbon::today()->year;
+
+        $monthlyLogs = \App\Models\AttendanceLog::where('employee_id', $employee->id)
+            ->whereMonth('check_in_at', $currentMonth)
+            ->whereYear('check_in_at', $currentYear)
+            ->get();
+
+        $onTimeCount = $monthlyLogs->where('status', 'on_time')->count();
+        $gracePeriodCount = $monthlyLogs->where('status', 'present')->count();
+        $lateCount = $monthlyLogs->where('status', 'late')->count();
+        $totalPresentCount = $onTimeCount + $gracePeriodCount + $lateCount;
+
+        // Determine passed working days
+        $workingDaysSetting = \App\Models\Setting::where('key', 'working_days')->first();
+        $workingDays = $workingDaysSetting ? $workingDaysSetting->value : [1, 2, 3, 4, 5, 6];
+        if (is_string($workingDays)) {
+            $workingDays = json_decode($workingDays, true);
+        }
+
+        $passedWorkingDays = 0;
+        $startOfMonth = Carbon::today()->startOfMonth();
+        $today = Carbon::today();
+
+        for ($date = $startOfMonth; $date->lte($today); $date->addDay()) {
+            // isDayOfWeek requires ISO day of week (1 = Monday, 7 = Sunday)
+            // Carbon's dayOfWeek returns 0 (Sunday) to 6 (Saturday).
+            // Let's use isoFormat('E') which returns 1-7
+            $dayOfWeek = (int) $date->isoFormat('E');
+            if (in_array($dayOfWeek, $workingDays)) {
+                $passedWorkingDays++;
+            }
+        }
+
+        $absentCount = max(0, $passedWorkingDays - $totalPresentCount);
+        $percentage = $passedWorkingDays > 0 ? round(($totalPresentCount / $passedWorkingDays) * 100, 1) : 100;
+        if ($percentage > 100) $percentage = 100;
+
+        $monthlyStats = [
+            'on_time' => $onTimeCount,
+            'grace_period' => $gracePeriodCount,
+            'late' => $lateCount,
+            'absent' => $absentCount,
+            'percentage' => $percentage
+        ];
+        // -------------------------------
+
         return response()->json([
             'shifts' => $shifts,
             'role' => $role,
+            'monthly_stats' => $monthlyStats,
         ]);
     }
 }

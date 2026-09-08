@@ -11,25 +11,12 @@ class FirebaseMessagingService {
   FirebaseMessagingService._internal();
 
   Future<void> initialize() async {
-    // Placeholder for Firebase Messaging Initialization
-    // final messaging = FirebaseMessaging.instance;
-    // await messaging.requestPermission();
-    // 
-    // FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    //   if (kDebugMode) {
-    //     print('Received a message while in the foreground!');
-    //     print('Message data: ${message.data}');
-    //   }
-    // });
-    
     if (kDebugMode) {
-      print('Firebase Messaging Service Initialized (Placeholder)');
+      debugPrint('Push notification provider is not configured.');
     }
   }
 
   Future<String?> getToken() async {
-    // Placeholder to get FCM Token
-    // return await FirebaseMessaging.instance.getToken();
-    return "dummy-fcm-token-12345";
+    return null;
   }
 }

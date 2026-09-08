@@ -111,8 +111,7 @@ class _AdminDashboardCalendarState extends State<AdminDashboardCalendar> {
         final bool isToday = date.year == _today.year && date.month == _today.month && date.day == _today.day;
         final bool isSunday = date.weekday == DateTime.sunday;
         
-        // Dummy logic for national holidays (e.g. 17th is holiday)
-        final bool isHoliday = date.day == 17;
+        final bool isHoliday = false;
 
         return Container(
           margin: EdgeInsets.all(2.w),
@@ -138,8 +137,6 @@ class _AdminDashboardCalendarState extends State<AdminDashboardCalendar> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _buildDot(AppColors.successEmerald), // Hadir
-                    if (date.day % 3 == 0) _buildDot(AppColors.warningAmber), // Izin/Sakit
-                    if (date.day % 5 == 0) _buildDot(AppColors.errorCrimson), // Alpha
                   ],
                 ),
             ],

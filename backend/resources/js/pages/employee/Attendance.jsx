@@ -86,7 +86,7 @@ const Attendance = () => {
             await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
             
             setScanMessage('Mengambil data wajah terdaftar...');
-            const res = await api.get('/biometrics/sync');
+            const res = await api.get('/biometrics/web/sync');
             setEnrolledEmbeddings(res.data.embeddings);
             
             setModelsLoaded(true);
@@ -133,7 +133,7 @@ const Attendance = () => {
                         // Take snapshot
                         const imageSrc = webcamRef.current.getScreenshot();
                         
-                        handleAttendanceSubmit(1 - bestMatch, imageSrc);
+                        handleAttendanceSubmit(1 - bestMatch, imageSrc, Array.from(detection.descriptor));
                         return; // Stop the scanning loop
                     } else {
                         setScanMessage(`Wajah tidak dikenali (Jarak: ${bestMatch.toFixed(2)}). Pastikan pencahayaan baik.`);
@@ -159,7 +159,7 @@ const Attendance = () => {
         };
     }, [action, modelsLoaded, enrolledEmbeddings, submitting]);
 
-    const handleAttendanceSubmit = async (matchScore, imageBase64) => {
+    const handleAttendanceSubmit = async (matchScore, imageBase64, faceDescriptor) => {
         setSubmitting(true);
         
         if (!navigator.geolocation) {
@@ -176,7 +176,11 @@ const Attendance = () => {
                 // Get Address using Nominatim OpenStreetMap
                 let address = '';
                 try {
-                    const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                    const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`, {
+                        headers: {
+                            'Accept-Language': 'id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7',
+                        }
+                    });
                     const geoData = await geoRes.json();
                     address = geoData.display_name;
                 } catch (geoErr) {
@@ -205,6 +209,7 @@ const Attendance = () => {
                 formData.append('longitude', lon);
                 formData.append('address', address);
                 formData.append('face_match_score', matchScore);
+                faceDescriptor.forEach((value) => formData.append('face_descriptor[]', value));
                 formData.append('device_id', fpResult.visitorId);
                 formData.append('photo', blob, 'attendance.jpg');
 
@@ -331,7 +336,22 @@ const Attendance = () => {
                                     mirrored={true}
                                 />
                                 {/* Overlay frame */}
-                                <div className={`absolute inset-0 border-4 pointer-events-none transition-colors duration-500 ${submitting ? 'border-emerald-500' : scanning ? 'border-amber-400' : 'border-emerald-500/30'}`}></div>
+                                <style>{`
+                                    @keyframes scanning-laser {
+                                        0% { top: 0%; opacity: 0; }
+                                        10% { opacity: 1; }
+                                        90% { opacity: 1; }
+                                        100% { top: 98%; opacity: 0; }
+                                    }
+                                    .animate-scan-laser {
+                                        animation: scanning-laser 2.5s infinite linear;
+                                    }
+                                `}</style>
+                                <div className={`absolute inset-0 border-4 pointer-events-none transition-colors duration-500 z-10 ${submitting ? 'border-emerald-500' : scanning ? 'border-blue-400' : 'border-emerald-500/30'}`}>
+                                    {scanning && !submitting && (
+                                        <div className="absolute left-0 right-0 h-[2px] bg-blue-400 shadow-[0_0_12px_rgba(96,165,250,1)] animate-scan-laser" />
+                                    )}
+                                </div>
                                 
                                 {submitting && (
                                     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center text-white">
@@ -454,8 +474,25 @@ const Attendance = () => {
                                 <>
                                     {/* Check IN */}
                                     <div className="space-y-3">
-                                        <div className="flex items-center text-emerald-600 font-bold">
-                                            <LogIn className="h-5 w-5 mr-2" /> Check In
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center text-emerald-600 font-bold">
+                                                <LogIn className="h-5 w-5 mr-2" /> Check In
+                                            </div>
+                                            {selectedLog.status && (
+                                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                                    selectedLog.status === 'on_time' ? 'bg-emerald-100 text-emerald-700' :
+                                                    selectedLog.status === 'present' ? 'bg-amber-100 text-amber-700' :
+                                                    selectedLog.status === 'late' ? 'bg-rose-100 text-rose-700' :
+                                                    selectedLog.status === 'flagged' ? 'bg-orange-100 text-orange-700' :
+                                                    'bg-slate-100 text-slate-700'
+                                                }`}>
+                                                    {selectedLog.status === 'on_time' ? 'Tepat Waktu' :
+                                                     selectedLog.status === 'present' ? 'Hadir (Batas Toleransi)' :
+                                                     selectedLog.status === 'late' ? 'Terlambat' :
+                                                     selectedLog.status === 'flagged' ? 'Dipertanyakan' :
+                                                     selectedLog.status}
+                                                </span>
+                                            )}
                                         </div>
                                         <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 text-sm space-y-2">
                                             <div className="flex">

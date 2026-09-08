@@ -77,8 +77,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       final embeddings = await _repo.syncFace();
       if (embeddings != null && embeddings.isNotEmpty) {
         final storage = SecureStorage();
-        // Saving the primary (front) embedding for fast local check
-        await storage.saveFaceEmbedding(jsonEncode(embeddings[0]));
+        await storage.saveFaceEmbedding(jsonEncode(embeddings));
       }
     } catch (e) {
       // Background sync, fail silently
