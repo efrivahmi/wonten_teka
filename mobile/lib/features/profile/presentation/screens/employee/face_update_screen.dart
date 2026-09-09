@@ -69,16 +69,13 @@ class FaceUpdateScreen extends StatelessWidget {
               width: double.infinity,
               height: 52.h,
               child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Permintaan pembaruan wajah dikirim ke HR.')));
-                  context.pop();
-                },
+                onPressed: () => context.push('/face-enrollment'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.onPrimary,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
                 ),
-                child: const Text('Kirim Permintaan', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text('Rekam Ulang Sekarang', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
           ],

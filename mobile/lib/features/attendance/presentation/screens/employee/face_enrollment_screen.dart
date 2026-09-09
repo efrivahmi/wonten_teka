@@ -1,11 +1,9 @@
-import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:camera/camera.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/repositories/attendance_repository.dart';
@@ -21,8 +19,6 @@ class FaceEnrollmentScreen extends StatefulWidget {
 }
 
 class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
-  final GlobalKey<CameraPreviewWidgetState> _cameraKey = GlobalKey();
-  
   int _currentStep = 0; // 0 = Depan, 1 = Kiri, 2 = Kanan
   final List<String> _stepInstructions = [
     "Arahkan wajah lurus ke depan",
@@ -44,7 +40,6 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
   final List<List<double>> _capturedEmbeddings = [];
   List<double> _latestEmbedding = [];
   
-  File? _capturedImage;
   bool _isSubmitting = false;
   String? _errorMessage;
 
@@ -81,13 +76,6 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
     _latestEmbedding = embedding;
   }
 
-  void _onPhotoCaptured(XFile? file) async {
-    if (file != null) {
-      setState(() => _capturedImage = File(file.path));
-      await _submitEnrollment();
-    }
-  }
-
   void _runScanLoop() async {
     while (_isScanning) {
       if (!mounted) return;
@@ -118,7 +106,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
             setState(() {
               _isScanning = false;
             });
-            await _cameraKey.currentState?.takePhoto();
+            await _submitEnrollment();
             break;
           }
         }
@@ -307,13 +295,9 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                         ],
                       ),
                       child: ClipOval(
-                        child: _capturedImage != null
-                            ? Image.file(_capturedImage!, fit: BoxFit.cover)
-                            : CameraPreviewWidget(
-                                key: _cameraKey,
+                        child: CameraPreviewWidget(
                                 onFaceValidationChanged: _handleFaceValidation,
                                 onFaceEmbeddingGenerated: _handleFaceEmbedding,
-                                onPhotoCaptured: _onPhotoCaptured,
                               ),
                       ),
                     ).animate(target: (_isFaceProper && !_isTooDark) ? 1 : 0).scale(
@@ -422,7 +406,6 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                                _currentStep = 0;
                                _scanProgress = 0.0;
                                _capturedEmbeddings.clear();
-                               _capturedImage = null;
                                _errorMessage = null;
                             });
                             _runScanLoop();

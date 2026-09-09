@@ -80,6 +80,10 @@ class SecureStorage {
     return read('face_embedding');
   }
 
+  Future<void> deleteFaceEmbedding() async {
+    await _storage.delete(key: 'face_embedding');
+  }
+
   // ── Clear All ──────────────────────────────────────────────────────────
 
   Future<void> clearAll() async {

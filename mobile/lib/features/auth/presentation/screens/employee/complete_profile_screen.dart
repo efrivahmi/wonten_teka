@@ -182,12 +182,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         'position': _position,
         'join_date': _joinDateController.text,
         'employment_status': _employmentStatus,
-        'ptkp_status': _ptkpStatus,
-        'bpjs_kesehatan_number': _bpjsKesController.text,
-        'bpjs_ketenagakerjaan_number': _bpjsKetController.text,
-        'bank_name': _bankName,
-        'bank_account_number': _bankAccountController.text,
-        'bank_account_holder': _bankHolderController.text,
       };
 
       context.read<AuthBloc>().add(AuthCompleteProfileRequested(profileData));

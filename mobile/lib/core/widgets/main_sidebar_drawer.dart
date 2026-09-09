@@ -97,6 +97,7 @@ class MainSidebarDrawer extends StatelessWidget {
                     if (menu.contains('overtime')) _buildListTile(context, 'Lembur', Icons.more_time, '/app/overtime'),
                     if (menu.contains('claims')) _buildListTile(context, 'Klaim / Reimburse', Icons.receipt_long, '/app/claims'),
                     if (menu.contains('payroll')) _buildListTile(context, 'Slip Gaji', Icons.request_quote, '/app/payroll'),
+                    if (menu.contains('biometric')) _buildListTile(context, 'Pendaftaran Wajah', Icons.face_retouching_natural, '/app/profile/face-update'),
                     if (menu.contains('profile')) _buildListTile(context, 'Profil', Icons.person, '/app/profile'),
                     SizedBox(height: 24.h),
                   ],

@@ -16,6 +16,7 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/storage/secure_storage.dart';
 import '../../../../../core/services/face_matcher_service.dart';
 import '../../../../../core/repositories/attendance_repository.dart';
+import '../../../../../core/api/api_exceptions.dart';
 import '../../../../company/bloc/company_cubit.dart';
 import '../../../bloc/attendance_cubit.dart';
 import '../../widgets/camera_preview_widget.dart';
@@ -65,9 +66,19 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
 
   Future<void> _loadFaceReferences() async {
     final repository = context.read<AttendanceRepository>();
-    var references = await repository.syncFace();
+    List<List<double>>? references;
+    var mayUseOfflineCache = false;
+    try {
+      references = await repository.syncFace();
+    } on NotFoundException {
+      await SecureStorage().deleteFaceEmbedding();
+    } on NetworkException {
+      mayUseOfflineCache = true;
+    } catch (_) {
+      mayUseOfflineCache = true;
+    }
 
-    if (references == null || references.isEmpty) {
+    if (mayUseOfflineCache && (references == null || references.isEmpty)) {
       final cached = await SecureStorage().getFaceEmbedding();
       if (cached != null) {
         try {

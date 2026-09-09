@@ -20,17 +20,13 @@ class AttendanceRepository {
   }
 
   Future<List<List<double>>?> syncFace() async {
-    try {
-      final response = await _api.get('/biometrics/sync');
-      final data = response.data as Map<String, dynamic>;
-      if (data['embeddings'] != null) {
-        final List<dynamic> raw = data['embeddings'];
-        return raw.map((e) => (e as List).map((n) => (n as num).toDouble()).toList()).toList();
-      }
-      return null;
-    } catch (e) {
-      return null;
+    final response = await _api.get('/biometrics/sync');
+    final data = response.data as Map<String, dynamic>;
+    if (data['embeddings'] != null) {
+      final List<dynamic> raw = data['embeddings'];
+      return raw.map((e) => (e as List).map((n) => (n as num).toDouble()).toList()).toList();
     }
+    return null;
   }
 
   Future<AttendanceLogModel> checkIn({
