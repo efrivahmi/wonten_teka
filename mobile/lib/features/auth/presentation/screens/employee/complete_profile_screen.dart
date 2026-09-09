@@ -27,15 +27,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   final _dobController = TextEditingController();
   final _addressController = TextEditingController();
   final _joinDateController = TextEditingController();
-  final _bpjsKesController = TextEditingController();
-  final _bpjsKetController = TextEditingController();
-  final _bankAccountController = TextEditingController();
-  final _bankHolderController = TextEditingController();
 
   String? _gender;
   String? _employmentStatus;
-  String? _ptkpStatus;
-  String? _bankName;
   String? _department;
   String? _position;
 
@@ -44,8 +38,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   List<String> _positions = [];
   List<Map<String, String>> _genders = [];
   List<Map<String, String>> _employmentStatuses = [];
-  List<Map<String, String>> _ptkpStatuses = [];
-  List<String> _banks = [];
   String? _optionsError;
 
   @override
@@ -126,8 +118,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
           _positions = (options['positions'] as List).map((e) => e.toString()).toList();
           _genders = _optionMaps(options['genders']);
           _employmentStatuses = _optionMaps(options['employment_statuses']);
-          _ptkpStatuses = _optionMaps(options['ptkp_statuses']);
-          _banks = (options['banks'] as List? ?? []).map((e) => e.toString()).toList();
           _optionsError = null;
           _isLoadingOptions = false;
         });
@@ -160,10 +150,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     _dobController.dispose();
     _addressController.dispose();
     _joinDateController.dispose();
-    _bpjsKesController.dispose();
-    _bpjsKetController.dispose();
-    _bankAccountController.dispose();
-    _bankHolderController.dispose();
     super.dispose();
   }
 
@@ -265,7 +251,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                             SizedBox(width: 12.w),
                             Expanded(
                               child: Text(
-                                'Data sensitif seperti NIK, NPWP, BPJS, dan Rekening diproses menggunakan enkripsi di server kami untuk menjamin keamanan Anda.',
+                                'Data identitas yang diisi pada tahap ini diproses menggunakan enkripsi di server.',
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.successEmerald),
                               ),
                             ),
@@ -371,52 +357,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         items: _employmentStatuses.map((item) => DropdownMenuItem(value: item['value'], child: Text(item['label']!))).toList(),
                         validator: (v) => v == null || v.isEmpty ? 'Pilih status' : null,
                         onChanged: (v) => setState(() => _employmentStatus = v),
-                      ),
-                      SizedBox(height: 16.h),
-                      DropdownButtonFormField<String>(
-                        isExpanded: true,
-                        decoration: const InputDecoration(labelText: 'Status PTKP*'),
-                        initialValue: _ptkpStatus,
-                        items: _ptkpStatuses.map((item) => DropdownMenuItem(value: item['value'], child: Text(item['label']!))).toList(),
-                        validator: (v) => v == null || v.isEmpty ? 'Pilih status PTKP' : null,
-                        onChanged: (v) => setState(() => _ptkpStatus = v),
-                      ),
-                      SizedBox(height: 16.h),
-                      TextFormField(
-                        controller: _bpjsKesController,
-                        decoration: const InputDecoration(labelText: 'Nomor BPJS Kesehatan'),
-                        keyboardType: TextInputType.number,
-                        maxLength: 13,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      ),
-                      SizedBox(height: 16.h),
-                      TextFormField(
-                        controller: _bpjsKetController,
-                        decoration: const InputDecoration(labelText: 'Nomor BPJS Ketenagakerjaan'),
-                        keyboardType: TextInputType.number,
-                        maxLength: 16,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      ),
-                      SizedBox(height: 16.h),
-                      DropdownButtonFormField<String>(
-                        isExpanded: true,
-                        decoration: const InputDecoration(labelText: 'Nama Bank'),
-                        initialValue: _bankName,
-                        items: _banks.map((bank) => DropdownMenuItem(value: bank, child: Text(bank))).toList(),
-                        onChanged: (v) => setState(() => _bankName = v),
-                      ),
-                      SizedBox(height: 16.h),
-                      TextFormField(
-                        controller: _bankAccountController,
-                        decoration: const InputDecoration(labelText: 'Nomor Rekening Bank'),
-                        keyboardType: TextInputType.number,
-                        maxLength: 20,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      ),
-                      SizedBox(height: 16.h),
-                      TextFormField(
-                        controller: _bankHolderController,
-                        decoration: const InputDecoration(labelText: 'Nama Pemilik Rekening'),
                       ),
                       SizedBox(height: 32.h),
                       SizedBox(

@@ -60,8 +60,14 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
             context.read<AuthBloc>().add(AuthCheckSession());
             return;
           }
+        } else if (device.status == 'pending_approval') {
+          final secureStorage = SecureStorage();
+          await secureStorage.saveDeviceFingerprint(_deviceFingerprint);
+          if (mounted) context.go('/device-pending');
+          return;
         } else {
-          // Legacy pending/rejected records can be re-linked and activated.
+          // Rejected/revoked associations keep the submission action visible so
+          // the employee can submit a fresh approval request.
           if (mounted) setState(() => _isLoading = false);
           return;
         }
@@ -106,7 +112,7 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
     try {
       // Register device with backend
       final deviceRepo = context.read<DeviceRepository>();
-      await deviceRepo.register(
+      final device = await deviceRepo.register(
         deviceFingerprint: _deviceFingerprint,
         deviceName: _deviceName,
         osVersion: _deviceOS,
@@ -117,8 +123,11 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
       await secureStorage.saveDeviceFingerprint(_deviceFingerprint);
 
       if (mounted) {
-        // Registration now always activates the account/device binding.
-        context.read<AuthBloc>().add(AuthCheckSession());
+        if (device.status == 'active') {
+          context.read<AuthBloc>().add(AuthCheckSession());
+        } else {
+          context.go('/device-pending');
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -219,7 +228,7 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
                           Text(_deviceOS, style: TextStyle(color: Colors.grey[600], fontSize: 14.sp)),
                           SizedBox(height: 12.h),
                           Text(
-                            'Perangkat dapat dikaitkan ke akun ini meskipun sebelumnya sudah digunakan oleh akun lain.',
+                            'Ajukan perangkat ini untuk dikaitkan ke akun Anda. Akses dashboard tersedia setelah admin menyetujuinya.',
                             textAlign: TextAlign.center,
                             style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp, height: 1.4),
                           ),
@@ -237,7 +246,7 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
                               ),
                               child: _isBinding
                                   ? SizedBox(width: 24.w, height: 24.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                  : Text('Kaitkan Akun Ini', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                                  : Text('Ajukan Perangkat', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
                             ),
                           ),
                           SizedBox(height: 16.h),

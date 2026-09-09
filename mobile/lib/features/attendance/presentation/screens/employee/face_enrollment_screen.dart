@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/repositories/attendance_repository.dart';
 import '../../../../../core/storage/secure_storage.dart';
+import '../../../../../core/api/api_exceptions.dart';
 import '../../../../auth/bloc/auth_bloc.dart';
 import '../../widgets/camera_preview_widget.dart';
 
@@ -146,13 +147,18 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
         });
         context.read<AuthBloc>().add(AuthCheckSession());
       }
-    } catch (e) {
+    } on ApiException catch (e) {
       if (mounted) {
         setState(() {
            _isSubmitting = false;
-           _errorMessage = 'Gagal menyimpan wajah ke server. Pastikan koneksi stabil.';
+           _errorMessage = e.message;
         });
       }
+    } catch (_) {
+      if (mounted) setState(() {
+        _isSubmitting = false;
+        _errorMessage = 'Gagal menyimpan wajah ke server. Pastikan koneksi stabil.';
+      });
     }
   }
 

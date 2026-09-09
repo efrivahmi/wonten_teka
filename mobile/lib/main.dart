@@ -115,8 +115,7 @@ class WontenTekaApp extends StatelessWidget {
                   final status = device.status;
                   
                   if (status == 'pending_approval') {
-                     // Legacy pending records are re-linked from the binding screen.
-                     appRouter.go('/device-binding');
+                     appRouter.go('/device-pending');
                      return;
                   } else if (status != 'active') {
                      appRouter.go('/device-binding');

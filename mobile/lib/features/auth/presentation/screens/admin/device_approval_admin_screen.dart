@@ -135,7 +135,9 @@ class _DeviceApprovalAdminScreenState extends State<DeviceApprovalAdminScreen> {
 
   Widget _buildDeviceCard(Map<String, dynamic> device) {
     final employee = device['employee'] ?? {};
-    final name = '${employee['first_name'] ?? ''} ${employee['last_name'] ?? ''}'
+    final name = (employee['full_name'] ??
+            '${employee['first_name'] ?? ''} ${employee['last_name'] ?? ''}')
+        .toString()
         .trim();
     final deviceName = device['device_name'] ?? 'Unknown Device';
     final deviceModel = device['device_model'] ?? '-';
@@ -175,6 +177,13 @@ class _DeviceApprovalAdminScreenState extends State<DeviceApprovalAdminScreen> {
                       style: TextStyle(
                           fontSize: 12.sp, color: AppColors.onSurfaceVariant),
                     ),
+                    if ((employee['department'] ?? '').toString().isNotEmpty)
+                      Text(
+                        employee['department'].toString(),
+                        style: TextStyle(
+                            fontSize: 11.sp,
+                            color: AppColors.onSurfaceVariant),
+                      ),
                   ],
                 ),
               ),

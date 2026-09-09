@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../auth/bloc/auth_bloc.dart';
 import '../../../../../core/repositories/device_repository.dart';
@@ -58,12 +59,9 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
               const SnackBar(content: Text('Status perangkat masih menunggu persetujuan.')),
             );
           }
-        } else {
-          if (mounted && showSnackbar) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Perangkat ditolak atau tidak valid.'), backgroundColor: AppColors.error),
-            );
-          }
+        } else if (mounted) {
+          _timer?.cancel();
+          context.go('/device-binding');
         }
       }
     } catch (e) {
