@@ -91,7 +91,10 @@ class _ClaimListScreenState extends State<ClaimListScreen> {
                             separatorBuilder: (_, __) => SizedBox(height: 16.h),
                             itemBuilder: (context, index) {
                               final item = claims[index];
-                              return Container(
+                              return InkWell(
+                                onTap: () => context.push('/app/claims/detail', extra: item),
+                                borderRadius: BorderRadius.circular(8.r),
+                                child: Container(
                                 padding: EdgeInsets.all(16.w),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
@@ -134,6 +137,7 @@ class _ClaimListScreenState extends State<ClaimListScreen> {
                                       ],
                                     ),
                                   ],
+                                ),
                                 ),
                               );
                             },

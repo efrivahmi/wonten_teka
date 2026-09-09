@@ -165,13 +165,14 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
       width: double.infinity,
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        color: AppColors.primary,
-        gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.errorCrimson.withValues(alpha: 0.8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+        color: const Color(0xFF0B0B0B),
+        image: const DecorationImage(
+          image: AssetImage('assets/images/wonten-biometric-hero-v2.png'),
+          fit: BoxFit.cover,
+          alignment: Alignment.centerRight,
+          colorFilter: ColorFilter.mode(Color(0x99000000), BlendMode.darken),
         ),
-        borderRadius: BorderRadius.circular(24.r),
+        borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
             color: AppColors.primary.withValues(alpha: 0.3),

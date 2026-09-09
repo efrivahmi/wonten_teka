@@ -3,9 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/api/api_client.dart';
 import '../../../../auth/bloc/auth_bloc.dart';
 import '../../widgets/admin_dashboard_calendar.dart';
 
@@ -27,14 +27,12 @@ class AdminDashboardScreen extends StatelessWidget {
               Container(
                 height: 280.h,
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.primary,
-                      AppColors.errorCrimson.withValues(alpha: 0.8)
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                  color: const Color(0xFF0B0B0B),
+                  image: const DecorationImage(
+                    image: AssetImage('assets/images/wonten-biometric-hero-v2.png'),
+                    fit: BoxFit.cover,
+                    alignment: Alignment.centerRight,
+                    colorFilter: ColorFilter.mode(Color(0xAA000000), BlendMode.darken),
                   ),
                   borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(32.r),
@@ -129,18 +127,6 @@ class AdminDashboardScreen extends StatelessWidget {
                             _buildSistemGrid(context),
                             SizedBox(height: 24.h),
 
-                            // 2. Attendance Bar Chart
-                            Text(
-                              'Tren Kehadiran (7 Hari)',
-                              style: TextStyle(
-                                  fontSize: 18.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.onSurface),
-                            ),
-                            SizedBox(height: 16.h),
-                            _buildChartContainer(),
-                            SizedBox(height: 24.h),
-
                             // 3. Admin Calendar Monitoring
                             Text(
                               'Kalender Kehadiran & Libur',
@@ -167,6 +153,32 @@ class AdminDashboardScreen extends StatelessWidget {
   }
 
   Widget _buildQuickStats(BuildContext context) {
+    return FutureBuilder<dynamic>(
+      future: context.read<ApiClient>().get('/admin/dashboard'),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError || !snapshot.hasData) {
+          return Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(20.w),
+            color: AppColors.surface,
+            child: const Text('Ringkasan belum dapat dimuat.', textAlign: TextAlign.center),
+          );
+        }
+        final payload = snapshot.data!.data as Map<String, dynamic>;
+        return _buildQuickStatsContent(
+          context,
+          payload['data'] as Map<String, dynamic>? ?? const {},
+        );
+      },
+    );
+  }
+
+  Widget _buildQuickStatsContent(
+      BuildContext context, Map<String, dynamic> stats) {
+    final attendance = stats['attendance_today'] as Map<String, dynamic>? ?? const {};
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
@@ -197,11 +209,11 @@ class AdminDashboardScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildStatItem(
-                  'Hadir', '142', AppColors.successEmerald, Icons.how_to_reg),
+                  'Hadir', '${attendance['present'] ?? 0}', AppColors.successEmerald, Icons.how_to_reg),
               _buildStatItem(
-                  'Alpha', '5', AppColors.errorCrimson, Icons.person_off),
+                  'Alpha', '${attendance['absent'] ?? 0}', AppColors.errorCrimson, Icons.person_off),
               _buildStatItem(
-                  'Cuti/Sakit', '12', AppColors.warningAmber, Icons.sick),
+                  'Cuti/Sakit', '${attendance['on_leave'] ?? 0}', AppColors.warningAmber, Icons.sick),
             ],
           ),
           SizedBox(height: 20.h),
@@ -413,89 +425,4 @@ class AdminDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildChartContainer() {
-    return Container(
-      height: 220.h,
-      padding:
-          EdgeInsets.only(top: 24.h, bottom: 16.h, left: 16.w, right: 16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24.r),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15)
-        ],
-      ),
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.spaceAround,
-          maxY: 160,
-          barTouchData: BarTouchData(enabled: false),
-          titlesData: FlTitlesData(
-            show: true,
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  const days = [
-                    'Sen',
-                    'Sel',
-                    'Rab',
-                    'Kam',
-                    'Jum',
-                    'Sab',
-                    'Min'
-                  ];
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(days[value.toInt() % 7],
-                        style: TextStyle(
-                            color: AppColors.onSurfaceVariant,
-                            fontSize: 10.sp)),
-                  );
-                },
-              ),
-            ),
-            leftTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          ),
-          gridData: const FlGridData(show: false),
-          borderData: FlBorderData(show: false),
-          barGroups: [
-            _makeGroupData(0, 145, 12, 3),
-            _makeGroupData(1, 150, 8, 2),
-            _makeGroupData(2, 148, 10, 2),
-            _makeGroupData(3, 142, 12, 5),
-            _makeGroupData(4, 155, 5, 0),
-            _makeGroupData(5, 50, 0, 110), // Saturday
-            _makeGroupData(6, 0, 0, 160), // Sunday
-          ],
-        ),
-      ),
-    ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0);
-  }
-
-  BarChartGroupData _makeGroupData(
-      int x, double present, double leave, double absent) {
-    return BarChartGroupData(
-      x: x,
-      barRods: [
-        BarChartRodData(
-          toY: present + leave + absent,
-          width: 16.w,
-          borderRadius: BorderRadius.circular(4.r),
-          rodStackItems: [
-            BarChartRodStackItem(0, present, AppColors.successEmerald),
-            BarChartRodStackItem(
-                present, present + leave, AppColors.warningAmber),
-            BarChartRodStackItem(present + leave, present + leave + absent,
-                AppColors.errorCrimson),
-          ],
-        ),
-      ],
-    );
-  }
 }

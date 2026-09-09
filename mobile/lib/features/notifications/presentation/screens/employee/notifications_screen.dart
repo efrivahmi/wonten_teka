@@ -1,125 +1,76 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../../core/api/api_client.dart';
+import '../../../../../core/api/api_exceptions.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/widgets/info_card.dart';
 
-class NotificationsScreen extends StatelessWidget {
+class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
   @override
-  Widget build(BuildContext context) {
-    final notifs = [
-      {
-        'title': 'Cuti Disetujui',
-        'body': 'Pengajuan cuti 14-16 Jul telah disetujui.',
-        'time': '10 menit lalu',
-        'icon': Icons.check_circle,
-        'color': AppColors.successEmerald,
-        'read': false
-      },
-      {
-        'title': 'Pengumuman Baru',
-        'body': 'Townhall Q3 besok pukul 14:00.',
-        'time': '2 jam lalu',
-        'icon': Icons.campaign,
-        'color': AppColors.warningAmber,
-        'read': false
-      },
-      {
-        'title': 'Slip Gaji Tersedia',
-        'body': 'Slip gaji Juli 2025 sudah tersedia.',
-        'time': '1 hari lalu',
-        'icon': Icons.payments,
-        'color': AppColors.infoCerulean,
-        'read': true
-      },
-      {
-        'title': 'Klaim Diproses',
-        'body': 'Klaim transport Rp 150.000 disetujui.',
-        'time': '2 hari lalu',
-        'icon': Icons.receipt,
-        'color': AppColors.tertiary,
-        'read': true
-      },
-      {
-        'title': 'Pengingat Shift',
-        'body': 'Shift siang besok: 12:00 - 21:00.',
-        'time': '3 hari lalu',
-        'icon': Icons.schedule,
-        'color': AppColors.primaryContainer,
-        'read': true
-      },
-    ];
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
-      appBar: AppBar(
-          backgroundColor: AppColors.surface,
-          elevation: 0,
-          title: Text('Notifikasi',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.primary, fontWeight: FontWeight.bold)),
-          centerTitle: true,
-          actions: [
-            TextButton(
-                onPressed: () {},
-                child: Text('Baca Semua',
-                    style:
-                        TextStyle(color: AppColors.primary, fontSize: 12.sp)))
-          ]),
-      body: ListView.separated(
-          padding: EdgeInsets.all(16.w),
-          itemCount: notifs.length,
-          separatorBuilder: (_, __) => SizedBox(height: 8.h),
-          itemBuilder: (context, i) {
-            final n = notifs[i];
-            return InfoCard(
-                child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                  Container(
-                      width: 40.w,
-                      height: 40.w,
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: (n['color'] as Color).withValues(alpha: 0.1)),
-                      child: Icon(n['icon'] as IconData,
-                          color: n['color'] as Color, size: 20.w)),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                        Row(children: [
-                          Expanded(
-                              child: Text(n['title'] as String,
-                                  style: TextStyle(
-                                      color: AppColors.onSurface,
-                                      fontWeight: (n['read'] as bool)
-                                          ? FontWeight.normal
-                                          : FontWeight.bold,
-                                      fontSize: 14.sp))),
-                          if (!(n['read'] as bool))
-                            Container(
-                                width: 8.w,
-                                height: 8.w,
-                                decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppColors.primaryContainer)),
-                        ]),
-                        SizedBox(height: 2.h),
-                        Text(n['body'] as String,
-                            style: TextStyle(
-                                color: AppColors.onSurfaceVariant,
-                                fontSize: 13.sp)),
-                        SizedBox(height: 4.h),
-                        Text(n['time'] as String,
-                            style: TextStyle(
-                                color: AppColors.onSurfaceVariant
-                                    .withValues(alpha: 0.6),
-                                fontSize: 11.sp)),
-                      ])),
-                ]));
-          }),
-    );
-  }
+  State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
+class _NotificationsScreenState extends State<NotificationsScreen> {
+  bool loading = true;
+  String? error;
+  List<Map<String, dynamic>> notifications = [];
+
+  @override
+  void initState() { super.initState(); _load(); }
+
+  Future<void> _load() async {
+    setState(() { loading = true; error = null; });
+    try {
+      final response = await context.read<ApiClient>().get('/notifications');
+      final data = response.data as Map<String, dynamic>;
+      if (!mounted) return;
+      setState(() => notifications = List<Map<String, dynamic>>.from(data['data'] as List? ?? const []));
+    } on ApiException catch (e) {
+      if (mounted) setState(() => error = e.message);
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
+  }
+
+  Future<void> _readAll() async {
+    await context.read<ApiClient>().post('/notifications/read-all');
+    if (!mounted) return;
+    setState(() {
+      notifications = notifications.map((item) => {...item, 'read_at': DateTime.now().toIso8601String()}).toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: const Text('Notifikasi'),
+      actions: [TextButton(onPressed: notifications.any((n) => n['read_at'] == null) ? _readAll : null, child: const Text('Baca semua'))],
+    ),
+    body: RefreshIndicator(
+      onRefresh: _load,
+      child: loading
+          ? const Center(child: CircularProgressIndicator())
+          : error != null
+              ? ListView(children: [SizedBox(height: 220.h), Center(child: Text(error!))])
+              : notifications.isEmpty
+                  ? ListView(children: [SizedBox(height: 220.h), const Center(child: Text('Belum ada notifikasi.'))])
+                  : ListView.separated(
+                      padding: EdgeInsets.all(16.w),
+                      itemCount: notifications.length,
+                      separatorBuilder: (_, __) => SizedBox(height: 8.h),
+                      itemBuilder: (_, index) {
+                        final item = notifications[index];
+                        final unread = item['read_at'] == null;
+                        return ListTile(
+                          tileColor: unread ? AppColors.primary.withValues(alpha: .06) : AppColors.surface,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                          leading: const Icon(Icons.notifications_none, color: AppColors.primary),
+                          title: Text(item['title']?.toString() ?? 'Notifikasi', style: TextStyle(fontWeight: unread ? FontWeight.w800 : FontWeight.w500)),
+                          subtitle: Text(item['body']?.toString() ?? ''),
+                        );
+                      },
+                    ),
+    ),
+  );
+}

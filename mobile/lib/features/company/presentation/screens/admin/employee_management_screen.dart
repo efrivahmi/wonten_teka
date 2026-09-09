@@ -121,7 +121,7 @@ class _EmployeeManagementScreenState extends State<EmployeeManagementScreen> {
       backgroundColor: AppColors.surfaceContainerLowest,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          await context.push('/app/admin/employees/new');
+          await context.push('/admin/employees/onboarding');
           if (!mounted) return;
           _loadEmployees();
         },
@@ -224,7 +224,10 @@ class _EmployeeManagementScreenState extends State<EmployeeManagementScreen> {
                             itemBuilder: (context, index) {
                               final item = employees[index];
                               return GestureDetector(
-                                onTap: () => context.push('/app/admin/employees/${item['id']}'),
+                                onTap: () async {
+                                  await context.push('/admin/employees/detail', extra: item);
+                                  if (mounted) _loadEmployees();
+                                },
                                 child: Container(
                                   padding: EdgeInsets.all(16.w),
                                   decoration: BoxDecoration(

@@ -7,6 +7,7 @@ import 'models/company_models.dart';
 import 'models/attendance_log_model.dart';
 import 'models/payslip_model.dart';
 import 'models/leave_models.dart';
+import 'models/claim_models.dart';
 
 // Pre-auth
 import '../features/onboarding/presentation/screens/employee/splash_screen.dart';
@@ -189,7 +190,7 @@ final appRouter = GoRouter(
         builder: (_, __) => const ClaimSubmissionScreen()),
     GoRoute(
         path: '/app/claims/detail',
-        builder: (_, __) => const ClaimDetailScreen()),
+        builder: (_, state) => ClaimDetailScreen(claim: state.extra as ClaimModel)),
 
     GoRoute(
         path: '/app/payslip', builder: (_, __) => const PayslipListScreen()),

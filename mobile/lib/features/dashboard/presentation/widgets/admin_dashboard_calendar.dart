@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import '../../../../../core/services/holiday_service.dart';
 import '../../../../../core/theme/app_colors.dart';
 
 class AdminDashboardCalendar extends StatefulWidget {
@@ -13,6 +14,54 @@ class AdminDashboardCalendar extends StatefulWidget {
 class _AdminDashboardCalendarState extends State<AdminDashboardCalendar> {
   DateTime _currentMonth = DateTime.now();
   final DateTime _today = DateTime.now();
+
+  final HolidayService _holidayService = HolidayService.instance;
+
+  /// Menyimpan set hari libur untuk bulan yang sedang ditampilkan.
+  Set<DateTime> _holidays = {};
+  bool _isLoadingHolidays = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHolidays(_currentMonth.year);
+  }
+
+  Future<void> _loadHolidays(int year) async {
+    if (!mounted) return;
+    setState(() => _isLoadingHolidays = true);
+
+    final holidays = await _holidayService.fetchHolidays(year);
+
+    if (!mounted) return;
+    setState(() {
+      _holidays = holidays;
+      _isLoadingHolidays = false;
+    });
+  }
+
+  bool _isHoliday(DateTime date) {
+    return _holidayService.isHoliday(date, _holidays);
+  }
+
+  void _goToPreviousMonth() {
+    final newMonth = DateTime(_currentMonth.year, _currentMonth.month - 1, 1);
+    setState(() => _currentMonth = newMonth);
+    // Muat hari libur jika berpindah tahun
+    if (newMonth.year != _currentMonth.year) {
+      _loadHolidays(newMonth.year);
+    }
+  }
+
+  void _goToNextMonth() {
+    final newMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 1);
+    // Muat hari libur jika berpindah tahun
+    final needsLoad = newMonth.year != _currentMonth.year;
+    setState(() => _currentMonth = newMonth);
+    if (needsLoad) {
+      _loadHolidays(newMonth.year);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,23 +80,30 @@ class _AdminDashboardCalendarState extends State<AdminDashboardCalendar> {
             children: [
               IconButton(
                 icon: const Icon(Icons.chevron_left),
-                onPressed: () {
-                  setState(() {
-                    _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1, 1);
-                  });
-                },
+                onPressed: _goToPreviousMonth,
               ),
-              Text(
-                DateFormat('MMMM yyyy').format(_currentMonth),
-                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  Text(
+                    DateFormat('MMMM yyyy').format(_currentMonth),
+                    style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                  ),
+                  if (_isLoadingHolidays) ...[
+                    SizedBox(width: 8.w),
+                    SizedBox(
+                      width: 12.w,
+                      height: 12.w,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.5,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ],
               ),
               IconButton(
                 icon: const Icon(Icons.chevron_right),
-                onPressed: () {
-                  setState(() {
-                    _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 1);
-                  });
-                },
+                onPressed: _goToNextMonth,
               ),
             ],
           ),
@@ -110,8 +166,7 @@ class _AdminDashboardCalendarState extends State<AdminDashboardCalendar> {
         final DateTime date = DateTime(_currentMonth.year, _currentMonth.month, dayOffset + 1);
         final bool isToday = date.year == _today.year && date.month == _today.month && date.day == _today.day;
         final bool isSunday = date.weekday == DateTime.sunday;
-        
-        final bool isHoliday = false;
+        final bool isHoliday = _isHoliday(date);
 
         return Container(
           margin: EdgeInsets.all(2.w),

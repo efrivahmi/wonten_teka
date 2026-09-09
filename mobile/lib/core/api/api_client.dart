@@ -25,6 +25,7 @@ class ApiClient {
       BaseOptions(
         baseUrl: baseUrl ?? _defaultBaseUrl,
         connectTimeout: const Duration(seconds: 30),
+        sendTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
         headers: {
           'Accept': 'application/json',
@@ -132,18 +133,25 @@ class _ErrorInterceptor extends Interceptor {
     final response = err.response;
 
     // Network error (no response received)
-    if (err.type == DioExceptionType.connectionTimeout ||
+    if (response == null && (err.type == DioExceptionType.connectionTimeout ||
+        err.type == DioExceptionType.sendTimeout ||
         err.type == DioExceptionType.receiveTimeout ||
         err.type == DioExceptionType.connectionError ||
-        err.type == DioExceptionType.unknown) {
+        err.type == DioExceptionType.unknown)) {
       return handler.reject(err.copyWith(error: const NetworkException()));
+    }
+
+    if (err.type == DioExceptionType.cancel) {
+      return handler.reject(err.copyWith(
+        error: const ApiException(message: 'Permintaan dibatalkan.'),
+      ));
     }
 
     final statusCode = response?.statusCode;
     final data = response?.data;
-    final message = data is Map
-        ? (data['message'] as String? ?? 'An error occurred')
-        : 'An error occurred';
+    final message = data is Map && data['message'] != null
+        ? data['message'].toString()
+        : 'Server tidak dapat memproses permintaan.';
 
     final ApiException exception;
     switch (statusCode) {
@@ -157,9 +165,17 @@ class _ErrorInterceptor extends Interceptor {
         exception = NotFoundException(message: message);
         break;
       case 422:
-        final errors =
-            data is Map ? (data['errors'] as Map<String, dynamic>?) : null;
-        exception = ValidationException(errors: errors ?? {}, message: message);
+        final rawErrors = data is Map ? data['errors'] : null;
+        final errors = rawErrors is Map
+            ? Map<String, dynamic>.from(rawErrors)
+            : <String, dynamic>{};
+        exception = ValidationException(errors: errors, message: message);
+        break;
+      case 409:
+        exception = ApiException(message: message, statusCode: 409);
+        break;
+      case 429:
+        exception = ApiException(message: message, statusCode: 429);
         break;
       default:
         exception = ServerException(message: message);

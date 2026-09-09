@@ -23,6 +23,7 @@ class AppTheme {
         outline: AppColors.outline,
       ),
       scaffoldBackgroundColor: AppColors.background,
+      visualDensity: VisualDensity.standard,
       textTheme: AppTypography.getTextTheme(),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -30,7 +31,7 @@ class AppTheme {
           foregroundColor: AppColors.onPrimary,
           minimumSize: const Size.fromHeight(52), // 52px height for ergonomics
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16), // 16px corner radius
+            borderRadius: BorderRadius.circular(6),
           ),
           elevation: 0,
         ),
@@ -41,7 +42,7 @@ class AppTheme {
           minimumSize: const Size.fromHeight(52),
           side: const BorderSide(color: AppColors.primary),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(6),
           ),
         ),
       ),
@@ -50,15 +51,15 @@ class AppTheme {
         fillColor: AppColors.surfaceContainerLow, // Neutral 50 background fill
         contentPadding: const EdgeInsets.all(12),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12), // 12px corner radius
+          borderRadius: BorderRadius.circular(6),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(6),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(6),
           borderSide: const BorderSide(
               color: AppColors.primary, width: 2), // 2px Sunrise Coral border
         ),

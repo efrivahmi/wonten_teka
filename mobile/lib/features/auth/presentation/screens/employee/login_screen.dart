@@ -47,7 +47,13 @@ class _LoginScreenState extends State<LoginScreen> {
           Container(
             height: 320.h,
             decoration: BoxDecoration(
-              color: AppColors.primary,
+              color: const Color(0xFF0B0B0B),
+              image: const DecorationImage(
+                image: AssetImage('assets/images/wonten-biometric-hero-v2.png'),
+                fit: BoxFit.cover,
+                alignment: Alignment.centerRight,
+                colorFilter: ColorFilter.mode(Color(0xAA000000), BlendMode.darken),
+              ),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(32.r),
                 bottomRight: Radius.circular(32.r),
@@ -108,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: EdgeInsets.all(28.w),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(24.r),
+                          borderRadius: BorderRadius.circular(10.r),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.1),
@@ -218,21 +224,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               
                               SizedBox(height: 12.h),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: TextButton(
-                                  onPressed: isLoading ? null : () {},
-                                  child: Text(
-                                    'Lupa Password?',
-                                    style: TextStyle(
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13.sp,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              
                               SizedBox(height: 24.h),
                               SizedBox(
                                 height: 56.h,
@@ -242,7 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     backgroundColor: AppColors.primary,
                                     foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16.r),
+                                      borderRadius: BorderRadius.circular(6.r),
                                     ),
                                     elevation: 0,
                                   ),
