@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/repositories/auth_repository.dart';
+import '../../../../auth/bloc/auth_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -10,10 +13,44 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _nameCtrl = TextEditingController(text: 'Budi Santoso');
-  final _emailCtrl = TextEditingController(text: 'budi@company.com');
-  final _phoneCtrl = TextEditingController(text: '+62 812-3456-7890');
-  final _addressCtrl = TextEditingController(text: 'Jl. Sudirman No. 52, Jakarta');
+  final _nameCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
+  final _addressCtrl = TextEditingController();
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final state = context.read<AuthBloc>().state;
+    if (state is AuthAuthenticated) {
+      _nameCtrl.text = state.user.employee?.fullName ?? state.user.name;
+      _emailCtrl.text = state.user.email;
+      _phoneCtrl.text = state.user.employee?.phone ?? '';
+      _addressCtrl.text = state.user.employee?.address ?? '';
+    }
+  }
+
+  Future<void> _save() async {
+    if (_saving || _nameCtrl.text.trim().isEmpty || _emailCtrl.text.trim().isEmpty) return;
+    setState(() => _saving = true);
+    try {
+      await context.read<AuthRepository>().updateProfile({
+        'full_name': _nameCtrl.text.trim(),
+        'email': _emailCtrl.text.trim(),
+        'phone': _phoneCtrl.text.trim(),
+        'address': _addressCtrl.text.trim(),
+      });
+      if (!mounted) return;
+      context.read<AuthBloc>().add(AuthCheckSession());
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profil berhasil diperbarui!')));
+      context.pop();
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profil gagal diperbarui. Periksa data dan koneksi.')));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
 
   @override
   void dispose() { _nameCtrl.dispose(); _emailCtrl.dispose(); _phoneCtrl.dispose(); _addressCtrl.dispose(); super.dispose(); }
@@ -43,9 +80,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _label('ALAMAT'), SizedBox(height: 8.h), TextFormField(controller: _addressCtrl, maxLines: 2, decoration: _deco('Alamat')),
         SizedBox(height: 32.h),
         SizedBox(height: 52.h, child: ElevatedButton(
-          onPressed: () { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profil berhasil diperbarui!'))); context.pop(); },
+          onPressed: _saving ? null : _save,
           style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryContainer, foregroundColor: AppColors.onPrimary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r))),
-          child: Text('Simpan', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16.sp)))),
+          child: _saving ? const CircularProgressIndicator() : Text('Simpan', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16.sp)))),
       ]))),
     );
   }

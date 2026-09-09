@@ -47,12 +47,10 @@ class _LoginScreenState extends State<LoginScreen> {
           Container(
             height: 320.h,
             decoration: BoxDecoration(
-              color: const Color(0xFF0B0B0B),
-              image: const DecorationImage(
-                image: AssetImage('assets/images/wonten-biometric-hero-v2.png'),
-                fit: BoxFit.cover,
-                alignment: Alignment.centerRight,
-                colorFilter: ColorFilter.mode(Color(0xAA000000), BlendMode.darken),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0E5D31), Color(0xFF15803D), Color(0xFF65A30D)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(32.r),
@@ -85,7 +83,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       Center(
                         child: Column(
                           children: [
-                            Icon(Icons.fingerprint, size: 64.w, color: Colors.white),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
+                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16.r)),
+                              child: Image.asset('assets/images/lemdiklat-logo.png', height: 48.h, fit: BoxFit.contain),
+                            ),
                             SizedBox(height: 16.h),
                             Text(
                               'Wonten Teka',
@@ -93,12 +95,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 color: Colors.white,
                                 fontSize: 28.sp,
                                 fontWeight: FontWeight.bold,
-                                letterSpacing: 1.0,
+                                letterSpacing: -0.5,
                               ),
                             ),
                             SizedBox(height: 8.h),
                             Text(
-                              'Portal Kehadiran Karyawan',
+                              'Portal Kehadiran Lemdiklat Taruna Nusantara Indonesia',
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.8),
                                 fontSize: 14.sp,
@@ -114,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: EdgeInsets.all(28.w),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(10.r),
+                          borderRadius: BorderRadius.circular(24.r),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.1),
@@ -140,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               SizedBox(height: 24.h),
                               
                               Text(
-                                'EMAIL / USERNAME',
+                                'EMAIL / NIP',
                                 style: TextStyle(
                                   color: Colors.grey[600],
                                   fontSize: 11.sp,
@@ -152,22 +154,24 @@ class _LoginScreenState extends State<LoginScreen> {
                               TextFormField(
                                 controller: _usernameController,
                                 enabled: !isLoading,
+                                autofillHints: const [AutofillHints.username, AutofillHints.email],
+                                textInputAction: TextInputAction.next,
                                 decoration: InputDecoration(
                                   prefixIcon: const Icon(Icons.person_outline, color: AppColors.primary),
-                                  hintText: 'Masukkan Email atau Username',
+                                  hintText: 'Masukkan email atau NIP',
                                   filled: true,
                                   fillColor: Colors.grey[50],
                                   contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16.r),
+                                    borderRadius: BorderRadius.circular(14.r),
                                     borderSide: BorderSide.none,
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16.r),
+                                    borderRadius: BorderRadius.circular(14.r),
                                     borderSide: BorderSide(color: Colors.grey[200]!),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16.r),
+                                    borderRadius: BorderRadius.circular(14.r),
                                     borderSide: const BorderSide(color: AppColors.primary),
                                   ),
                                 ),
@@ -190,6 +194,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                 controller: _passwordController,
                                 obscureText: _obscurePassword,
                                 enabled: !isLoading,
+                                autofillHints: const [AutofillHints.password],
+                                textInputAction: TextInputAction.done,
+                                onFieldSubmitted: (_) {
+                                  if (!isLoading) _handleLogin();
+                                },
                                 decoration: InputDecoration(
                                   prefixIcon: const Icon(Icons.lock_outline, color: AppColors.primary),
                                   suffixIcon: IconButton(
@@ -208,15 +217,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                   fillColor: Colors.grey[50],
                                   contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16.r),
+                                    borderRadius: BorderRadius.circular(14.r),
                                     borderSide: BorderSide.none,
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16.r),
+                                    borderRadius: BorderRadius.circular(14.r),
                                     borderSide: BorderSide(color: Colors.grey[200]!),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16.r),
+                                    borderRadius: BorderRadius.circular(14.r),
                                     borderSide: const BorderSide(color: AppColors.primary),
                                   ),
                                 ),
@@ -233,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     backgroundColor: AppColors.primary,
                                     foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(6.r),
+                                      borderRadius: BorderRadius.circular(14.r),
                                     ),
                                     elevation: 0,
                                   ),

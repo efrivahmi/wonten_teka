@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../theme/app_colors.dart';
 import '../../features/auth/bloc/auth_bloc.dart';
+import '../api/api_client.dart';
 
 class MainSidebarDrawer extends StatelessWidget {
   const MainSidebarDrawer({super.key});
@@ -30,7 +31,16 @@ class MainSidebarDrawer extends StatelessWidget {
             children: [
               _buildHeader(context, userName, roleName),
               Expanded(
-                child: ListView(
+                child: FutureBuilder<dynamic>(
+                  future: ApiClient().get('/app-config'),
+                  builder: (context, configSnapshot) {
+                    final menu = configSnapshot.hasData
+                        ? ((configSnapshot.data!.data['data']['employee_menu'] as List? ?? const [])
+                            .whereType<Map>()
+                            .where((item) => item['enabled'] == true)
+                            .map((item) => item['key'].toString()).toSet())
+                        : <String>{'attendance', 'schedule', 'leave', 'overtime', 'claims', 'payroll', 'profile'};
+                    return ListView(
                   padding: EdgeInsets.zero,
                   children: [
                     _buildListTile(context, 'Beranda', Icons.home, '/app/home'),
@@ -69,7 +79,6 @@ class MainSidebarDrawer extends StatelessWidget {
                         children: [
                           _buildListTile(context, 'Laporan Absensi', Icons.history, '/admin/reports'),
                           _buildListTile(context, 'Tinjauan Flag Absen', Icons.flag, '/admin/attendance-flags'),
-                          _buildListTile(context, 'Analitik Departemen', Icons.pie_chart, '/admin/department-analytics'),
                         ],
                       ),
                       _buildListTile(context, 'Pengumuman / Event', Icons.campaign, '/admin/events'),
@@ -82,14 +91,17 @@ class MainSidebarDrawer extends StatelessWidget {
                       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                       child: Text('PERSONAL', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: AppColors.onSurfaceVariant)),
                     ),
-                    _buildListTile(context, 'Riwayat Absensi', Icons.fingerprint, '/app/attendance'),
-                    _buildListTile(context, 'Jadwal Shift Saya', Icons.schedule, '/app/schedule/shifts'),
-                    _buildListTile(context, 'Riwayat Cuti', Icons.event_busy, '/app/leave'),
-                    _buildListTile(context, 'Klaim / Reimburse', Icons.receipt_long, '/app/claims'),
-                    _buildListTile(context, 'Slip Gaji', Icons.request_quote, '/app/payroll'),
-                    _buildListTile(context, 'Profil', Icons.person, '/app/profile'),
+                    if (menu.contains('attendance')) _buildListTile(context, 'Riwayat Absensi', Icons.fingerprint, '/app/attendance'),
+                    if (menu.contains('schedule')) _buildListTile(context, 'Jadwal Shift Saya', Icons.schedule, '/app/schedule/shifts'),
+                    if (menu.contains('leave')) _buildListTile(context, 'Riwayat Cuti', Icons.event_busy, '/app/leave'),
+                    if (menu.contains('overtime')) _buildListTile(context, 'Lembur', Icons.more_time, '/app/overtime'),
+                    if (menu.contains('claims')) _buildListTile(context, 'Klaim / Reimburse', Icons.receipt_long, '/app/claims'),
+                    if (menu.contains('payroll')) _buildListTile(context, 'Slip Gaji', Icons.request_quote, '/app/payroll'),
+                    if (menu.contains('profile')) _buildListTile(context, 'Profil', Icons.person, '/app/profile'),
                     SizedBox(height: 24.h),
                   ],
+                    );
+                  },
                 ),
               ),
               const Divider(height: 1),

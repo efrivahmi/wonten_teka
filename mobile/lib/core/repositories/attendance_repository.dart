@@ -40,6 +40,8 @@ class AttendanceRepository {
     required String deviceId,
     File? photo,
     Map<String, dynamic>? flags,
+    int? shiftAssignmentId,
+    int? shiftTemplateId,
   }) async {
     final Map<String, dynamic> data = {
       'latitude': latitude,
@@ -47,6 +49,8 @@ class AttendanceRepository {
       'face_match_score': faceMatchScore,
       'device_id': deviceId,
       'client_time': DateTime.now().toUtc().toIso8601String(),
+      if (shiftAssignmentId != null) 'shift_assignment_id': shiftAssignmentId,
+      if (shiftTemplateId != null) 'shift_template_id': shiftTemplateId,
     };
     
     if (flags != null) {
@@ -79,6 +83,7 @@ class AttendanceRepository {
     required String deviceId,
     File? photo,
     Map<String, dynamic>? flags,
+    int? shiftAssignmentId,
   }) async {
     final Map<String, dynamic> data = {
       'latitude': latitude,
@@ -86,6 +91,7 @@ class AttendanceRepository {
       'face_match_score': faceMatchScore,
       'device_id': deviceId,
       'client_time': DateTime.now().toUtc().toIso8601String(),
+      if (shiftAssignmentId != null) 'shift_assignment_id': shiftAssignmentId,
     };
     
     if (flags != null) {

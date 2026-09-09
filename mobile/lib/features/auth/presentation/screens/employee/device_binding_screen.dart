@@ -53,24 +53,27 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
         final deviceRepo = context.read<DeviceRepository>();
         final device = await deviceRepo.getStatus(_deviceFingerprint);
         
-        final secureStorage = SecureStorage();
-        await secureStorage.saveDeviceFingerprint(_deviceFingerprint);
-        
         if (device.status == 'active') {
+          final secureStorage = SecureStorage();
+          await secureStorage.saveDeviceFingerprint(_deviceFingerprint);
           if (mounted) {
             context.read<AuthBloc>().add(AuthCheckSession());
             return;
           }
-        } else if (device.status == 'pending_approval') {
-          if (mounted) {
-            context.go('/device-pending');
-            return;
-          }
+        } else {
+          // Legacy pending/rejected records can be re-linked and activated.
+          if (mounted) setState(() => _isLoading = false);
+          return;
         }
       } catch (_) {
-        // Device not registered yet, automatically attempt to bind
+        // The fingerprint may be new for this account even when the physical
+        // device is already used by another account. Keep the action visible
+        // so the current account can create its own binding.
         if (mounted) {
-          _handleBindDevice();
+          setState(() {
+            _isLoading = false;
+            _isBinding = false;
+          });
           return;
         }
       }
@@ -94,12 +97,16 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
   }
 
   Future<void> _handleBindDevice() async {
-    setState(() => _isBinding = true);
+    if (_deviceFingerprint.isEmpty) return;
+    setState(() {
+      _isLoading = false;
+      _isBinding = true;
+    });
 
     try {
       // Register device with backend
       final deviceRepo = context.read<DeviceRepository>();
-      final device = await deviceRepo.register(
+      await deviceRepo.register(
         deviceFingerprint: _deviceFingerprint,
         deviceName: _deviceName,
         osVersion: _deviceOS,
@@ -110,12 +117,8 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
       await secureStorage.saveDeviceFingerprint(_deviceFingerprint);
 
       if (mounted) {
-        if (device.status == 'pending_approval') {
-          context.go('/device-pending');
-        } else {
-          // Status is active, trigger auth re-evaluation to go to face enrollment
-          context.read<AuthBloc>().add(AuthCheckSession());
-        }
+        // Registration now always activates the account/device binding.
+        context.read<AuthBloc>().add(AuthCheckSession());
       }
     } catch (e) {
       if (mounted) {
@@ -214,6 +217,12 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
                           Text(_deviceName, style: TextStyle(color: AppColors.onSurface, fontSize: 20.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                           SizedBox(height: 8.h),
                           Text(_deviceOS, style: TextStyle(color: Colors.grey[600], fontSize: 14.sp)),
+                          SizedBox(height: 12.h),
+                          Text(
+                            'Perangkat dapat dikaitkan ke akun ini meskipun sebelumnya sudah digunakan oleh akun lain.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp, height: 1.4),
+                          ),
                           SizedBox(height: 32.h),
                           SizedBox(
                             width: double.infinity,
@@ -228,7 +237,7 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
                               ),
                               child: _isBinding
                                   ? SizedBox(width: 24.w, height: 24.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                  : Text('Daftarkan Perangkat Ini', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                                  : Text('Kaitkan Akun Ini', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
                             ),
                           ),
                           SizedBox(height: 16.h),

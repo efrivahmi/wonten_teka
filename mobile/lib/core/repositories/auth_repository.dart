@@ -77,6 +77,25 @@ class AuthRepository {
     return response.data as Map<String, dynamic>;
   }
 
+  Future<List<Map<String, dynamic>>> getEmployeeDirectory({String? search}) async {
+    final response = await _api.get('/employee/directory', queryParameters: {
+      if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+    });
+    final data = response.data as Map<String, dynamic>;
+    return (data['data'] as List? ?? const [])
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
+  }
+
+  Future<UserModel> updateProfile(Map<String, dynamic> profile) async {
+    final response = await _api.put('/employee/profile', data: profile);
+    final data = response.data as Map<String, dynamic>;
+    final rawUser = Map<String, dynamic>.from(data['user'] as Map);
+    final user = UserModel.fromJson(rawUser);
+    await _storage.saveUserJson(jsonEncode(rawUser));
+    return user;
+  }
+
   /// Check if a token exists in secure storage.
   Future<bool> hasToken() => _storage.hasToken();
 }

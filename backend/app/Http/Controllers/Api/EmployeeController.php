@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\User;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -12,6 +13,50 @@ use Illuminate\Validation\Rule;
 
 class EmployeeController extends Controller
 {
+    public function directory(Request $request)
+    {
+        $search = trim((string) $request->query('search', ''));
+        $employees = Employee::query()
+            ->where('is_active', true)
+            ->when($search !== '', fn ($query) => $query->where(function ($nested) use ($search) {
+                $nested->where('full_name', 'like', "%{$search}%")
+                    ->orWhere('department', 'like', "%{$search}%")
+                    ->orWhere('position', 'like', "%{$search}%");
+            }))
+            ->orderBy('full_name')
+            ->get(['id', 'full_name', 'department', 'position', 'phone', 'photo_url']);
+
+        return response()->json(['data' => $employees]);
+    }
+
+    public function updateOwnProfile(Request $request)
+    {
+        $employee = $request->user()->employee;
+        abort_unless($employee, 403, 'Profil karyawan tidak ditemukan.');
+
+        $validated = $request->validate([
+            'full_name' => 'required|string|max:255',
+            'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($request->user()->id)],
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:1000',
+        ]);
+
+        DB::transaction(function () use ($employee, $validated, $request) {
+            $employee->update([
+                'full_name' => $validated['full_name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
+                'address' => $validated['address'] ?? null,
+            ]);
+            $request->user()->update(['name' => $validated['full_name'], 'email' => $validated['email']]);
+        });
+
+        return response()->json([
+            'message' => 'Profil berhasil diperbarui.',
+            'user' => $request->user()->fresh()->load('employee', 'roles'),
+        ]);
+    }
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -28,12 +73,34 @@ class EmployeeController extends Controller
 
     public function getOptions(Request $request)
     {
-        $departments = Employee::whereNotNull('department')->where('department', '!=', '')->distinct()->pluck('department');
-        $positions = Employee::whereNotNull('position')->where('position', '!=', '')->distinct()->pluck('position');
+        $configured = Setting::where('key', 'app_config')->first()?->value['dropdowns'] ?? [];
+        $departments = Employee::whereNotNull('department')->where('department', '!=', '')->distinct()->pluck('department')
+            ->merge(['Pimpinan', 'Tata Usaha', 'Kurikulum', 'Kesiswaan', 'Sarana Prasarana', 'Keuangan', 'SDM', 'Humas', 'Pengasuhan', 'Keamanan', 'Teknologi Informasi'])
+            ->merge($configured['departments'] ?? [])
+            ->unique()->sort()->values();
+        $positions = Employee::whereNotNull('position')->where('position', '!=', '')->distinct()->pluck('position')
+            ->merge(['Kepala Lembaga', 'Kepala Sekolah', 'Wakil Kepala Sekolah', 'Kepala Tata Usaha', 'Guru', 'Wali Kelas', 'Pembina', 'Pelatih', 'Staf Administrasi', 'Staf Keuangan', 'Staf IT', 'Petugas Keamanan'])
+            ->merge($configured['positions'] ?? [])
+            ->unique()->sort()->values();
         
         return response()->json([
             'departments' => $departments,
-            'positions' => $positions
+            'positions' => $positions,
+            'genders' => [
+                ['value' => 'male', 'label' => 'Laki-laki'],
+                ['value' => 'female', 'label' => 'Perempuan'],
+            ],
+            'employment_statuses' => [
+                ['value' => 'permanent', 'label' => 'Pegawai Tetap'],
+                ['value' => 'contract', 'label' => 'Pegawai Kontrak'],
+                ['value' => 'probation', 'label' => 'Masa Percobaan'],
+                ['value' => 'intern', 'label' => 'Magang'],
+                ['value' => 'honorary', 'label' => 'Honorer'],
+            ],
+            'ptkp_statuses' => collect(['TK/0', 'TK/1', 'TK/2', 'TK/3', 'K/0', 'K/1', 'K/2', 'K/3', 'K/I/0', 'K/I/1', 'K/I/2', 'K/I/3'])
+                ->map(fn ($value) => ['value' => $value, 'label' => $value])->values(),
+            'banks' => collect(['BCA', 'Mandiri', 'BNI', 'BRI', 'BSI', 'CIMB Niaga', 'Permata', 'Danamon', 'Bank Jabar Banten', 'BTN', 'Mega'])
+                ->merge($configured['banks'] ?? [])->unique()->values(),
         ]);
     }
 

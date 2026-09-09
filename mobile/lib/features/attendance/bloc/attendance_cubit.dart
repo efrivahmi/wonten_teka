@@ -91,6 +91,8 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     double faceMatchScore = 1.0,
     File? photo,
     Map<String, dynamic>? flags,
+    int? shiftAssignmentId,
+    int? shiftTemplateId,
   }) async {
     emit(AttendanceLoading());
     try {
@@ -101,6 +103,8 @@ class AttendanceCubit extends Cubit<AttendanceState> {
         deviceId: deviceId,
         photo: photo,
         flags: flags,
+        shiftAssignmentId: shiftAssignmentId,
+        shiftTemplateId: shiftTemplateId,
       );
       emit(CheckInSuccess(log));
     } on ApiException catch (e) {
@@ -117,6 +121,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     double faceMatchScore = 1.0,
     File? photo,
     Map<String, dynamic>? flags,
+    int? shiftAssignmentId,
   }) async {
     emit(AttendanceLoading());
     try {
@@ -127,6 +132,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
         deviceId: deviceId,
         photo: photo,
         flags: flags,
+        shiftAssignmentId: shiftAssignmentId,
       );
       emit(CheckOutSuccess(log));
     } on ApiException catch (e) {

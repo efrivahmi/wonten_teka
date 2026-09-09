@@ -42,10 +42,11 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   bool _isLoadingOptions = true;
   List<String> _departments = [];
   List<String> _positions = [];
-
-  final List<String> _popularBanks = [
-    'BCA', 'Mandiri', 'BNI', 'BRI', 'BSI', 'CIMB Niaga', 'Permata', 'Danamon', 'Mega', 'Lainnya'
-  ];
+  List<Map<String, String>> _genders = [];
+  List<Map<String, String>> _employmentStatuses = [];
+  List<Map<String, String>> _ptkpStatuses = [];
+  List<String> _banks = [];
+  String? _optionsError;
 
   @override
   void initState() {
@@ -123,21 +124,31 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         setState(() {
           _departments = (options['departments'] as List).map((e) => e.toString()).toList();
           _positions = (options['positions'] as List).map((e) => e.toString()).toList();
-          if (_departments.isEmpty) _departments = ['HR', 'IT', 'Finance', 'Marketing', 'Lainnya'];
-          if (_positions.isEmpty) _positions = ['Staff', 'Lainnya'];
+          _genders = _optionMaps(options['genders']);
+          _employmentStatuses = _optionMaps(options['employment_statuses']);
+          _ptkpStatuses = _optionMaps(options['ptkp_statuses']);
+          _banks = (options['banks'] as List? ?? []).map((e) => e.toString()).toList();
+          _optionsError = null;
           _isLoadingOptions = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _departments = ['HR', 'IT', 'Finance', 'Marketing', 'Lainnya'];
-          _positions = ['Staff', 'Lainnya'];
+          _optionsError = 'Data pilihan gagal dimuat. Periksa koneksi lalu coba lagi.';
           _isLoadingOptions = false;
         });
       }
     }
   }
+
+  List<Map<String, String>> _optionMaps(dynamic raw) => (raw as List? ?? [])
+      .whereType<Map>()
+      .map((item) => {
+            'value': item['value'].toString(),
+            'label': item['label'].toString(),
+          })
+      .toList();
 
   @override
   void dispose() {
@@ -209,6 +220,22 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       ),
       body: _isLoadingOptions
           ? const Center(child: CircularProgressIndicator())
+          : _optionsError != null
+              ? Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24.w),
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      const Icon(Icons.cloud_off_rounded, size: 48, color: AppColors.primary),
+                      SizedBox(height: 12.h),
+                      Text(_optionsError!, textAlign: TextAlign.center),
+                      SizedBox(height: 16.h),
+                      FilledButton(onPressed: () {
+                        setState(() => _isLoadingOptions = true);
+                        _fetchOptions();
+                      }, child: const Text('Muat ulang')),
+                    ]),
+                  ),
+                )
           : BlocConsumer<AuthBloc, AuthState>(
               listener: (context, state) {
                 if (state is AuthAuthenticated) {
@@ -303,10 +330,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         isExpanded: true,
                         decoration: const InputDecoration(labelText: 'Jenis Kelamin'),
                         initialValue: _gender,
-                        items: const [
-                          DropdownMenuItem(value: 'male', child: Text('Laki-laki')),
-                          DropdownMenuItem(value: 'female', child: Text('Perempuan')),
-                        ],
+                        items: _genders.map((item) => DropdownMenuItem(value: item['value'], child: Text(item['label']!))).toList(),
                         onChanged: (v) => setState(() => _gender = v),
                       ),
                       SizedBox(height: 16.h),
@@ -350,12 +374,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         isExpanded: true,
                         decoration: const InputDecoration(labelText: 'Status Kepegawaian*'),
                         initialValue: _employmentStatus,
-                        items: const [
-                          DropdownMenuItem(value: 'permanent', child: Text('Karyawan Tetap')),
-                          DropdownMenuItem(value: 'contract', child: Text('Karyawan Kontrak')),
-                          DropdownMenuItem(value: 'probation', child: Text('Masa Percobaan')),
-                          DropdownMenuItem(value: 'intern', child: Text('Magang')),
-                        ],
+                        items: _employmentStatuses.map((item) => DropdownMenuItem(value: item['value'], child: Text(item['label']!))).toList(),
                         validator: (v) => v == null || v.isEmpty ? 'Pilih status' : null,
                         onChanged: (v) => setState(() => _employmentStatus = v),
                       ),
@@ -364,20 +383,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         isExpanded: true,
                         decoration: const InputDecoration(labelText: 'Status PTKP*'),
                         initialValue: _ptkpStatus,
-                        items: const [
-                          DropdownMenuItem(value: 'TK/0', child: Text('TK/0 - Tidak Kawin, 0 Tanggungan')),
-                          DropdownMenuItem(value: 'TK/1', child: Text('TK/1 - Tidak Kawin, 1 Tanggungan')),
-                          DropdownMenuItem(value: 'TK/2', child: Text('TK/2 - Tidak Kawin, 2 Tanggungan')),
-                          DropdownMenuItem(value: 'TK/3', child: Text('TK/3 - Tidak Kawin, 3 Tanggungan')),
-                          DropdownMenuItem(value: 'K/0', child: Text('K/0 - Kawin, 0 Tanggungan')),
-                          DropdownMenuItem(value: 'K/1', child: Text('K/1 - Kawin, 1 Tanggungan')),
-                          DropdownMenuItem(value: 'K/2', child: Text('K/2 - Kawin, 2 Tanggungan')),
-                          DropdownMenuItem(value: 'K/3', child: Text('K/3 - Kawin, 3 Tanggungan')),
-                          DropdownMenuItem(value: 'K/I/0', child: Text('K/I/0 - Kawin (Istri Bekerja), 0 Tanggungan')),
-                          DropdownMenuItem(value: 'K/I/1', child: Text('K/I/1 - Kawin (Istri Bekerja), 1 Tanggungan')),
-                          DropdownMenuItem(value: 'K/I/2', child: Text('K/I/2 - Kawin (Istri Bekerja), 2 Tanggungan')),
-                          DropdownMenuItem(value: 'K/I/3', child: Text('K/I/3 - Kawin (Istri Bekerja), 3 Tanggungan')),
-                        ],
+                        items: _ptkpStatuses.map((item) => DropdownMenuItem(value: item['value'], child: Text(item['label']!))).toList(),
                         validator: (v) => v == null || v.isEmpty ? 'Pilih status PTKP' : null,
                         onChanged: (v) => setState(() => _ptkpStatus = v),
                       ),
@@ -402,7 +408,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         isExpanded: true,
                         decoration: const InputDecoration(labelText: 'Nama Bank'),
                         initialValue: _bankName,
-                        items: _popularBanks.map((bank) => DropdownMenuItem(value: bank, child: Text(bank))).toList(),
+                        items: _banks.map((bank) => DropdownMenuItem(value: bank, child: Text(bank))).toList(),
                         onChanged: (v) => setState(() => _bankName = v),
                       ),
                       SizedBox(height: 16.h),

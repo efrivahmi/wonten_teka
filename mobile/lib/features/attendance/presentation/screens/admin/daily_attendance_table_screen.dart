@@ -18,18 +18,28 @@ class _DailyAttendanceTableScreenState extends State<DailyAttendanceTableScreen>
   late final ApiClient _api;
   bool _isLoading = true;
   List<AttendanceLogModel> _logs = [];
+  List<String> _departments = [];
+  String? _department;
 
   @override
   void initState() {
     super.initState();
     _api = context.read<ApiClient>();
+    _loadDepartments();
     _loadData();
+  }
+
+  Future<void> _loadDepartments() async {
+    try {
+      final response = await _api.get('/employee/options');
+      if (mounted) setState(() => _departments = (response.data['departments'] as List? ?? []).map((e) => e.toString()).toList());
+    } catch (_) {}
   }
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
-      final response = await _api.get('/admin/attendance');
+      final response = await _api.get('/admin/attendance', queryParameters: _department == null ? null : {'department': _department});
       if (mounted) {
         final List<dynamic> rawData = response.data['data'];
         setState(() {
@@ -64,6 +74,18 @@ class _DailyAttendanceTableScreenState extends State<DailyAttendanceTableScreen>
                 color: AppColors.primary,
                 fontWeight: FontWeight.bold,
               ),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(64),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            child: DropdownButtonFormField<String>(
+              initialValue: _department,
+              decoration: const InputDecoration(labelText: 'Filter departemen', filled: true),
+              items: [const DropdownMenuItem<String>(value: null, child: Text('Semua departemen')), ..._departments.map((item) => DropdownMenuItem(value: item, child: Text(item)))],
+              onChanged: (value) { _department = value; _loadData(); },
+            ),
+          ),
         ),
       ),
       body: _isLoading

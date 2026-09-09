@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\OvertimeController;
 use App\Http\Controllers\Api\AttendanceAdjustmentController;
 use App\Http\Controllers\Api\BusinessTripController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\AppConfigController;
 
 // Simple root API route for sanity check
 Route::get('/', function () {
@@ -36,11 +37,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/app-config', [AppConfigController::class, 'show']);
     Route::post('/notifications/read-all', [NotificationController::class, 'readAll']);
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'read']);
 
     Route::post('/employee/complete-profile', [EmployeeController::class, 'completeProfile']);
     Route::get('/employee/options', [EmployeeController::class, 'getOptions']);
+    Route::get('/employee/directory', [EmployeeController::class, 'directory']);
+    Route::put('/employee/profile', [EmployeeController::class, 'updateOwnProfile']);
 
     Route::prefix('device')->group(function () {
         Route::post('/register', [DeviceController::class, 'register']);
@@ -127,6 +131,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('admin')->middleware('admin')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'getStats']);
+        Route::put('/app-config', [AppConfigController::class, 'update']);
         
         Route::get('/employees', [EmployeeController::class, 'index']);
         Route::post('/employees', [EmployeeController::class, 'store']);

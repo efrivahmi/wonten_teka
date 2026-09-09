@@ -32,6 +32,7 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget> {
   );
   bool _isDetecting = false;
   bool _isCameraInitialized = false;
+  bool _isTakingPicture = false;
 
   @override
   void initState() {
@@ -160,19 +161,34 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget> {
   }
 
   Future<void> takePhoto() async {
-    if (_cameraController != null && _cameraController!.value.isInitialized) {
-      try {
-        // Stop stream before taking picture to avoid crashes on some devices
-        if (_cameraController!.value.isStreamingImages) {
-          await _cameraController!.stopImageStream();
-        }
-        final XFile file = await _cameraController!.takePicture();
-        if (widget.onPhotoCaptured != null) {
-          widget.onPhotoCaptured!(file);
-        }
-      } catch (e) {
-        debugPrint('Error taking photo: $e');
+    final controller = _cameraController;
+    if (controller == null || !controller.value.isInitialized || _isTakingPicture) {
+      widget.onPhotoCaptured?.call(null);
+      return;
+    }
+
+    _isTakingPicture = true;
+    try {
+      // Let the current ML Kit frame finish before changing the camera session.
+      // Several Android camera implementations fail when stopImageStream and
+      // takePicture race with an image that is still being analysed.
+      for (var attempt = 0; attempt < 10 && _isDetecting; attempt++) {
+        await Future<void>.delayed(const Duration(milliseconds: 50));
       }
+      if (_isDetecting) {
+        throw StateError('Camera frame analysis did not finish in time');
+      }
+      if (controller.value.isStreamingImages) {
+        await controller.stopImageStream();
+        await Future<void>.delayed(const Duration(milliseconds: 180));
+      }
+      final file = await controller.takePicture();
+      widget.onPhotoCaptured?.call(file);
+    } catch (e) {
+      debugPrint('Error taking photo: $e');
+      widget.onPhotoCaptured?.call(null);
+    } finally {
+      _isTakingPicture = false;
     }
   }
 

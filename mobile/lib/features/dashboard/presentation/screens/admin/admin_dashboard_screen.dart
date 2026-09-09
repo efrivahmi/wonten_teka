@@ -21,78 +21,41 @@ class AdminDashboardScreen extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: AppColors.surfaceContainerLowest,
-          body: Stack(
-            children: [
-              // Hero Background
-              Container(
-                height: 280.h,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0B0B0B),
-                  image: const DecorationImage(
-                    image: AssetImage('assets/images/wonten-biometric-hero-v2.png'),
-                    fit: BoxFit.cover,
-                    alignment: Alignment.centerRight,
-                    colorFilter: ColorFilter.mode(Color(0xAA000000), BlendMode.darken),
-                  ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(32.r),
-                    bottomRight: Radius.circular(32.r),
+          body: NestedScrollView(
+            headerSliverBuilder: (context, innerScrolled) => [
+              SliverAppBar(
+                pinned: true,
+                expandedHeight: 260.h,
+                backgroundColor: const Color(0xFF0E5D31),
+                foregroundColor: Colors.white,
+                title: Text(innerScrolled ? 'Dashboard Admin' : ''),
+                actions: [
+                  IconButton(icon: const Icon(Icons.notifications_none), onPressed: () => context.push('/app/notifications')),
+                  IconButton(icon: const Icon(Icons.logout), onPressed: () => context.read<AuthBloc>().add(AuthLogoutRequested())),
+                ],
+                flexibleSpace: FlexibleSpaceBar(
+                  collapseMode: CollapseMode.parallax,
+                  background: FutureBuilder<dynamic>(
+                    future: ApiClient().get('/app-config'),
+                    builder: (_, config) {
+                      final url = config.hasData ? config.data!.data['data']['branding']['hero_image_url']?.toString() : null;
+                      return Container(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(colors: [Color(0xE60B3D22), Color(0x9915803D)]),
+                          image: DecorationImage(image: (url != null && url.isNotEmpty ? NetworkImage(url) : const AssetImage('assets/images/wonten-biometric-hero-v2.png')) as ImageProvider<Object>, fit: BoxFit.cover, alignment: Alignment.centerRight, colorFilter: const ColorFilter.mode(Color(0x880B3D22), BlendMode.darken)),
+                        ),
+                        padding: EdgeInsets.fromLTRB(24.w, 100.h, 24.w, 28.h), alignment: Alignment.bottomLeft,
+                        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text('MONITORING KEHADIRAN', style: TextStyle(color: const Color(0xFFB8F15A), fontSize: 11.sp, fontWeight: FontWeight.w800, letterSpacing: 1.3)), SizedBox(height: 6.h),
+                          Text('Halo, $userName', style: TextStyle(color: Colors.white, fontSize: 28.sp, fontWeight: FontWeight.w800)),
+                        ]).animate().fadeIn(duration: 500.ms).slideY(begin: .15, end: 0),
+                      );
+                    },
                   ),
                 ),
               ),
-
-              SafeArea(
-                child: Column(
-                  children: [
-                    // Header with Drawer Toggle
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 16.w, vertical: 16.h),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Monitoring Pusat',
-                                  style: TextStyle(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.9),
-                                      fontSize: 14.sp),
-                                ),
-                                Text(
-                                  'Halo, $userName',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20.sp,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.notifications_none,
-                                    color: Colors.white),
-                                onPressed: () => context.push('/app/notifications'),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.logout,
-                                    color: Colors.white),
-                                onPressed: () {
-                                  context.read<AuthBloc>().add(AuthLogoutRequested());
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    Expanded(
-                      child: SingleChildScrollView(
+            ],
+            body: SingleChildScrollView(
                         padding: EdgeInsets.all(20.w),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,11 +105,6 @@ class AdminDashboardScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ],
-          ),
         );
       },
     );
@@ -179,6 +137,9 @@ class AdminDashboardScreen extends StatelessWidget {
   Widget _buildQuickStatsContent(
       BuildContext context, Map<String, dynamic> stats) {
     final attendance = stats['attendance_today'] as Map<String, dynamic>? ?? const {};
+    final departments = (stats['department_attendance'] as List? ?? const [])
+        .whereType<Map>()
+        .toList();
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
@@ -204,6 +165,21 @@ class AdminDashboardScreen extends StatelessWidget {
                       color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
             ],
           ),
+          if (departments.isNotEmpty) ...[
+            SizedBox(height: 24.h),
+            const Divider(),
+            SizedBox(height: 12.h),
+            Align(alignment: Alignment.centerLeft, child: Text('Kehadiran per departemen', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.sp))),
+            SizedBox(height: 14.h),
+            ...departments.map((item) {
+              final rate = ((item['attendance_rate'] as num?) ?? 0).toDouble();
+              return Padding(padding: EdgeInsets.only(bottom: 12.h), child: Column(children: [
+                Row(children: [Expanded(child: Text(item['department']?.toString() ?? 'Tanpa departemen', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600))), Text('${rate.toStringAsFixed(1)}%', style: TextStyle(fontSize: 12.sp, color: AppColors.primary, fontWeight: FontWeight.w800))]),
+                SizedBox(height: 6.h),
+                TweenAnimationBuilder<double>(tween: Tween(begin: 0, end: rate / 100), duration: const Duration(milliseconds: 700), curve: Curves.easeOutCubic, builder: (_, value, __) => LinearProgressIndicator(value: value.clamp(0, 1), minHeight: 9.h, borderRadius: BorderRadius.circular(8.r), backgroundColor: AppColors.surfaceContainerHigh, color: AppColors.primary)),
+              ]));
+            }),
+          ],
           SizedBox(height: 20.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -298,8 +274,6 @@ class AdminDashboardScreen extends StatelessWidget {
             () => context.push('/admin/employees')),
         _buildActionCard(context, 'Persetujuan', Icons.fact_check,
             () => context.push('/admin/approvals')),
-        _buildActionCard(context, 'Analitik Dept', Icons.analytics,
-            () => context.push('/admin/department-analytics')),
       ],
     );
   }
@@ -318,8 +292,6 @@ class AdminDashboardScreen extends StatelessWidget {
             () => context.push('/admin/reports')),
         _buildActionCard(context, 'Anomali Absen', Icons.warning_amber,
             () => context.push('/admin/attendance-flags')),
-        _buildActionCard(context, 'Device Karyawan', Icons.devices,
-            () => context.push('/admin/devices')),
         _buildActionCard(context, 'Jadwal Shift', Icons.event_available,
             () => context.push('/admin/shifts')),
       ],

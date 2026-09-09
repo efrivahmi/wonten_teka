@@ -93,7 +93,7 @@ class _AdminDashboardCalendarState extends State<AdminDashboardCalendar> {
                     SizedBox(
                       width: 12.w,
                       height: 12.w,
-                      child: CircularProgressIndicator(
+                      child: const CircularProgressIndicator(
                         strokeWidth: 1.5,
                         color: AppColors.primary,
                       ),

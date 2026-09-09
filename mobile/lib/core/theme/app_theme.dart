@@ -25,13 +25,28 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.background,
       visualDensity: VisualDensity.standard,
       textTheme: AppTypography.getTextTheme(),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.onSurface,
+        elevation: 0,
+        centerTitle: false,
+        surfaceTintColor: Colors.transparent,
+      ),
+      cardTheme: CardThemeData(
+        color: Colors.white,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: AppColors.outlineVariant),
+          borderRadius: BorderRadius.circular(18),
+        ),
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryContainer,
           foregroundColor: AppColors.onPrimary,
           minimumSize: const Size.fromHeight(52), // 52px height for ergonomics
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(14),
           ),
           elevation: 0,
         ),
@@ -42,7 +57,7 @@ class AppTheme {
           minimumSize: const Size.fromHeight(52),
           side: const BorderSide(color: AppColors.primary),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(14),
           ),
         ),
       ),
@@ -51,15 +66,15 @@ class AppTheme {
         fillColor: AppColors.surfaceContainerLow, // Neutral 50 background fill
         contentPadding: const EdgeInsets.all(12),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(
               color: AppColors.primary, width: 2), // 2px Sunrise Coral border
         ),

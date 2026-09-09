@@ -238,7 +238,8 @@ final appRouter = GoRouter(
         builder: (_, __) => const OvertimeFormScreen()),
     GoRoute(
         path: '/app/overtime/detail',
-        builder: (_, __) => const OvertimeDetailScreen()),
+        builder: (_, state) => OvertimeDetailScreen(
+            overtime: state.extra! as Map<String, dynamic>)),
 
     // Admin routes
     GoRoute(

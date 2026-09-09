@@ -1,70 +1,54 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../../core/api/api_client.dart';
 import '../../../../../core/theme/app_colors.dart';
 
-class OvertimeListScreen extends StatelessWidget {
+class OvertimeListScreen extends StatefulWidget {
   const OvertimeListScreen({super.key});
+  @override State<OvertimeListScreen> createState() => _OvertimeListScreenState();
+}
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLowest,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/app/overtime/new'),
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('Ajukan Lembur', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-      ),
-      body: Stack(
-        children: [
-          Container(
-            height: 240.h,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(32.r), bottomRight: Radius.circular(32.r)),
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                  child: Row(
-                    children: [
-                      IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => context.pop()),
-                      Expanded(child: Text('Riwayat Lembur', style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
-                      SizedBox(width: 48.w),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(24.w),
-                          decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20)]),
-                          child: Icon(Icons.more_time, size: 64.w, color: AppColors.primary),
-                        ),
-                        SizedBox(height: 24.h),
-                        Text('Belum ada riwayat lembur', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
-                        SizedBox(height: 8.h),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 32.w),
-                          child: Text('Riwayat pengajuan lembur Anda akan tampil di sini.', textAlign: TextAlign.center, style: TextStyle(fontSize: 14.sp, color: Colors.grey[600])),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+class _OvertimeListScreenState extends State<OvertimeListScreen> {
+  final _api = ApiClient();
+  late Future<List<Map<String, dynamic>>> _future = _load();
+  Future<List<Map<String, dynamic>>> _load() async {
+    final response = await _api.get('/overtime/history');
+    final body = response.data as Map<String, dynamic>;
+    return (body['data'] as List? ?? []).map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
+  void _refresh() => setState(() => _future = _load());
+
+  @override Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Pengajuan lembur')),
+    floatingActionButton: FloatingActionButton.extended(
+      onPressed: () async { await context.push('/app/overtime/new'); _refresh(); },
+      backgroundColor: AppColors.primary, foregroundColor: Colors.white,
+      icon: const Icon(Icons.add), label: const Text('Ajukan lembur'),
+    ),
+    body: FutureBuilder<List<Map<String, dynamic>>>(future: _future, builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+      if (snapshot.hasError) return _Message(icon: Icons.cloud_off, text: snapshot.error.toString(), action: _refresh);
+      final items = snapshot.data ?? [];
+      if (items.isEmpty) return _Message(icon: Icons.more_time, text: 'Belum ada pengajuan lembur.', action: _refresh);
+      return RefreshIndicator(onRefresh: () async => _refresh(), child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 96), itemCount: items.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        itemBuilder: (_, index) { final item = items[index]; return Card(child: ListTile(
+          onTap: () => context.push('/app/overtime/detail', extra: item),
+          leading: const CircleAvatar(backgroundColor: Color(0xFFE9FBCF), child: Icon(Icons.schedule, color: AppColors.primary)),
+          title: Text(item['date']?.toString().split('T').first ?? '-'),
+          subtitle: Text("${item['start_time'] ?? '-'} – ${item['end_time'] ?? '-'} • ${item['overtime_type'] ?? '-'}"),
+          trailing: Text((item['status'] ?? 'pending').toString().toUpperCase(), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
+        )); },
+      ));
+    }),
+  );
+}
+
+class _Message extends StatelessWidget {
+  final IconData icon; final String text; final VoidCallback action;
+  const _Message({required this.icon, required this.text, required this.action});
+  @override Widget build(BuildContext context) => Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
+    Icon(icon, size: 52, color: AppColors.primary), const SizedBox(height: 12), Text(text, textAlign: TextAlign.center), const SizedBox(height: 16), OutlinedButton(onPressed: action, child: const Text('Muat ulang')),
+  ])));
 }

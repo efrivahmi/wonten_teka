@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../storage/secure_storage.dart';
 import 'api_exceptions.dart';
 
@@ -18,9 +19,9 @@ class ApiClient {
     defaultValue: 'https://presensi.lemdiklattarunanusantaraindonesia.id/api',
   );
   ApiClient({
-    required SecureStorage storage,
+    SecureStorage? storage,
     String? baseUrl,
-  }) : _storage = storage {
+  }) : _storage = storage ?? SecureStorage() {
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl ?? _defaultBaseUrl,
@@ -36,7 +37,7 @@ class ApiClient {
 
     _dio.interceptors.addAll([
       _AuthInterceptor(_storage),
-      if (const bool.fromEnvironment('API_LOGGING'))
+      if (kDebugMode || const bool.fromEnvironment('API_LOGGING'))
         LogInterceptor(requestBody: true, responseBody: true, error: true),
       _ErrorInterceptor(),
     ]);

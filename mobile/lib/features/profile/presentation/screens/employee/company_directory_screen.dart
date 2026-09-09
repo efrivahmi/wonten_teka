@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
+import '../../../../../core/repositories/auth_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CompanyDirectoryScreen extends StatefulWidget {
   const CompanyDirectoryScreen({super.key});
@@ -14,29 +16,35 @@ class CompanyDirectoryScreen extends StatefulWidget {
 class _CompanyDirectoryScreenState extends State<CompanyDirectoryScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  final List<Map<String, String>> _employees = [
-    {'name': 'Ahmad Budi', 'department': 'Software Engineering', 'role': 'Senior Developer', 'phone': '081234567890'},
-    {'name': 'Siti Aminah', 'department': 'Human Resources', 'role': 'HR Manager', 'phone': '081234567891'},
-    {'name': 'Joko Susanto', 'department': 'Infrastructure', 'role': 'DevOps Engineer', 'phone': '081234567892'},
-    {'name': 'Rina Wati', 'department': 'Finance', 'role': 'Accountant', 'phone': '081234567893'},
-    {'name': 'Bambang Pamungkas', 'department': 'Software Engineering', 'role': 'Mobile Developer', 'phone': '081234567894'},
-  ];
-
-  List<Map<String, String>> _filteredEmployees = [];
+  List<Map<String, dynamic>> _employees = [];
+  List<Map<String, dynamic>> _filteredEmployees = [];
+  bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _filteredEmployees = _employees;
     _searchController.addListener(_onSearchChanged);
+    _loadDirectory();
+  }
+
+  Future<void> _loadDirectory() async {
+    try {
+      final employees = await context.read<AuthRepository>().getEmployeeDirectory();
+      if (!mounted) return;
+      setState(() { _employees = employees; _filteredEmployees = employees; _loading = false; _error = null; });
+    } catch (_) {
+      if (mounted) setState(() { _loading = false; _error = 'Direktori gagal dimuat.'; });
+    }
   }
 
   void _onSearchChanged() {
     final query = _searchController.text.toLowerCase();
     setState(() {
       _filteredEmployees = _employees.where((employee) {
-        return employee['name']!.toLowerCase().contains(query) ||
-               employee['department']!.toLowerCase().contains(query);
+        return (employee['full_name']?.toString().toLowerCase().contains(query) ?? false) ||
+               (employee['department']?.toString().toLowerCase().contains(query) ?? false) ||
+               (employee['position']?.toString().toLowerCase().contains(query) ?? false);
       }).toList();
     });
   }
@@ -85,7 +93,11 @@ class _CompanyDirectoryScreenState extends State<CompanyDirectoryScreen> {
             ),
           ),
           Expanded(
-            child: ListView.builder(
+            child: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
+                ? Center(child: Text(_error!))
+                : ListView.builder(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               itemCount: _filteredEmployees.length,
               itemBuilder: (context, index) {
@@ -99,7 +111,7 @@ class _CompanyDirectoryScreenState extends State<CompanyDirectoryScreen> {
                           radius: 24.r,
                           backgroundColor: AppColors.primaryContainer,
                           child: Text(
-                            emp['name']![0],
+                            (emp['full_name']?.toString().isNotEmpty ?? false) ? emp['full_name'].toString()[0] : '?',
                             style: TextStyle(
                               color: AppColors.onPrimaryContainer,
                               fontWeight: FontWeight.bold,
@@ -112,15 +124,15 @@ class _CompanyDirectoryScreenState extends State<CompanyDirectoryScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(emp['name']!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp)),
-                              Text('${emp['role']} • ${emp['department']}', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp)),
+                              Text(emp['full_name']?.toString() ?? 'Karyawan', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp)),
+                              Text('${emp['position'] ?? 'Belum ada jabatan'} • ${emp['department'] ?? 'Belum ada departemen'}', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp)),
                             ],
                           ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.phone, color: AppColors.primary),
                           onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Memanggil ${emp['phone']}...')));
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(emp['phone']?.toString().isNotEmpty == true ? 'Nomor: ${emp['phone']}' : 'Nomor telepon belum tersedia.')));
                           },
                         ),
                       ],

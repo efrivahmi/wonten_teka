@@ -1,120 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/widgets/info_card.dart';
+import '../../../../../core/api/api_client.dart';
 
-class AdminSettingsScreen extends StatelessWidget {
+class AdminSettingsScreen extends StatefulWidget {
   const AdminSettingsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
-      appBar: AppBar(
-          backgroundColor: AppColors.surface,
-          elevation: 0,
-          leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-              onPressed: () => context.pop()),
-          title: Text('Pengaturan Sistem',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.primary, fontWeight: FontWeight.bold))),
-      body: SingleChildScrollView(
-          padding: EdgeInsets.all(16.w),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const _Section(title: 'Integrasi', children: [
-              _SettingItem(
-                  title: 'Mesin Absensi Fisik (SDK)',
-                  trailing: Icon(Icons.chevron_right)),
-              _SettingItem(
-                  title: 'API Pihak Ketiga',
-                  trailing: Icon(Icons.chevron_right)),
-            ]),
-            SizedBox(height: 16.h),
-            _Section(title: 'Keamanan', children: [
-              const _SettingItem(
-                  title: 'Kebijakan Password',
-                  trailing: Icon(Icons.chevron_right)),
-              _SettingItem(
-                  title: '2FA Wajib untuk Admin',
-                  trailing: Switch(
-                      value: true,
-                      onChanged: (_) {},
-                      activeThumbColor: AppColors.primaryContainer)),
-              const _SettingItem(
-                  title: 'Batas Toleransi Lokasi (Radius)',
-                  subtitle: '100 meter',
-                  trailing: Icon(Icons.edit)),
-            ]),
-            SizedBox(height: 16.h),
-            _Section(title: 'Lainnya', children: [
-              _SettingItem(
-                  title: 'Backup Database Otomatis',
-                  trailing: Switch(
-                      value: true,
-                      onChanged: (_) {},
-                      activeThumbColor: AppColors.primaryContainer)),
-              const _SettingItem(
-                  title: 'Zona Waktu Default',
-                  subtitle: 'WIB (Asia/Jakarta)',
-                  trailing: Icon(Icons.chevron_right)),
-            ]),
-          ])),
-    );
-  }
+  @override State<AdminSettingsScreen> createState() => _AdminSettingsScreenState();
 }
-
-class _Section extends StatelessWidget {
-  final String title;
-  final List<Widget> children;
-  const _Section({required this.title, required this.children});
-  @override
-  Widget build(BuildContext context) =>
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title,
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall
-                ?.copyWith(fontWeight: FontWeight.w600)),
-        SizedBox(height: 8.h),
-        InfoCard(
-            child: Column(
-                children: children
-                    .expand((c) => [
-                          c,
-                          if (c != children.last)
-                            Divider(
-                                height: 1,
-                                color: AppColors.outlineVariant
-                                    .withValues(alpha: 0.3))
-                        ])
-                    .toList())),
-      ]);
+class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
+  final _api = ApiClient(); final _portal = TextEditingController(); final _hero = TextEditingController();
+  final _departments = TextEditingController(), _positions = TextEditingController(), _banks = TextEditingController();
+  bool _loading = true, _saving = false; List<Map<String, dynamic>> _menus = [];
+  @override void initState() { super.initState(); _load(); }
+  @override void dispose() { _portal.dispose(); _hero.dispose(); _departments.dispose(); _positions.dispose(); _banks.dispose(); super.dispose(); }
+  Future<void> _load() async { setState(() => _loading = true); try { final response = await _api.get('/app-config'); final data = Map<String, dynamic>.from(response.data['data'] as Map); final branding = Map<String, dynamic>.from(data['branding'] as Map? ?? {}); final dropdowns = Map<String, dynamic>.from(data['dropdowns'] as Map? ?? {}); _portal.text = branding['portal_name']?.toString() ?? ''; _hero.text = branding['hero_image_url']?.toString() ?? ''; _departments.text = (dropdowns['departments'] as List? ?? []).join(', '); _positions.text = (dropdowns['positions'] as List? ?? []).join(', '); _banks.text = (dropdowns['banks'] as List? ?? []).join(', '); _menus = (data['employee_menu'] as List? ?? []).map((e) => Map<String, dynamic>.from(e as Map)).toList(); } finally { if (mounted) setState(() => _loading = false); } }
+  List<String> _list(TextEditingController c) => c.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toSet().toList();
+  Future<void> _save() async { setState(() => _saving = true); try { await _api.put('/admin/app-config', data: {'branding': {'portal_name': _portal.text.trim(), 'hero_image_url': _hero.text.trim().isEmpty ? null : _hero.text.trim()}, 'employee_menu': _menus, 'dropdowns': {'departments': _list(_departments), 'positions': _list(_positions), 'banks': _list(_banks)}}); if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Konfigurasi aplikasi tersimpan.'))); } catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()))); } finally { if (mounted) setState(() => _saving = false); } }
+  @override Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text('Konfigurasi aplikasi')), body: _loading ? const Center(child: CircularProgressIndicator()) : ListView(padding: const EdgeInsets.all(20), children: [
+    Text('Branding', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)), const SizedBox(height: 14),
+    TextField(controller: _portal, decoration: const InputDecoration(labelText: 'Nama portal')), const SizedBox(height: 12),
+    TextField(controller: _hero, keyboardType: TextInputType.url, decoration: const InputDecoration(labelText: 'URL gambar hero', helperText: 'Kosongkan untuk memakai gambar bawaan')), const SizedBox(height: 28),
+    Text('Menu karyawan', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)), const SizedBox(height: 8),
+    ..._menus.asMap().entries.map((entry) => Card(child: SwitchListTile(value: entry.value['enabled'] == true, title: Text(entry.value['label']?.toString() ?? entry.value['key'].toString()), subtitle: Text(entry.value['key'].toString()), onChanged: (value) => setState(() => _menus[entry.key]['enabled'] = value)))),
+    const SizedBox(height: 24), Text('Isi dropdown', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)), const SizedBox(height: 6), const Text('Pisahkan setiap pilihan dengan koma.'), const SizedBox(height: 14),
+    TextField(controller: _departments, maxLines: 3, decoration: const InputDecoration(labelText: 'Departemen / divisi')), const SizedBox(height: 12),
+    TextField(controller: _positions, maxLines: 3, decoration: const InputDecoration(labelText: 'Jabatan')), const SizedBox(height: 12),
+    TextField(controller: _banks, maxLines: 2, decoration: const InputDecoration(labelText: 'Bank')),
+    const SizedBox(height: 20), FilledButton(onPressed: _saving ? null : _save, child: _saving ? const CircularProgressIndicator(color: Colors.white) : const Text('Simpan konfigurasi')),
+  ]));
 }
-
-class _SettingItem extends StatelessWidget {
-  final String title;
-  final String? subtitle;
-  final Widget trailing;
-  const _SettingItem(
-      {required this.title, this.subtitle, required this.trailing});
-  @override
-  Widget build(BuildContext context) => Padding(
-      padding: EdgeInsets.symmetric(vertical: 12.h),
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Expanded(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title,
-              style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp)),
-          if (subtitle != null)
-            Text(subtitle!,
-                style: TextStyle(
-                    color: AppColors.onSurfaceVariant, fontSize: 12.sp)),
-        ])),
-        trailing,
-      ]));
-}
-

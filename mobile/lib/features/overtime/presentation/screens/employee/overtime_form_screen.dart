@@ -1,188 +1,44 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/api/api_client.dart';
 
-class OvertimeFormScreen extends StatelessWidget {
+class OvertimeFormScreen extends StatefulWidget {
   const OvertimeFormScreen({super.key});
+  @override State<OvertimeFormScreen> createState() => _OvertimeFormScreenState();
+}
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLowest,
-      body: Stack(
-        children: [
-          Container(
-            height: 240.h,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(32.r), bottomRight: Radius.circular(32.r)),
-            ),
-          ),
-          
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                  child: Row(
-                    children: [
-                      IconButton(icon: const Icon(Icons.close, color: Colors.white), onPressed: () => context.pop()),
-                      Expanded(child: Text('Pengajuan Lembur', style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
-                      SizedBox(width: 48.w),
-                    ],
-                  ),
-                ),
-                
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.all(24.w),
-                    child: Container(
-                      padding: EdgeInsets.all(24.w),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24.r),
-                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 10))],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Tanggal Lembur', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
-                          SizedBox(height: 8.h),
-                          TextFormField(
-                            decoration: InputDecoration(
-                              hintText: 'Pilih Tanggal',
-                              suffixIcon: const Icon(Icons.calendar_month, color: AppColors.primary),
-                              filled: true, fillColor: Colors.grey[50],
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide.none),
-                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide(color: Colors.grey[200]!)),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                            ),
-                          ),
-                          SizedBox(height: 24.h),
+class _OvertimeFormScreenState extends State<OvertimeFormScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _api = ApiClient();
+  final _date = TextEditingController();
+  final _start = TextEditingController();
+  final _end = TextEditingController();
+  final _reason = TextEditingController();
+  String _type = 'Hari Kerja'; bool _saving = false;
 
-                          Text('Jenis Lembur', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
-                          SizedBox(height: 8.h),
-                          DropdownButtonFormField<String>(
-                            decoration: InputDecoration(
-                              filled: true, fillColor: Colors.grey[50],
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide.none),
-                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide(color: Colors.grey[200]!)),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                            ),
-                            initialValue: 'Hari Kerja',
-                            items: ['Hari Kerja', 'Hari Libur'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-                            onChanged: (_) {},
-                          ),
-                          SizedBox(height: 24.h),
-                          
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Jam Mulai', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
-                                    SizedBox(height: 8.h),
-                                    TextFormField(
-                                      decoration: InputDecoration(
-                                        hintText: '18:00',
-                                        suffixIcon: const Icon(Icons.access_time, color: AppColors.primary),
-                                        filled: true, fillColor: Colors.grey[50],
-                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide.none),
-                                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide(color: Colors.grey[200]!)),
-                                        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(width: 16.w),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Jam Selesai', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
-                                    SizedBox(height: 8.h),
-                                    TextFormField(
-                                      decoration: InputDecoration(
-                                        hintText: '21:00',
-                                        suffixIcon: const Icon(Icons.access_time, color: AppColors.primary),
-                                        filled: true, fillColor: Colors.grey[50],
-                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide.none),
-                                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide(color: Colors.grey[200]!)),
-                                        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 24.h),
-                          
-                          Text('Keterangan / Pekerjaan', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
-                          SizedBox(height: 8.h),
-                          TextFormField(
-                            maxLines: 4,
-                            decoration: InputDecoration(
-                              hintText: 'Jelaskan pekerjaan yang dilakukan',
-                              filled: true, fillColor: Colors.grey[50],
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide.none),
-                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide(color: Colors.grey[200]!)),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                            ),
-                          ),
-                          SizedBox(height: 24.h),
-                          
-                          Text('Bukti / Foto Pekerjaan', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
-                          SizedBox(height: 8.h),
-                          InkWell(
-                            onTap: () {},
-                            borderRadius: BorderRadius.circular(16.r),
-                            child: Container(
-                              width: double.infinity,
-                              padding: EdgeInsets.symmetric(vertical: 32.h),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[50],
-                                border: Border.all(color: Colors.grey[300]!, style: BorderStyle.solid),
-                                borderRadius: BorderRadius.circular(16.r),
-                              ),
-                              child: Column(
-                                children: [
-                                  Icon(Icons.add_a_photo, color: Colors.grey[400], size: 48.sp),
-                                  SizedBox(height: 12.h),
-                                  Text('Tap untuk mengunggah foto', style: TextStyle(color: Colors.grey[500])),
-                                ],
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 32.h),
-                          
-                          SizedBox(
-                            width: double.infinity,
-                            height: 52.h,
-                            child: ElevatedButton(
-                              onPressed: () => context.pop(),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-                                elevation: 0,
-                              ),
-                              child: Text('Kirim Pengajuan', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+  @override void dispose() { _date.dispose(); _start.dispose(); _end.dispose(); _reason.dispose(); super.dispose(); }
+  Future<void> _pickDate() async { final value = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime.now().subtract(const Duration(days: 30)), lastDate: DateTime.now().add(const Duration(days: 365))); if (value != null) _date.text = value.toIso8601String().split('T').first; }
+  Future<void> _pickTime(TextEditingController controller) async { final value = await showTimePicker(context: context, initialTime: TimeOfDay.now()); if (value != null) controller.text = '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}'; }
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _saving = true);
+    try {
+      await _api.post('/overtime/request', data: {'date': _date.text, 'start_time': _start.text, 'end_time': _end.text, 'overtime_type': _type, 'reason': _reason.text.trim()});
+      if (mounted) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pengajuan lembur berhasil dikirim.'))); context.pop(); }
+    } catch (error) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString()))); }
+    finally { if (mounted) setState(() => _saving = false); }
   }
+
+  @override Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Ajukan lembur')),
+    body: Form(key: _formKey, child: ListView(padding: const EdgeInsets.all(20), children: [
+      Text('Detail pekerjaan', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
+      const SizedBox(height: 6), const Text('Lengkapi waktu dan pekerjaan yang memerlukan persetujuan.'), const SizedBox(height: 24),
+      TextFormField(controller: _date, readOnly: true, onTap: _pickDate, decoration: const InputDecoration(labelText: 'Tanggal', suffixIcon: Icon(Icons.calendar_month)), validator: (v) => v == null || v.isEmpty ? 'Tanggal wajib dipilih' : null),
+      const SizedBox(height: 14), Row(children: [Expanded(child: TextFormField(controller: _start, readOnly: true, onTap: () => _pickTime(_start), decoration: const InputDecoration(labelText: 'Mulai', suffixIcon: Icon(Icons.schedule)), validator: (v) => v == null || v.isEmpty ? 'Wajib' : null)), const SizedBox(width: 12), Expanded(child: TextFormField(controller: _end, readOnly: true, onTap: () => _pickTime(_end), decoration: const InputDecoration(labelText: 'Selesai', suffixIcon: Icon(Icons.schedule)), validator: (v) => v == null || v.isEmpty ? 'Wajib' : null))]),
+      const SizedBox(height: 14), DropdownButtonFormField<String>(initialValue: _type, decoration: const InputDecoration(labelText: 'Jenis lembur'), items: const [DropdownMenuItem(value: 'Hari Kerja', child: Text('Hari Kerja')), DropdownMenuItem(value: 'Hari Libur', child: Text('Hari Libur'))], onChanged: (v) => setState(() => _type = v!)),
+      const SizedBox(height: 14), TextFormField(controller: _reason, maxLines: 4, decoration: const InputDecoration(labelText: 'Pekerjaan / alasan'), validator: (v) => v == null || v.trim().isEmpty ? 'Pekerjaan wajib dijelaskan' : null),
+      const SizedBox(height: 24), FilledButton(onPressed: _saving ? null : _submit, child: _saving ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Kirim pengajuan')),
+    ])),
+  );
 }
