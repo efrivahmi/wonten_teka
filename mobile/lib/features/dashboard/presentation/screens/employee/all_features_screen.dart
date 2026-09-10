@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../auth/bloc/auth_bloc.dart';
+import '../../../../../core/widgets/section_header.dart';
 
 class AllFeaturesScreen extends StatelessWidget {
   const AllFeaturesScreen({super.key});
@@ -11,9 +12,9 @@ class AllFeaturesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLowest,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surfaceContainerLowest,
+        backgroundColor: AppColors.background,
         elevation: 0,
         title: Text(
           'Semua fitur',
@@ -27,8 +28,9 @@ class AllFeaturesScreen extends StatelessWidget {
       ),
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, authState) {
-          final isAdmin = authState is AuthAuthenticated && authState.user.isAdmin;
-          
+          final isAdmin =
+              authState is AuthAuthenticated && authState.user.isAdmin;
+
           return SingleChildScrollView(
             padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
             child: Column(
@@ -38,12 +40,36 @@ class AllFeaturesScreen extends StatelessWidget {
                   context,
                   title: 'Presensi',
                   features: [
-                    _FeatureItem(icon: Icons.login, label: 'Absen Masuk', color: AppColors.successEmerald, route: '/app/attendance/check-in'),
-                    _FeatureItem(icon: Icons.logout, label: 'Absen Keluar', color: AppColors.error, route: '/app/attendance/check-out'),
-                    _FeatureItem(icon: Icons.history, label: 'Riwayat', color: AppColors.primaryFixedDim, route: '/app/attendance'),
-                    _FeatureItem(icon: Icons.edit_calendar, label: 'Lupa Absen', color: AppColors.tertiaryContainer, route: '/app/attendance/adjustment-form'),
-                    _FeatureItem(icon: Icons.flight_takeoff, label: 'Dinas Luar', color: AppColors.secondaryContainer, route: '/app/attendance/business-trip-form'),
-                    _FeatureItem(icon: Icons.schedule, label: 'Jadwal Shift', color: AppColors.tertiaryContainer, route: '/app/schedule/shifts'),
+                    _FeatureItem(
+                        icon: Icons.login,
+                        label: 'Absen Masuk',
+                        color: AppColors.successEmerald,
+                        route: '/app/attendance/check-in'),
+                    _FeatureItem(
+                        icon: Icons.logout,
+                        label: 'Absen Keluar',
+                        color: AppColors.error,
+                        route: '/app/attendance/check-out'),
+                    _FeatureItem(
+                        icon: Icons.history,
+                        label: 'Riwayat',
+                        color: AppColors.primaryFixedDim,
+                        route: '/app/attendance'),
+                    _FeatureItem(
+                        icon: Icons.edit_calendar,
+                        label: 'Lupa Absen',
+                        color: AppColors.tertiaryContainer,
+                        route: '/app/attendance/adjustment-form'),
+                    _FeatureItem(
+                        icon: Icons.flight_takeoff,
+                        label: 'Dinas Luar',
+                        color: AppColors.secondaryContainer,
+                        route: '/app/attendance/business-trip-form'),
+                    _FeatureItem(
+                        icon: Icons.schedule,
+                        label: 'Jadwal Shift',
+                        color: AppColors.tertiaryContainer,
+                        route: '/app/schedule/shifts'),
                   ],
                 ),
                 _buildDivider(),
@@ -51,9 +77,21 @@ class AllFeaturesScreen extends StatelessWidget {
                   context,
                   title: 'Pengajuan',
                   features: [
-                    _FeatureItem(icon: Icons.event_busy, label: 'Cuti', color: AppColors.primaryContainer, route: '/app/leave'),
-                    _FeatureItem(icon: Icons.more_time, label: 'Lembur', color: AppColors.secondaryContainer, route: '/app/overtime'),
-                    _FeatureItem(icon: Icons.receipt_long, label: 'Klaim', color: AppColors.secondaryContainer, route: '/app/claims'),
+                    _FeatureItem(
+                        icon: Icons.event_busy,
+                        label: 'Cuti',
+                        color: AppColors.primaryContainer,
+                        route: '/app/leave'),
+                    _FeatureItem(
+                        icon: Icons.more_time,
+                        label: 'Lembur',
+                        color: AppColors.secondaryContainer,
+                        route: '/app/overtime'),
+                    _FeatureItem(
+                        icon: Icons.receipt_long,
+                        label: 'Klaim',
+                        color: AppColors.secondaryContainer,
+                        route: '/app/claims'),
                   ],
                 ),
                 _buildDivider(),
@@ -61,7 +99,11 @@ class AllFeaturesScreen extends StatelessWidget {
                   context,
                   title: 'Keuangan',
                   features: [
-                    _FeatureItem(icon: Icons.payments, label: 'Slip Gaji', color: AppColors.primaryContainer, route: '/app/payslip'),
+                    _FeatureItem(
+                        icon: Icons.payments,
+                        label: 'Slip Gaji',
+                        color: AppColors.primaryContainer,
+                        route: '/app/payslip'),
                   ],
                 ),
                 _buildDivider(),
@@ -69,9 +111,21 @@ class AllFeaturesScreen extends StatelessWidget {
                   context,
                   title: 'Lainnya',
                   features: [
-                    _FeatureItem(icon: Icons.calendar_month, label: 'Kalender', color: AppColors.tertiaryContainer, route: '/app/calendar'),
-                    _FeatureItem(icon: Icons.track_changes, label: 'Habit Tracker', color: AppColors.primaryFixedDim, route: '/app/habits'),
-                    _FeatureItem(icon: Icons.task_alt, label: 'Tasks', color: AppColors.primaryContainer, route: '/app/tasks'),
+                    _FeatureItem(
+                        icon: Icons.calendar_month,
+                        label: 'Kalender',
+                        color: AppColors.tertiaryContainer,
+                        route: '/app/calendar'),
+                    _FeatureItem(
+                        icon: Icons.track_changes,
+                        label: 'Habit Tracker',
+                        color: AppColors.primaryFixedDim,
+                        route: '/app/habits'),
+                    _FeatureItem(
+                        icon: Icons.task_alt,
+                        label: 'Tasks',
+                        color: AppColors.primaryContainer,
+                        route: '/app/tasks'),
                   ],
                 ),
                 if (isAdmin) ...[
@@ -80,9 +134,23 @@ class AllFeaturesScreen extends StatelessWidget {
                     context,
                     title: 'Persetujuan',
                     features: [
-                      _FeatureItem(icon: Icons.inbox, label: 'Approval Inbox', color: AppColors.primaryContainer, route: '/admin/approvals'),
-                      if (isAdmin) _FeatureItem(icon: Icons.phonelink_setup, label: 'Device Approval', color: AppColors.secondaryContainer, route: '/admin/devices'),
-                      if (isAdmin) _FeatureItem(icon: Icons.flag, label: 'Attendance Flags', color: AppColors.error, route: '/admin/attendance-flags'),
+                      _FeatureItem(
+                          icon: Icons.inbox,
+                          label: 'Approval Inbox',
+                          color: AppColors.primaryContainer,
+                          route: '/admin/approvals'),
+                      if (isAdmin)
+                        _FeatureItem(
+                            icon: Icons.phonelink_setup,
+                            label: 'Device Approval',
+                            color: AppColors.secondaryContainer,
+                            route: '/admin/devices'),
+                      if (isAdmin)
+                        _FeatureItem(
+                            icon: Icons.flag,
+                            label: 'Attendance Flags',
+                            color: AppColors.error,
+                            route: '/admin/attendance-flags'),
                     ],
                   ),
                 ],
@@ -92,12 +160,36 @@ class AllFeaturesScreen extends StatelessWidget {
                     context,
                     title: 'Kelola (Admin)',
                     features: [
-                      _FeatureItem(icon: Icons.dashboard, label: 'Dashboard Admin', color: AppColors.tertiaryContainer, route: '/admin/dashboard'),
-                      _FeatureItem(icon: Icons.people, label: 'Pegawai', color: AppColors.primaryFixedDim, route: '/admin/employees'),
-                      _FeatureItem(icon: Icons.settings_suggest, label: 'Shift Templates', color: AppColors.primaryContainer, route: '/admin/shifts'),
-                      _FeatureItem(icon: Icons.date_range, label: 'Leave Types', color: AppColors.secondaryContainer, route: '/admin/leave-types'),
-                      _FeatureItem(icon: Icons.analytics, label: 'Analytics', color: AppColors.primaryFixedDim, route: '/admin/department-analytics'),
-                      _FeatureItem(icon: Icons.settings, label: 'Settings', color: AppColors.tertiaryContainer, route: '/admin/org-settings'),
+                      _FeatureItem(
+                          icon: Icons.dashboard,
+                          label: 'Dashboard Admin',
+                          color: AppColors.tertiaryContainer,
+                          route: '/admin/dashboard'),
+                      _FeatureItem(
+                          icon: Icons.people,
+                          label: 'Pegawai',
+                          color: AppColors.primaryFixedDim,
+                          route: '/admin/employees'),
+                      _FeatureItem(
+                          icon: Icons.settings_suggest,
+                          label: 'Shift Templates',
+                          color: AppColors.primaryContainer,
+                          route: '/admin/shifts'),
+                      _FeatureItem(
+                          icon: Icons.date_range,
+                          label: 'Leave Types',
+                          color: AppColors.secondaryContainer,
+                          route: '/admin/leave-types'),
+                      _FeatureItem(
+                          icon: Icons.analytics,
+                          label: 'Analytics',
+                          color: AppColors.primaryFixedDim,
+                          route: '/admin/department-analytics'),
+                      _FeatureItem(
+                          icon: Icons.settings,
+                          label: 'Settings',
+                          color: AppColors.tertiaryContainer,
+                          route: '/admin/org-settings'),
                     ],
                   ),
                 ],
@@ -110,61 +202,65 @@ class AllFeaturesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCategorySection(BuildContext context, {required String title, required List<_FeatureItem> features}) {
+  Widget _buildCategorySection(BuildContext context,
+      {required String title, required List<_FeatureItem> features}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-            color: AppColors.onSurface,
-          ),
-        ),
+        SectionHeader(eyebrow: 'Menu', title: title),
         SizedBox(height: 16.h),
-        Wrap(
-          spacing: 24.w,
-          runSpacing: 24.h,
-          children: features.map((item) {
-            return GestureDetector(
-              onTap: item.route != null ? () => context.push(item.route!) : null,
-              child: SizedBox(
-                width: 72.w,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 56.w,
-                      height: 56.w,
-                      decoration: BoxDecoration(
-                        color: item.color,
-                        borderRadius: BorderRadius.circular(16.r),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(24.r),
+            border: Border.all(color: AppColors.outlineVariant),
+          ),
+          child: Column(
+              children: features.asMap().entries.map((entry) {
+            final item = entry.value;
+            return Column(children: [
+              InkWell(
+                onTap:
+                    item.route != null ? () => context.push(item.route!) : null,
+                borderRadius: BorderRadius.circular(22.r),
+                child: Padding(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 13.h),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44.w,
+                        height: 44.w,
+                        decoration: BoxDecoration(
+                          color: AppColors.secondaryContainer,
+                          borderRadius: BorderRadius.circular(14.r),
+                        ),
+                        child: Icon(
+                          item.icon,
+                          color: AppColors.primary,
+                          size: 22.w,
+                        ),
                       ),
-                      child: Icon(
-                        item.icon,
-                        color: Colors.white,
-                        size: 28.w,
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
-                    Text(
-                      item.label,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 11.sp,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.onSurface,
-                        height: 1.2,
-                      ),
-                    ),
-                  ],
+                      SizedBox(width: 14.w),
+                      Expanded(
+                          child: Text(
+                        item.label,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.onSurface,
+                        ),
+                      )),
+                      const Icon(Icons.arrow_forward_rounded,
+                          size: 18, color: AppColors.onSurfaceVariant),
+                    ],
+                  ),
                 ),
               ),
-            );
-          }).toList(),
+              if (entry.key < features.length - 1)
+                const Divider(height: 1, indent: 74),
+            ]);
+          }).toList()),
         ),
       ],
     );

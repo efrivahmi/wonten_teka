@@ -2,6 +2,7 @@ import 'dart:convert';
 import '../api/api_client.dart';
 import '../models/user_model.dart';
 import '../storage/secure_storage.dart';
+import '../api/api_exceptions.dart';
 
 class AuthRepository {
   final ApiClient _api;
@@ -24,12 +25,19 @@ class AuthRepository {
       'device_name': deviceName,
     });
 
-    final data = response.data as Map<String, dynamic>;
-    final token = data['token'] as String;
-    final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);
+    final data = _responseMap(response.data, 'login');
+    final token = data['token'];
+    final rawUser = data['user'];
+    if (token is! String || token.isEmpty || rawUser is! Map) {
+      throw const ApiException(
+        message: 'Respons login tidak lengkap. Hubungi administrator.',
+      );
+    }
+    final userJson = Map<String, dynamic>.from(rawUser);
+    final user = UserModel.fromJson(userJson);
 
     await _storage.saveToken(token);
-    await _storage.saveUserJson(jsonEncode(data['user']));
+    await _storage.saveUserJson(jsonEncode(userJson));
 
     return user;
   }
@@ -47,10 +55,14 @@ class AuthRepository {
   /// Get the currently authenticated user from the backend.
   Future<UserModel> getMe() async {
     final response = await _api.get('/me');
-    final data = response.data as Map<String, dynamic>;
-    final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);
+    final data = _responseMap(response.data, 'profil');
+    if (data['user'] is! Map) {
+      throw const ApiException(message: 'Data profil pengguna tidak tersedia.');
+    }
+    final rawUser = Map<String, dynamic>.from(data['user'] as Map);
+    final user = UserModel.fromJson(rawUser);
 
-    await _storage.saveUserJson(jsonEncode(data['user']));
+    await _storage.saveUserJson(jsonEncode(rawUser));
 
     return user;
   }
@@ -77,7 +89,8 @@ class AuthRepository {
     return response.data as Map<String, dynamic>;
   }
 
-  Future<List<Map<String, dynamic>>> getEmployeeDirectory({String? search}) async {
+  Future<List<Map<String, dynamic>>> getEmployeeDirectory(
+      {String? search}) async {
     final response = await _api.get('/employee/directory', queryParameters: {
       if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
     });
@@ -98,4 +111,11 @@ class AuthRepository {
 
   /// Check if a token exists in secure storage.
   Future<bool> hasToken() => _storage.hasToken();
+
+  Map<String, dynamic> _responseMap(dynamic body, String endpoint) {
+    if (body is! Map) {
+      throw ApiException(message: 'Format respons $endpoint tidak valid.');
+    }
+    return Map<String, dynamic>.from(body);
+  }
 }

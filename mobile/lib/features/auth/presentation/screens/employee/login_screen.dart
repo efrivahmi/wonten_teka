@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/widgets/brand_panel.dart';
+import '../../../../../core/widgets/wonten_card.dart';
 import '../../../bloc/auth_bloc.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -28,6 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleLogin() {
     if (_formKey.currentState!.validate()) {
+      TextInput.finishAutofillContext();
       context.read<AuthBloc>().add(
             AuthLoginRequested(
               email: _usernameController.text.trim(),
@@ -40,25 +44,15 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLowest,
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Extended Primary Colored Header
-          Container(
-            height: 320.h,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF0E5D31), Color(0xFF15803D), Color(0xFF65A30D)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(32.r),
-                bottomRight: Radius.circular(32.r),
-              ),
-            ),
+          Positioned(
+            left: 12.w,
+            right: 12.w,
+            top: 12.h,
+            child: BrandPanel(child: SizedBox(height: 260.h)),
           ),
-          
           SafeArea(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: 24.w),
@@ -79,68 +73,62 @@ class _LoginScreenState extends State<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       SizedBox(height: 40.h),
-                      // Header Text
-                      Center(
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
-                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16.r)),
-                              child: Image.asset('assets/images/lemdiklat-logo.png', height: 48.h, fit: BoxFit.contain),
-                            ),
-                            SizedBox(height: 16.h),
-                            Text(
-                              'Wonten Teka',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 28.sp,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: -0.5,
+                      ViewEntrance(
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 18.w, vertical: 10.h),
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16.r)),
+                                child: Image.asset(
+                                    'assets/images/lemdiklat-logo.png',
+                                    height: 48.h,
+                                    fit: BoxFit.contain),
                               ),
-                            ),
-                            SizedBox(height: 8.h),
-                            Text(
-                              'Portal Kehadiran Lemdiklat Taruna Nusantara Indonesia',
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.8),
-                                fontSize: 14.sp,
+                              SizedBox(height: 16.h),
+                              Text(
+                                'Wonten Teka',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 28.sp,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: -0.5,
+                                ),
                               ),
-                            ),
-                          ],
+                              SizedBox(height: 8.h),
+                              Text(
+                                'Portal Kehadiran Lemdiklat Taruna Nusantara Indonesia',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       SizedBox(height: 40.h),
-                      
-                      // Floating Login Card
-                      Container(
+                      WontenCard(
                         padding: EdgeInsets.all(28.w),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24.r),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
                         child: Form(
                           key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
+                          child: AutofillGroup(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
                               Text(
-                                'Masuk',
+                                'Masuk ke ruang kerja',
                                 style: TextStyle(
                                   color: AppColors.onSurface,
                                   fontSize: 24.sp,
                                   fontWeight: FontWeight.bold,
                                 ),
-                                textAlign: TextAlign.center,
+                                textAlign: TextAlign.left,
                               ),
                               SizedBox(height: 24.h),
-                              
                               Text(
                                 'EMAIL / NIP',
                                 style: TextStyle(
@@ -154,32 +142,39 @@ class _LoginScreenState extends State<LoginScreen> {
                               TextFormField(
                                 controller: _usernameController,
                                 enabled: !isLoading,
-                                autofillHints: const [AutofillHints.username, AutofillHints.email],
+                                autofillHints: const [
+                                  AutofillHints.username,
+                                  AutofillHints.email
+                                ],
                                 textInputAction: TextInputAction.next,
                                 decoration: InputDecoration(
-                                  prefixIcon: const Icon(Icons.person_outline, color: AppColors.primary),
+                                  prefixIcon: const Icon(Icons.person_outline,
+                                      color: AppColors.primary),
                                   hintText: 'Masukkan email atau NIP',
                                   filled: true,
-                                  fillColor: Colors.grey[50],
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                                  fillColor: AppColors.surfaceContainerLow,
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 16.w, vertical: 16.h),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(14.r),
                                     borderSide: BorderSide.none,
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(14.r),
-                                    borderSide: BorderSide(color: Colors.grey[200]!),
+                                    borderSide: const BorderSide(
+                                        color: AppColors.outlineVariant),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(14.r),
-                                    borderSide: const BorderSide(color: AppColors.primary),
+                                    borderSide: const BorderSide(
+                                        color: AppColors.primary),
                                   ),
                                 ),
-                                validator: (value) => value?.isEmpty ?? true ? 'Wajib diisi' : null,
+                                validator: (value) => value?.isEmpty ?? true
+                                    ? 'Wajib diisi'
+                                    : null,
                               ),
-                              
                               SizedBox(height: 20.h),
-                              
                               Text(
                                 'PASSWORD',
                                 style: TextStyle(
@@ -200,10 +195,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                   if (!isLoading) _handleLogin();
                                 },
                                 decoration: InputDecoration(
-                                  prefixIcon: const Icon(Icons.lock_outline, color: AppColors.primary),
+                                  prefixIcon: const Icon(Icons.lock_outline,
+                                      color: AppColors.primary),
                                   suffixIcon: IconButton(
                                     icon: Icon(
-                                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                      _obscurePassword
+                                          ? Icons.visibility_off
+                                          : Icons.visibility,
                                       color: Colors.grey[500],
                                     ),
                                     onPressed: () {
@@ -214,40 +212,42 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   hintText: 'Masukkan Password',
                                   filled: true,
-                                  fillColor: Colors.grey[50],
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                                  fillColor: AppColors.surfaceContainerLow,
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 16.w, vertical: 16.h),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(14.r),
                                     borderSide: BorderSide.none,
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(14.r),
-                                    borderSide: BorderSide(color: Colors.grey[200]!),
+                                    borderSide: const BorderSide(
+                                        color: AppColors.outlineVariant),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(14.r),
-                                    borderSide: const BorderSide(color: AppColors.primary),
+                                    borderSide: const BorderSide(
+                                        color: AppColors.primary),
                                   ),
                                 ),
-                                validator: (value) => value?.isEmpty ?? true ? 'Wajib diisi' : null,
+                                validator: (value) => value?.isEmpty ?? true
+                                    ? 'Wajib diisi'
+                                    : null,
                               ),
-                              
                               SizedBox(height: 12.h),
                               SizedBox(height: 24.h),
                               SizedBox(
                                 height: 56.h,
-                                child: ElevatedButton(
+                                child: FilledButton(
                                   onPressed: isLoading ? null : _handleLogin,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primary,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14.r),
-                                    ),
-                                    elevation: 0,
-                                  ),
                                   child: isLoading
-                                      ? SizedBox(height: 24.w, width: 24.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                      ? SizedBox(
+                                          height: 24.w,
+                                          width: 24.w,
+                                          child:
+                                              const CircularProgressIndicator(
+                                                  color: Colors.white,
+                                                  strokeWidth: 2))
                                       : Text(
                                           'Masuk',
                                           style: TextStyle(
@@ -261,6 +261,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ],
                           ),
                         ),
+                      ),
                       ),
                     ],
                   );

@@ -75,6 +75,7 @@ class LeaveCubit extends Cubit<LeaveState> {
     required String startDate,
     required String endDate,
     required String reason,
+    dynamic attachment,
   }) async {
     emit(LeaveLoading());
     try {
@@ -83,6 +84,7 @@ class LeaveCubit extends Cubit<LeaveState> {
         startDate: startDate,
         endDate: endDate,
         reason: reason,
+        attachment: attachment,
       );
       emit(LeaveSubmitted(request));
     } on ValidationException catch (e) {

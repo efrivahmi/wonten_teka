@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class WontenCard extends StatelessWidget {
   final Widget child;
@@ -17,7 +18,8 @@ class WontenCard extends StatelessWidget {
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: backgroundColor ?? Colors.white,
+        color: backgroundColor ?? AppColors.surface,
+        border: Border.all(color: AppColors.outlineVariant),
         borderRadius: BorderRadius.circular(
             24.0), // Large containers have higher roundness
         boxShadow: [

@@ -18,15 +18,21 @@ class ErrorStateWidget extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.all(24.w),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 80.w,
-              color: AppColors.error,
-            ),
-            SizedBox(height: 16.h),
+            Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(28)),
+                child: Icon(
+                  Icons.error_outline,
+                  size: 40.w,
+                  color: AppColors.error,
+                )),
+            SizedBox(height: 24.h),
             Text(
               'Terjadi Kesalahan',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -52,7 +58,7 @@ class ErrorStateWidget extends StatelessWidget {
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
+                  borderRadius: BorderRadius.circular(18.r),
                 ),
               ),
             ),

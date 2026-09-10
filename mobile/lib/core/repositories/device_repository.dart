@@ -1,5 +1,6 @@
 import '../api/api_client.dart';
 import '../models/task_device_models.dart';
+import '../api/api_exceptions.dart';
 
 class DeviceRepository {
   final ApiClient _api;
@@ -20,15 +21,23 @@ class DeviceRepository {
       'os_version': osVersion,
       'app_version': appVersion,
     });
-    final data = response.data as Map<String, dynamic>;
-    return DeviceModel.fromJson(data['device'] as Map<String, dynamic>);
+    return _deviceFrom(response.data);
   }
 
   Future<DeviceModel> getStatus(String deviceFingerprint) async {
     final response = await _api.get('/device/status', queryParameters: {
       'device_fingerprint': deviceFingerprint,
     });
-    final data = response.data as Map<String, dynamic>;
-    return DeviceModel.fromJson(data['device'] as Map<String, dynamic>);
+    return _deviceFrom(response.data);
+  }
+
+  DeviceModel _deviceFrom(dynamic body) {
+    if (body is! Map || body['device'] is! Map) {
+      throw const ApiException(
+          message: 'Data perangkat dari server tidak valid.');
+    }
+    return DeviceModel.fromJson(
+      Map<String, dynamic>.from(body['device'] as Map),
+    );
   }
 }

@@ -70,6 +70,16 @@ class EmployeeModel extends Equatable {
   final DateTime? faceEnrolledAt;
   final String? gender;
   final String? address;
+  
+  final String? nik;
+  final String? npwp;
+  final DateTime? dateOfBirth;
+  final String? employmentStatus;
+  final String? bpjsKesehatan;
+  final String? bpjsKetenagakerjaan;
+  final String? ptkpStatus;
+  final String? bankName;
+  final String? bankAccount;
 
   const EmployeeModel({
     required this.id,
@@ -84,6 +94,15 @@ class EmployeeModel extends Equatable {
     this.faceEnrolledAt,
     this.gender,
     this.address,
+    this.nik,
+    this.npwp,
+    this.dateOfBirth,
+    this.employmentStatus,
+    this.bpjsKesehatan,
+    this.bpjsKetenagakerjaan,
+    this.ptkpStatus,
+    this.bankName,
+    this.bankAccount,
   });
 
   bool get isProfileCompleted => 
@@ -106,6 +125,15 @@ class EmployeeModel extends Equatable {
           : null,
       gender: json['gender'] as String?,
       address: json['address'] as String?,
+      nik: json['nik'] as String?,
+      npwp: json['npwp'] as String?,
+      dateOfBirth: json['date_of_birth'] != null ? DateTime.tryParse(json['date_of_birth']) : null,
+      employmentStatus: json['employment_status'] as String?,
+      bpjsKesehatan: json['bpjs_kesehatan'] as String?,
+      bpjsKetenagakerjaan: json['bpjs_ketenagakerjaan'] as String?,
+      ptkpStatus: json['ptkp_status'] as String?,
+      bankName: json['bank_name'] as String?,
+      bankAccount: json['bank_account'] as String?,
     );
   }
 
@@ -122,8 +150,21 @@ class EmployeeModel extends Equatable {
         'face_enrolled_at': faceEnrolledAt?.toIso8601String(),
         'gender': gender,
         'address': address,
+        'nik': nik,
+        'npwp': npwp,
+        'date_of_birth': dateOfBirth?.toIso8601String(),
+        'employment_status': employmentStatus,
+        'bpjs_kesehatan': bpjsKesehatan,
+        'bpjs_ketenagakerjaan': bpjsKetenagakerjaan,
+        'ptkp_status': ptkpStatus,
+        'bank_name': bankName,
+        'bank_account': bankAccount,
       };
 
   @override
-  List<Object?> get props => [id, employeeNumber, fullName, department, position, gender, address];
+  List<Object?> get props => [
+        id, employeeNumber, fullName, department, position, gender, address,
+        nik, npwp, dateOfBirth, employmentStatus, bpjsKesehatan,
+        bpjsKetenagakerjaan, ptkpStatus, bankName, bankAccount,
+      ];
 }

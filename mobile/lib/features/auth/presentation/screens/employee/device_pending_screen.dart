@@ -7,6 +7,8 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../auth/bloc/auth_bloc.dart';
 import '../../../../../core/repositories/device_repository.dart';
 import '../../../../../core/storage/secure_storage.dart';
+import '../../../../../core/widgets/brand_panel.dart';
+import '../../../../../core/widgets/wonten_card.dart';
 
 class DevicePendingScreen extends StatefulWidget {
   const DevicePendingScreen({super.key});
@@ -56,7 +58,9 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
         } else if (device.status == 'pending_approval') {
           if (mounted && showSnackbar) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Status perangkat masih menunggu persetujuan.')),
+              const SnackBar(
+                  content:
+                      Text('Status perangkat masih menunggu persetujuan.')),
             );
           }
         } else if (mounted) {
@@ -67,7 +71,9 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
     } catch (e) {
       if (mounted && showSnackbar) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal memeriksa status perangkat.'), backgroundColor: AppColors.error),
+          const SnackBar(
+              content: Text('Gagal memeriksa status perangkat.'),
+              backgroundColor: AppColors.error),
         );
       }
     } finally {
@@ -80,21 +86,15 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLowest,
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Extended Primary Colored Header (Warning Style)
-          Container(
-            height: 320.h,
-            decoration: BoxDecoration(
-              color: Colors.amber[700], // Warning color for pending
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(32.r),
-                bottomRight: Radius.circular(32.r),
-              ),
-            ),
+          Positioned(
+            left: 12.w,
+            right: 12.w,
+            top: 12.h,
+            child: BrandPanel(child: SizedBox(height: 265.h)),
           ),
-          
           SafeArea(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: 24.w),
@@ -106,7 +106,8 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
                   Center(
                     child: Column(
                       children: [
-                        Icon(Icons.devices_other, size: 64.w, color: Colors.white),
+                        Icon(Icons.devices_other,
+                            size: 64.w, color: Colors.white),
                         SizedBox(height: 16.h),
                         Text(
                           'Verifikasi Perangkat',
@@ -120,34 +121,22 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
                     ),
                   ),
                   SizedBox(height: 60.h),
-                  
-                  // Floating Status Card
-                  Container(
+
+                  WontenCard(
                     padding: EdgeInsets.all(32.w),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Container(
                           padding: EdgeInsets.all(16.w),
                           decoration: BoxDecoration(
-                            color: Colors.amber.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
+                            color: AppColors.secondaryContainer,
+                            borderRadius: BorderRadius.circular(20.r),
                           ),
                           child: Icon(
                             Icons.pending_actions,
                             size: 48.w,
-                            color: Colors.amber[700],
+                            color: AppColors.primary,
                           ),
                         ),
                         SizedBox(height: 24.h),
@@ -162,7 +151,7 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
                         ),
                         SizedBox(height: 16.h),
                         Text(
-                          'Perangkat Anda belum diverifikasi atau telah terikat dengan akun lain.\n\nSilakan hubungi Admin atau HRD Anda untuk melakukan persetujuan (Approval) perangkat ini agar Anda dapat melakukan absensi.',
+                          'Pengajuan perangkat sudah tercatat. Dashboard akan terbuka otomatis setelah admin menyetujuinya.',
                           style: TextStyle(
                             color: Colors.grey[600],
                             fontSize: 14.sp,
@@ -171,13 +160,14 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
                           textAlign: TextAlign.center,
                         ),
                         SizedBox(height: 32.h),
-                        
                         SizedBox(
                           width: double.infinity,
                           height: 52.h,
                           child: ElevatedButton.icon(
                             onPressed: () {
-                              context.read<AuthBloc>().add(AuthLogoutRequested());
+                              context
+                                  .read<AuthBloc>()
+                                  .add(AuthLogoutRequested());
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.grey[100],
@@ -188,7 +178,8 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
                               elevation: 0,
                             ),
                             icon: const Icon(Icons.logout),
-                            label: const Text('Keluar & Kembali ke Login', style: TextStyle(fontWeight: FontWeight.bold)),
+                            label: const Text('Keluar & Kembali ke Login',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                         ),
                       ],

@@ -74,7 +74,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLogoutRequested>(_onLogout);
   }
 
-  Future<void> _onCheckSession(AuthCheckSession event, Emitter<AuthState> emit) async {
+  Future<void> _onCheckSession(
+      AuthCheckSession event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
       final hasToken = await _authRepository.hasToken();
@@ -91,21 +92,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         // Token expired
         await _authRepository.logout();
         emit(AuthUnauthenticated());
-      } catch (_) {
-        // Network error — try cached user
+      } on NetworkException {
+        // Cache is used only when the server cannot be reached. HTTP failures
+        // must not be mistaken for a valid authenticated session.
         final cached = await _authRepository.getCachedUser();
         if (cached != null) {
           emit(AuthAuthenticated(cached));
         } else {
           emit(AuthUnauthenticated());
         }
+      } on ApiException {
+        emit(AuthUnauthenticated());
       }
     } catch (e) {
       emit(AuthUnauthenticated());
     }
   }
 
-  Future<void> _onLogin(AuthLoginRequested event, Emitter<AuthState> emit) async {
+  Future<void> _onLogin(
+      AuthLoginRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
       final user = await _authRepository.login(
@@ -117,7 +122,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } on ValidationException catch (e) {
       emit(AuthError(e.allErrors.join('\n'), fieldErrors: e.errors));
     } on NetworkException {
-      emit(const AuthError('Tidak ada koneksi internet. Silakan cek jaringan Anda.'));
+      emit(const AuthError(
+          'Tidak ada koneksi internet. Silakan cek jaringan Anda.'));
     } on ApiException catch (e) {
       emit(AuthError(e.message));
     } catch (e) {
@@ -125,7 +131,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _onCompleteProfile(AuthCompleteProfileRequested event, Emitter<AuthState> emit) async {
+  Future<void> _onCompleteProfile(
+      AuthCompleteProfileRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
       final user = await _authRepository.completeProfile(event.profileData);
@@ -133,15 +140,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } on ValidationException catch (e) {
       emit(AuthError(e.allErrors.join('\n'), fieldErrors: e.errors));
     } on NetworkException {
-      emit(const AuthError('Tidak ada koneksi internet. Silakan cek jaringan Anda.'));
+      emit(const AuthError(
+          'Tidak ada koneksi internet. Silakan cek jaringan Anda.'));
     } on ApiException catch (e) {
       emit(AuthError(e.message));
     } catch (e) {
-      emit(const AuthError('Terjadi kesalahan saat melengkapi profil. Silakan coba lagi.'));
+      emit(const AuthError(
+          'Terjadi kesalahan saat melengkapi profil. Silakan coba lagi.'));
     }
   }
 
-  Future<void> _onLogout(AuthLogoutRequested event, Emitter<AuthState> emit) async {
+  Future<void> _onLogout(
+      AuthLogoutRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     await _authRepository.logout();
     emit(AuthUnauthenticated());

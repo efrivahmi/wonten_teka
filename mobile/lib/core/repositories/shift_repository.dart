@@ -19,7 +19,8 @@ class ShiftRepository {
   Future<List<ShiftTemplateModel>> getAdminTemplates() async {
     final response = await _api.get('/admin/shifts');
     final data = response.data as Map<String, dynamic>;
-    return (data['data'] as List).map((e) => ShiftTemplateModel.fromJson(e as Map<String, dynamic>)).toList();
+    final list = data['data'] as List? ?? [];
+    return list.map((e) => ShiftTemplateModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   Future<ShiftTemplateModel> createTemplate(Map<String, dynamic> data) async {

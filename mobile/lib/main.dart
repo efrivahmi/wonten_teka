@@ -38,22 +38,39 @@ void main() async {
   await initializeDateFormatting('id_ID', null);
   
   final secureStorage = SecureStorage();
-  final apiClient = ApiClient(storage: secureStorage);
+  
+  late final AuthBloc authBloc;
+  
+  final apiClient = ApiClient(
+    storage: secureStorage,
+    onUnauthorized: () {
+      authBloc.add(AuthLogoutRequested());
+    },
+  );
+
+  final authRepository = AuthRepository(api: apiClient, storage: secureStorage);
+  authBloc = AuthBloc(authRepository: authRepository)..add(AuthCheckSession());
 
   runApp(WontenTekaApp(
     apiClient: apiClient,
     secureStorage: secureStorage,
+    authRepository: authRepository,
+    authBloc: authBloc,
   ));
 }
 
 class WontenTekaApp extends StatelessWidget {
   final ApiClient apiClient;
   final SecureStorage secureStorage;
+  final AuthRepository authRepository;
+  final AuthBloc authBloc;
 
   const WontenTekaApp({
     super.key,
     required this.apiClient,
     required this.secureStorage,
+    required this.authRepository,
+    required this.authBloc,
   });
 
   @override
@@ -61,7 +78,7 @@ class WontenTekaApp extends StatelessWidget {
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider.value(value: apiClient),
-        RepositoryProvider(create: (_) => AuthRepository(api: apiClient, storage: secureStorage)),
+        RepositoryProvider.value(value: authRepository),
         RepositoryProvider(create: (_) => AttendanceRepository(api: apiClient)),
         RepositoryProvider(create: (_) => LeaveRepository(api: apiClient)),
         RepositoryProvider(create: (_) => ApprovalRepository(api: apiClient)),
@@ -75,10 +92,7 @@ class WontenTekaApp extends StatelessWidget {
       ],
       child: MultiBlocProvider(
         providers: [
-          BlocProvider(
-            create: (context) => AuthBloc(authRepository: context.read<AuthRepository>())
-              ..add(AuthCheckSession()),
-          ),
+          BlocProvider.value(value: authBloc),
           BlocProvider(create: (context) => AttendanceCubit(repository: context.read<AttendanceRepository>())),
           BlocProvider(create: (context) => AttendanceHistoryCubit(repository: context.read<AttendanceRepository>())),
           BlocProvider(create: (context) => LeaveCubit(repository: context.read<LeaveRepository>())),

@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:dio/dio.dart';
 import '../api/api_client.dart';
 import '../models/leave_models.dart';
 import '../models/paginated_response.dart';
@@ -9,12 +11,16 @@ class LeaveRepository {
 
   Future<List<LeaveTypeModel>> getTypes() async {
     final response = await _api.get('/leave/types');
-    return (response.data as List).map((e) => LeaveTypeModel.fromJson(e as Map<String, dynamic>)).toList();
+    final rawData = response.data;
+    final list = rawData is List ? rawData : (rawData is Map ? rawData['data'] as List? ?? [] : []);
+    return list.map((e) => LeaveTypeModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   Future<List<LeaveBalanceModel>> getBalances() async {
     final response = await _api.get('/leave/balances');
-    return (response.data as List).map((e) => LeaveBalanceModel.fromJson(e as Map<String, dynamic>)).toList();
+    final rawData = response.data;
+    final list = rawData is List ? rawData : (rawData is Map ? rawData['data'] as List? ?? [] : []);
+    return list.map((e) => LeaveBalanceModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   Future<PaginatedResponse<LeaveRequestModel>> getHistory({int page = 1}) async {
@@ -30,15 +36,27 @@ class LeaveRepository {
     required String startDate,
     required String endDate,
     required String reason,
-    String? attachmentUrl,
+    dynamic attachment, // File or path string
   }) async {
-    final response = await _api.post('/leave/request', data: {
+    final formData = FormData.fromMap({
       'leave_type_id': leaveTypeId,
       'start_date': startDate,
       'end_date': endDate,
       'reason': reason,
-      'attachment_url': attachmentUrl,
     });
+
+    if (attachment != null) {
+      if (attachment is File) {
+        formData.files.add(MapEntry(
+          'attachment',
+          await MultipartFile.fromFile(attachment.path, filename: attachment.path.split('/').last),
+        ));
+      } else if (attachment is String) {
+        formData.fields.add(MapEntry('attachment_url', attachment));
+      }
+    }
+
+    final response = await _api.post('/leave/request', data: formData);
     final data = response.data as Map<String, dynamic>;
     return LeaveRequestModel.fromJson(data['data'] as Map<String, dynamic>);
   }

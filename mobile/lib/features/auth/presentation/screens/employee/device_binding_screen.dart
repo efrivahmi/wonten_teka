@@ -8,6 +8,8 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/storage/secure_storage.dart';
 import '../../../../../core/repositories/device_repository.dart';
 import '../../../../../core/api/api_exceptions.dart';
+import '../../../../../core/widgets/brand_panel.dart';
+import '../../../../../core/widgets/wonten_card.dart';
 import '../../../../auth/bloc/auth_bloc.dart';
 
 class DeviceBindingScreen extends StatefulWidget {
@@ -45,14 +47,14 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
         _deviceFingerprint =
             iosInfo.identifierForVendor ?? iosInfo.utsname.machine;
       }
-      
+
       if (!mounted) return;
 
       // Auto check status before asking user to bind
       try {
         final deviceRepo = context.read<DeviceRepository>();
         final device = await deviceRepo.getStatus(_deviceFingerprint);
-        
+
         if (device.status == 'active') {
           final secureStorage = SecureStorage();
           await secureStorage.saveDeviceFingerprint(_deviceFingerprint);
@@ -132,9 +134,10 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isBinding = false);
-        String errorMessage = 'Gagal mendaftarkan perangkat. Silakan coba lagi.';
+        String errorMessage =
+            'Gagal mendaftarkan perangkat. Silakan coba lagi.';
         if (e is ApiException) {
-           errorMessage = e.message;
+          errorMessage = e.message;
         }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -151,21 +154,15 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
   Widget build(BuildContext context) {
     // If there is an error during binding, we'll store it here to display properly
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLowest,
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Background Header
-          Container(
-            height: 320.h,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(32.r),
-                bottomRight: Radius.circular(32.r),
-              ),
-            ),
+          Positioned(
+            left: 12.w,
+            right: 12.w,
+            top: 12.h,
+            child: BrandPanel(child: SizedBox(height: 265.h)),
           ),
-          
           SafeArea(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: 24.w),
@@ -189,70 +186,81 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
                         SizedBox(height: 8.h),
                         Text(
                           'Mengamankan akun Anda',
-                          style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 14.sp),
+                          style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontSize: 14.sp),
                         ),
                       ],
                     ),
                   ),
                   SizedBox(height: 60.h),
-                  
-                  // Card
-                  Container(
+                  WontenCard(
                     padding: EdgeInsets.all(32.w),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
                     child: Column(
                       children: [
                         if (_isLoading) ...[
-                          const CircularProgressIndicator(color: AppColors.primary),
+                          const CircularProgressIndicator(
+                              color: AppColors.primary),
                           SizedBox(height: 24.h),
-                          Text('Membaca identitas perangkat...', style: TextStyle(color: Colors.grey[600], fontSize: 14.sp)),
+                          Text('Membaca identitas perangkat...',
+                              style: TextStyle(
+                                  color: Colors.grey[600], fontSize: 14.sp)),
                         ] else ...[
                           Container(
                             padding: EdgeInsets.all(16.w),
-                            decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
-                            child: Icon(Icons.smartphone, size: 48.w, color: AppColors.primary),
+                            decoration: BoxDecoration(
+                                color: AppColors.secondaryContainer,
+                                borderRadius: BorderRadius.circular(20.r)),
+                            child: Icon(Icons.smartphone,
+                                size: 48.w, color: AppColors.primary),
                           ),
                           SizedBox(height: 24.h),
-                          Text(_deviceName, style: TextStyle(color: AppColors.onSurface, fontSize: 20.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                          Text(_deviceName,
+                              style: TextStyle(
+                                  color: AppColors.onSurface,
+                                  fontSize: 20.sp,
+                                  fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center),
                           SizedBox(height: 8.h),
-                          Text(_deviceOS, style: TextStyle(color: Colors.grey[600], fontSize: 14.sp)),
+                          Text(_deviceOS,
+                              style: TextStyle(
+                                  color: Colors.grey[600], fontSize: 14.sp)),
                           SizedBox(height: 12.h),
                           Text(
                             'Ajukan perangkat ini untuk dikaitkan ke akun Anda. Akses dashboard tersedia setelah admin menyetujuinya.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp, height: 1.4),
+                            style: TextStyle(
+                                color: AppColors.onSurfaceVariant,
+                                fontSize: 12.sp,
+                                height: 1.4),
                           ),
                           SizedBox(height: 32.h),
                           SizedBox(
                             width: double.infinity,
                             height: 52.h,
-                            child: ElevatedButton(
+                            child: FilledButton(
                               onPressed: _isBinding ? null : _handleBindDevice,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-                                elevation: 0,
-                              ),
                               child: _isBinding
-                                  ? SizedBox(width: 24.w, height: 24.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                  : Text('Ajukan Perangkat', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                                  ? SizedBox(
+                                      width: 24.w,
+                                      height: 24.w,
+                                      child: const CircularProgressIndicator(
+                                          color: Colors.white, strokeWidth: 2))
+                                  : Text('Ajukan Perangkat',
+                                      style: TextStyle(
+                                          fontSize: 14.sp,
+                                          fontWeight: FontWeight.bold)),
                             ),
                           ),
                           SizedBox(height: 16.h),
                           TextButton(
-                            onPressed: _isBinding ? null : () => context.read<AuthBloc>().add(AuthLogoutRequested()),
-                            child: Text('Gunakan Akun Lain', style: TextStyle(color: Colors.grey[600])),
+                            onPressed: _isBinding
+                                ? null
+                                : () => context
+                                    .read<AuthBloc>()
+                                    .add(AuthLogoutRequested()),
+                            child: Text('Gunakan Akun Lain',
+                                style: TextStyle(color: Colors.grey[600])),
                           ),
                         ],
                       ],

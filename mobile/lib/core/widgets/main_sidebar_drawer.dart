@@ -16,7 +16,7 @@ class MainSidebarDrawer extends StatelessWidget {
         bool isAdmin = false;
         String userName = 'Pengguna';
         String roleName = 'Karyawan';
-        
+
         if (state is AuthAuthenticated) {
           isAdmin = state.user.isAdmin;
           userName = state.user.employee?.fullName ?? state.user.name;
@@ -32,81 +32,147 @@ class MainSidebarDrawer extends StatelessWidget {
               _buildHeader(context, userName, roleName),
               Expanded(
                 child: FutureBuilder<dynamic>(
-                  future: ApiClient().get('/app-config'),
+                  future: context.read<ApiClient>().get('/app-config'),
                   builder: (context, configSnapshot) {
                     final menu = configSnapshot.hasData
-                        ? ((configSnapshot.data!.data['data']['employee_menu'] as List? ?? const [])
+                        ? ((configSnapshot.data!.data['data']['employee_menu']
+                                    as List? ??
+                                const [])
                             .whereType<Map>()
                             .where((item) => item['enabled'] == true)
-                            .map((item) => item['key'].toString()).toSet())
-                        : <String>{'attendance', 'schedule', 'leave', 'overtime', 'claims', 'payroll', 'profile'};
+                            .map((item) => item['key'].toString())
+                            .toSet())
+                        : <String>{
+                            'attendance',
+                            'schedule',
+                            'leave',
+                            'overtime',
+                            'claims',
+                            'payroll',
+                            'profile'
+                          };
                     return ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    _buildListTile(context, 'Beranda', Icons.home, '/app/home'),
-                    
-                    if (isAdmin) ...[
-                      const Divider(),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                        child: Text('ADMINISTRATOR', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: AppColors.onSurfaceVariant, letterSpacing: 1.2)),
-                      ),
-                      _buildListTile(context, 'Dasbor Admin', Icons.admin_panel_settings, '/admin/dashboard'),
-                    ],
-
-                    if (isAdmin) ...[
-                      const Divider(),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                        child: Text('MASTER DATA', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: AppColors.onSurfaceVariant)),
-                      ),
-                      ExpansionTile(
-                        leading: const Icon(Icons.storage, color: AppColors.primary),
-                        title: const Text('Data Utama', style: TextStyle(fontWeight: FontWeight.w600)),
-                        childrenPadding: EdgeInsets.only(left: 16.w),
-                        children: [
-                          _buildListTile(context, 'Karyawan', Icons.people_outline, '/admin/employees'),
-                          _buildListTile(context, 'Kategori Shift', Icons.calendar_month, '/admin/shifts'),
-                          _buildListTile(context, 'Jadwal Shift', Icons.assignment_ind, '/admin/shift-assignments'),
-                          _buildListTile(context, 'Tipe Cuti', Icons.flight_takeoff, '/admin/leave-types'),
-                          _buildListTile(context, 'Konfigurasi Payroll', Icons.settings_suggest, '/admin/payroll-config'),
+                      padding: EdgeInsets.zero,
+                      children: [
+                        _buildListTile(
+                            context, 'Beranda', Icons.home, '/app/home'),
+                        if (isAdmin) ...[
+                          const Divider(),
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16.w, vertical: 8.h),
+                            child: Text('ADMINISTRATOR',
+                                style: TextStyle(
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.onSurfaceVariant,
+                                    letterSpacing: 1.2)),
+                          ),
+                          _buildListTile(context, 'Dasbor Admin',
+                              Icons.admin_panel_settings, '/admin/dashboard'),
                         ],
-                      ),
-                      ExpansionTile(
-                        leading: const Icon(Icons.insert_chart, color: AppColors.infoCerulean),
-                        title: const Text('Laporan & Analitik', style: TextStyle(fontWeight: FontWeight.w600)),
-                        childrenPadding: EdgeInsets.only(left: 16.w),
-                        children: [
-                          _buildListTile(context, 'Laporan Absensi', Icons.history, '/admin/reports'),
-                          _buildListTile(context, 'Tinjauan Flag Absen', Icons.flag, '/admin/attendance-flags'),
+                        if (isAdmin) ...[
+                          const Divider(),
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16.w, vertical: 8.h),
+                            child: Text('MASTER DATA',
+                                style: TextStyle(
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.onSurfaceVariant)),
+                          ),
+                          ExpansionTile(
+                            leading: const Icon(Icons.storage,
+                                color: AppColors.primary),
+                            title: const Text('Data Utama',
+                                style: TextStyle(fontWeight: FontWeight.w600)),
+                            childrenPadding: EdgeInsets.only(left: 16.w),
+                            children: [
+                              _buildListTile(context, 'Karyawan',
+                                  Icons.people_outline, '/admin/employees'),
+                              _buildListTile(context, 'Kategori Shift',
+                                  Icons.calendar_month, '/admin/shifts'),
+                              _buildListTile(
+                                  context,
+                                  'Jadwal Shift',
+                                  Icons.assignment_ind,
+                                  '/admin/shift-assignments'),
+                              _buildListTile(context, 'Tipe Cuti',
+                                  Icons.flight_takeoff, '/admin/leave-types'),
+                              _buildListTile(
+                                  context,
+                                  'Konfigurasi Payroll',
+                                  Icons.settings_suggest,
+                                  '/admin/payroll-config'),
+                            ],
+                          ),
+                          ExpansionTile(
+                            leading: const Icon(Icons.insert_chart,
+                                color: AppColors.infoCerulean),
+                            title: const Text('Laporan & Analitik',
+                                style: TextStyle(fontWeight: FontWeight.w600)),
+                            childrenPadding: EdgeInsets.only(left: 16.w),
+                            children: [
+                              _buildListTile(context, 'Laporan Absensi',
+                                  Icons.history, '/admin/reports'),
+                              _buildListTile(context, 'Tinjauan Flag Absen',
+                                  Icons.flag, '/admin/attendance-flags'),
+                            ],
+                          ),
+                          _buildListTile(context, 'Pengumuman / Event',
+                              Icons.campaign, '/admin/events'),
+                          _buildListTile(context, 'Pengaturan Perusahaan',
+                              Icons.business, '/admin/org-settings'),
+                          _buildListTile(context, 'Pengaturan Sistem',
+                              Icons.settings, '/admin/settings'),
                         ],
-                      ),
-                      _buildListTile(context, 'Pengumuman / Event', Icons.campaign, '/admin/events'),
-                      _buildListTile(context, 'Pengaturan Perusahaan', Icons.business, '/admin/org-settings'),
-                      _buildListTile(context, 'Pengaturan Sistem', Icons.settings, '/admin/settings'),
-                    ],
-
-                    const Divider(),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                      child: Text('PERSONAL', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: AppColors.onSurfaceVariant)),
-                    ),
-                    if (menu.contains('attendance')) _buildListTile(context, 'Riwayat Absensi', Icons.fingerprint, '/app/attendance'),
-                    if (menu.contains('schedule')) _buildListTile(context, 'Jadwal Shift Saya', Icons.schedule, '/app/schedule/shifts'),
-                    if (menu.contains('leave')) _buildListTile(context, 'Riwayat Cuti', Icons.event_busy, '/app/leave'),
-                    if (menu.contains('overtime')) _buildListTile(context, 'Lembur', Icons.more_time, '/app/overtime'),
-                    if (menu.contains('claims')) _buildListTile(context, 'Klaim / Reimburse', Icons.receipt_long, '/app/claims'),
-                    if (menu.contains('payroll')) _buildListTile(context, 'Slip Gaji', Icons.request_quote, '/app/payroll'),
-                    if (menu.contains('biometric')) _buildListTile(context, 'Pendaftaran Wajah', Icons.face_retouching_natural, '/app/profile/face-update'),
-                    if (menu.contains('profile')) _buildListTile(context, 'Profil', Icons.person, '/app/profile'),
-                    SizedBox(height: 24.h),
-                  ],
+                        const Divider(),
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 16.w, vertical: 8.h),
+                          child: Text('PERSONAL',
+                              style: TextStyle(
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.onSurfaceVariant)),
+                        ),
+                        if (menu.contains('attendance'))
+                          _buildListTile(context, 'Riwayat Absensi',
+                              Icons.fingerprint, '/app/attendance'),
+                        if (menu.contains('schedule'))
+                          _buildListTile(context, 'Jadwal Shift Saya',
+                              Icons.schedule, '/app/schedule/shifts'),
+                        if (menu.contains('leave'))
+                          _buildListTile(context, 'Riwayat Cuti',
+                              Icons.event_busy, '/app/leave'),
+                        if (menu.contains('overtime'))
+                          _buildListTile(context, 'Lembur', Icons.more_time,
+                              '/app/overtime'),
+                        if (menu.contains('claims'))
+                          _buildListTile(context, 'Klaim / Reimburse',
+                              Icons.receipt_long, '/app/claims'),
+                        if (menu.contains('payroll'))
+                          _buildListTile(context, 'Slip Gaji',
+                              Icons.request_quote, '/app/payroll'),
+                        if (menu.contains('biometric'))
+                          _buildListTile(
+                              context,
+                              'Pendaftaran Wajah',
+                              Icons.face_retouching_natural,
+                              '/app/profile/face-update'),
+                        if (menu.contains('profile'))
+                          _buildListTile(
+                              context, 'Profil', Icons.person, '/app/profile'),
+                        SizedBox(height: 24.h),
+                      ],
                     );
                   },
                 ),
               ),
               const Divider(height: 1),
-              _buildListTile(context, 'Keluar', Icons.logout, null, color: AppColors.errorCrimson, onTap: () {
+              _buildListTile(context, 'Keluar', Icons.logout, null,
+                  color: AppColors.errorCrimson, onTap: () {
                 context.read<AuthBloc>().add(AuthLogoutRequested());
                 context.go('/login');
               }),
@@ -121,7 +187,11 @@ class MainSidebarDrawer extends StatelessWidget {
   Widget _buildHeader(BuildContext context, String userName, String roleName) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 24.h, bottom: 24.h, left: 16.w, right: 16.w),
+      padding: EdgeInsets.only(
+          top: MediaQuery.of(context).padding.top + 24.h,
+          bottom: 24.h,
+          left: 16.w,
+          right: 16.w),
       decoration: BoxDecoration(
         color: AppColors.primary,
         gradient: LinearGradient(
@@ -138,13 +208,19 @@ class MainSidebarDrawer extends StatelessWidget {
             backgroundColor: Colors.white,
             child: Text(
               userName.isNotEmpty ? userName[0].toUpperCase() : '?',
-              style: TextStyle(color: AppColors.primary, fontSize: 28.sp, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 28.sp,
+                  fontWeight: FontWeight.bold),
             ),
           ),
           SizedBox(height: 16.h),
           Text(
             userName,
-            style: TextStyle(color: Colors.white, fontSize: 18.sp, fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 4.h),
           Container(
@@ -155,7 +231,10 @@ class MainSidebarDrawer extends StatelessWidget {
             ),
             child: Text(
               roleName,
-              style: TextStyle(color: Colors.white, fontSize: 12.sp, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w500),
             ),
           ),
         ],
@@ -163,10 +242,15 @@ class MainSidebarDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildListTile(BuildContext context, String title, IconData icon, String? route, {Color? color, VoidCallback? onTap}) {
+  Widget _buildListTile(
+      BuildContext context, String title, IconData icon, String? route,
+      {Color? color, VoidCallback? onTap}) {
     return ListTile(
       leading: Icon(icon, color: color ?? AppColors.onSurfaceVariant),
-      title: Text(title, style: TextStyle(color: color ?? AppColors.onSurface, fontWeight: FontWeight.w500)),
+      title: Text(title,
+          style: TextStyle(
+              color: color ?? AppColors.onSurface,
+              fontWeight: FontWeight.w500)),
       onTap: () {
         if (onTap != null) {
           onTap();

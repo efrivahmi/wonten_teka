@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
+import '../../../../../core/widgets/brand_panel.dart';
 import '../../../../auth/bloc/auth_bloc.dart';
 
 class UserProfileScreen extends StatelessWidget {
@@ -18,15 +19,13 @@ class UserProfileScreen extends StatelessWidget {
         final position = user?.employee?.position ?? '-';
         final department = user?.employee?.department ?? '-';
         final employeeNumber = user?.employee?.employeeNumber ?? '-';
-        final roleBadge = user?.isAdmin == true
-            ? 'Administrator'
-            : 'Karyawan';
+        final roleBadge = user?.isAdmin == true ? 'Administrator' : 'Karyawan';
         final roleBadgeColor = user?.isAdmin == true
             ? AppColors.errorCrimson
             : AppColors.infoCerulean;
 
         return Scaffold(
-          backgroundColor: AppColors.surface,
+          backgroundColor: AppColors.background,
           appBar: AppBar(
             backgroundColor: AppColors.surface,
             elevation: 0,
@@ -41,21 +40,23 @@ class UserProfileScreen extends StatelessWidget {
                     shape: BoxShape.circle,
                     border: Border.all(color: AppColors.outlineVariant),
                   ),
-                  child: Icon(Icons.person, color: AppColors.primary, size: 20.w),
+                  child:
+                      Icon(Icons.person, color: AppColors.primary, size: 20.w),
                 ),
                 SizedBox(width: 8.w),
                 Text(
                   'Profil Saya',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ],
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.notifications_outlined, color: AppColors.onSurfaceVariant),
+                icon: const Icon(Icons.notifications_outlined,
+                    color: AppColors.onSurfaceVariant),
                 onPressed: () => context.push('/app/notifications'),
               ),
             ],
@@ -65,7 +66,7 @@ class UserProfileScreen extends StatelessWidget {
             child: Column(
               children: [
                 // Profile Header Card
-                InfoCard(
+                BrandPanel(
                   padding: EdgeInsets.all(24.w),
                   child: Column(
                     children: [
@@ -89,7 +90,9 @@ class UserProfileScreen extends StatelessWidget {
                         ),
                         child: Center(
                           child: Text(
-                            employeeName.isNotEmpty ? employeeName[0].toUpperCase() : '?',
+                            employeeName.isNotEmpty
+                                ? employeeName[0].toUpperCase()
+                                : '?',
                             style: TextStyle(
                               color: AppColors.primary,
                               fontSize: 36.sp,
@@ -102,28 +105,29 @@ class UserProfileScreen extends StatelessWidget {
                       Text(
                         employeeName,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: AppColors.onSurface,
-                          fontWeight: FontWeight.bold,
-                        ),
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                       SizedBox(height: 4.h),
                       Text(
                         '$position • $department',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                        ),
+                              color: Colors.white70,
+                            ),
                       ),
                       SizedBox(height: 4.h),
                       Text(
                         'NIP: $employeeNumber',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                        ),
+                              color: Colors.white70,
+                            ),
                       ),
                       SizedBox(height: 12.h),
                       // Role Badge
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 12.w, vertical: 4.h),
                         decoration: BoxDecoration(
                           color: roleBadgeColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20.r),
@@ -131,7 +135,8 @@ class UserProfileScreen extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.shield, size: 14.w, color: roleBadgeColor),
+                            Icon(Icons.shield,
+                                size: 14.w, color: roleBadgeColor),
                             SizedBox(width: 4.w),
                             Text(
                               roleBadge,
@@ -224,9 +229,9 @@ class UserProfileScreen extends StatelessWidget {
                       child: Text(
                         'Admin Panel',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: AppColors.errorCrimson,
-                          fontWeight: FontWeight.bold,
-                        ),
+                              color: AppColors.errorCrimson,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ),
                   ),
@@ -253,7 +258,8 @@ class UserProfileScreen extends StatelessWidget {
                         context: context,
                         builder: (ctx) => AlertDialog(
                           title: const Text('Keluar Aplikasi'),
-                          content: const Text('Apakah Anda yakin ingin keluar?'),
+                          content:
+                              const Text('Apakah Anda yakin ingin keluar?'),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(ctx),
@@ -262,7 +268,9 @@ class UserProfileScreen extends StatelessWidget {
                             TextButton(
                               onPressed: () {
                                 Navigator.pop(ctx);
-                                context.read<AuthBloc>().add(AuthLogoutRequested());
+                                context
+                                    .read<AuthBloc>()
+                                    .add(AuthLogoutRequested());
                               },
                               child: const Text(
                                 'Keluar',
@@ -288,10 +296,11 @@ class UserProfileScreen extends StatelessWidget {
                         SizedBox(width: 8.w),
                         Text(
                           'Keluar Aplikasi',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: AppColors.error,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    color: AppColors.error,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
                       ],
                     ),
@@ -348,16 +357,16 @@ class _ProfileMenuItem extends StatelessWidget {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: AppColors.onSurface,
-                    fontWeight: FontWeight.w600,
-                  ),
+                        color: AppColors.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
                 SizedBox(height: 2.h),
                 Text(
                   subtitle,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.onSurfaceVariant,
-                  ),
+                        color: AppColors.onSurfaceVariant,
+                      ),
                 ),
               ],
             ),
@@ -372,4 +381,3 @@ class _ProfileMenuItem extends StatelessWidget {
     );
   }
 }
-

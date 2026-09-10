@@ -10,7 +10,9 @@ class ClaimRepository {
 
   Future<List<ClaimCategoryModel>> getCategories() async {
     final response = await _api.get('/claims/categories');
-    return (response.data as List).map((e) => ClaimCategoryModel.fromJson(e as Map<String, dynamic>)).toList();
+    final rawData = response.data;
+    final list = rawData is List ? rawData : (rawData is Map ? rawData['data'] as List? ?? [] : []);
+    return list.map((e) => ClaimCategoryModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   Future<PaginatedResponse<ClaimModel>> getHistory({int page = 1}) async {

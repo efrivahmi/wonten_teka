@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import '../api/api_client.dart';
@@ -10,21 +11,31 @@ class AttendanceRepository {
   AttendanceRepository({required ApiClient api}) : _api = api;
 
   Future<void> enrollFace({
-    required List<List<double>> faceEmbeddings, // Now accepts 3 embeddings
+    required List<File> faceImages,
+    required List<List<double>> faceEmbeddings,
     required String deviceId,
   }) async {
-    await _api.post('/biometrics/enroll', data: {
-      'embeddings': faceEmbeddings,
+    final formData = FormData.fromMap({
       'device_id': deviceId,
     });
+    for (int i = 0; i < faceEmbeddings.length; i++) {
+      formData.fields.add(MapEntry('embeddings[$i]', jsonEncode(faceEmbeddings[i])));
+    }
+    for (int i = 0; i < faceImages.length; i++) {
+      formData.files.add(MapEntry(
+        'face_images[]',
+        await MultipartFile.fromFile(faceImages[i].path, filename: 'face_$i.jpg'),
+      ));
+    }
+    await _api.post('/biometrics/enroll', data: formData);
   }
 
   Future<List<List<double>>?> syncFace() async {
     final response = await _api.get('/biometrics/sync');
     final data = response.data as Map<String, dynamic>;
-    if (data['embeddings'] != null) {
+    if (data['embeddings'] is List) {
       final List<dynamic> raw = data['embeddings'];
-      return raw.map((e) => (e as List).map((n) => (n as num).toDouble()).toList()).toList();
+      return raw.whereType<List>().map((e) => e.map((n) => (n as num).toDouble()).toList()).toList();
     }
     return null;
   }

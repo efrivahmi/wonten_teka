@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/models/claim_models.dart';
 import '../../../bloc/claim_cubit.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class ClaimSubmissionScreen extends StatefulWidget {
   const ClaimSubmissionScreen({super.key});
@@ -19,7 +21,23 @@ class _ClaimSubmissionScreenState extends State<ClaimSubmissionScreen> {
   final _amountController = TextEditingController();
   final _descController = TextEditingController();
   DateTime? _expenseDate;
-  dynamic _attachment;
+  File? _attachment;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickFile() async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+      if (image != null) {
+        setState(() {
+          _attachment = File(image.path);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal memilih gambar: $e')));
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -61,6 +79,7 @@ class _ClaimSubmissionScreenState extends State<ClaimSubmissionScreen> {
             amount: double.tryParse(_amountController.text) ?? 0.0,
             expenseDate: df.format(_expenseDate!),
             description: _descController.text,
+            receiptPath: _attachment?.path,
           );
     } else if (_expenseDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -295,7 +314,7 @@ class _ClaimSubmissionScreenState extends State<ClaimSubmissionScreen> {
                                 Text('Lampiran Bukti (Opsional)', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
                                 SizedBox(height: 8.h),
                                 InkWell(
-                                  onTap: isLoading ? null : () {}, // _pickFile not implemented in this scope
+                                  onTap: isLoading ? null : _pickFile,
                                   borderRadius: BorderRadius.circular(16.r),
                                   child: Container(
                                     width: double.infinity,
@@ -309,7 +328,7 @@ class _ClaimSubmissionScreenState extends State<ClaimSubmissionScreen> {
                                       children: [
                                         Icon(Icons.cloud_upload_outlined, size: 32.w, color: AppColors.primary),
                                         SizedBox(height: 8.h),
-                                        Text(_attachment == null ? 'Upload Foto / PDF' : 'File dipilih', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                                        Text(_attachment == null ? 'Upload Foto / Bukti Transaksi' : 'File dipilih: ${_attachment!.path.split('/').last.split('\\').last}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
                                       ],
                                     ),
                                   ),

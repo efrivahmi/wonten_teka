@@ -27,6 +27,11 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   final _dobController = TextEditingController();
   final _addressController = TextEditingController();
   final _joinDateController = TextEditingController();
+  final _bpjsKesController = TextEditingController();
+  final _bpjsTkController = TextEditingController();
+  final _ptkpController = TextEditingController();
+  final _bankNameController = TextEditingController();
+  final _bankAccountController = TextEditingController();
 
   String? _gender;
   String? _employmentStatus;
@@ -61,6 +66,17 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         if (emp.joinDate != null) {
           _joinDateController.text = emp.joinDate!.toIso8601String().split('T')[0];
         }
+        if (emp.nik != null) _nikController.text = emp.nik!;
+        if (emp.npwp != null) _npwpController.text = emp.npwp!;
+        if (emp.dateOfBirth != null) {
+          _dobController.text = emp.dateOfBirth!.toIso8601String().split('T')[0];
+        }
+        if (emp.employmentStatus != null) _employmentStatus = emp.employmentStatus;
+        if (emp.bpjsKesehatan != null) _bpjsKesController.text = emp.bpjsKesehatan!;
+        if (emp.bpjsKetenagakerjaan != null) _bpjsTkController.text = emp.bpjsKetenagakerjaan!;
+        if (emp.ptkpStatus != null) _ptkpController.text = emp.ptkpStatus!;
+        if (emp.bankName != null) _bankNameController.text = emp.bankName!;
+        if (emp.bankAccount != null) _bankAccountController.text = emp.bankAccount!;
       }
     }
 
@@ -150,6 +166,11 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     _dobController.dispose();
     _addressController.dispose();
     _joinDateController.dispose();
+    _bpjsKesController.dispose();
+    _bpjsTkController.dispose();
+    _ptkpController.dispose();
+    _bankNameController.dispose();
+    _bankAccountController.dispose();
     super.dispose();
   }
 
@@ -168,6 +189,11 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         'position': _position,
         'join_date': _joinDateController.text,
         'employment_status': _employmentStatus,
+        'bpjs_kesehatan': _bpjsKesController.text,
+        'bpjs_ketenagakerjaan': _bpjsTkController.text,
+        'ptkp_status': _ptkpController.text,
+        'bank_name': _bankNameController.text,
+        'bank_account': _bankAccountController.text,
       };
 
       context.read<AuthBloc>().add(AuthCompleteProfileRequested(profileData));
@@ -279,23 +305,33 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       SizedBox(height: 16.h),
                       TextFormField(
                         controller: _phoneController,
-                        decoration: const InputDecoration(labelText: 'Nomor Telepon'),
+                        decoration: const InputDecoration(labelText: 'Nomor Telepon*'),
                         keyboardType: TextInputType.phone,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Required';
+                          if (v.length < 9) return 'Nomor tidak valid';
+                          return null;
+                        },
                       ),
                       SizedBox(height: 16.h),
                       TextFormField(
                         controller: _nikController,
-                        decoration: const InputDecoration(labelText: 'NIK KTP'),
+                        decoration: const InputDecoration(labelText: 'NIK KTP*'),
                         keyboardType: TextInputType.number,
                         maxLength: 16,
                         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Required';
+                          if (v.length != 16) return 'NIK harus 16 digit';
+                          return null;
+                        },
                       ),
                       SizedBox(height: 16.h),
                       TextFormField(
                         controller: _npwpController,
-                        decoration: const InputDecoration(labelText: 'Nomor NPWP'),
+                        decoration: const InputDecoration(labelText: 'Nomor NPWP (Opsional)'),
                         keyboardType: TextInputType.number,
-                        maxLength: 16,
                         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       ),
                       SizedBox(height: 16.h),
@@ -303,7 +339,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         controller: _dobController,
                         readOnly: true,
                         onTap: () => _selectDate(_dobController),
-                        decoration: const InputDecoration(labelText: 'Tanggal Lahir (YYYY-MM-DD)'),
+                        decoration: const InputDecoration(labelText: 'Tanggal Lahir (YYYY-MM-DD)*'),
+                        validator: (v) => v!.isEmpty ? 'Required' : null,
                       ),
                       SizedBox(height: 16.h),
                       DropdownButtonFormField<String>(
@@ -317,7 +354,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       TextFormField(
                         controller: _addressController,
                         decoration: InputDecoration(
-                          labelText: 'Alamat Domisili',
+                          labelText: 'Alamat Domisili*',
                           suffixIcon: IconButton(
                             icon: const Icon(Icons.my_location),
                             onPressed: _fetchLocationAndAddress,
@@ -325,6 +362,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                           ),
                         ),
                         maxLines: 2,
+                        validator: (v) => v!.isEmpty ? 'Required' : null,
                       ),
                       SizedBox(height: 16.h),
                       DropdownButtonFormField<String>(
@@ -357,6 +395,45 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         items: _employmentStatuses.map((item) => DropdownMenuItem(value: item['value'], child: Text(item['label']!))).toList(),
                         validator: (v) => v == null || v.isEmpty ? 'Pilih status' : null,
                         onChanged: (v) => setState(() => _employmentStatus = v),
+                      ),
+                      SizedBox(height: 24.h),
+                      Text('Data Tambahan (Opsional)', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 16.h),
+                      TextFormField(
+                        controller: _bpjsKesController,
+                        decoration: const InputDecoration(labelText: 'Nomor BPJS Kesehatan'),
+                        keyboardType: TextInputType.number,
+                      ),
+                      SizedBox(height: 16.h),
+                      TextFormField(
+                        controller: _bpjsTkController,
+                        decoration: const InputDecoration(labelText: 'Nomor BPJS Ketenagakerjaan'),
+                        keyboardType: TextInputType.number,
+                      ),
+                      SizedBox(height: 16.h),
+                      TextFormField(
+                        controller: _ptkpController,
+                        decoration: const InputDecoration(labelText: 'Status PTKP (Misal: TK/0, K/1)'),
+                      ),
+                      SizedBox(height: 16.h),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _bankNameController,
+                              decoration: const InputDecoration(labelText: 'Nama Bank'),
+                            ),
+                          ),
+                          SizedBox(width: 16.w),
+                          Expanded(
+                            flex: 2,
+                            child: TextFormField(
+                              controller: _bankAccountController,
+                              decoration: const InputDecoration(labelText: 'Nomor Rekening'),
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                        ],
                       ),
                       SizedBox(height: 32.h),
                       SizedBox(

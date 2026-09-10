@@ -2,15 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../../core/widgets/brand_panel.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/api/api_client.dart';
 import '../../../../auth/bloc/auth_bloc.dart';
 import '../../widgets/admin_dashboard_calendar.dart';
 
-class AdminDashboardScreen extends StatelessWidget {
+class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
+  @override
+  State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
+}
+
+class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
+  late Future<dynamic> _stats;
+  @override
+  void initState() {
+    super.initState();
+    _stats = context.read<ApiClient>().get('/admin/dashboard');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,91 +31,107 @@ class AdminDashboardScreen extends StatelessWidget {
         final userName = user?.name ?? 'Admin';
 
         return Scaffold(
-          backgroundColor: AppColors.surfaceContainerLowest,
+          backgroundColor: AppColors.background,
           body: NestedScrollView(
             headerSliverBuilder: (context, innerScrolled) => [
               SliverAppBar(
                 pinned: true,
                 expandedHeight: 260.h,
-                backgroundColor: const Color(0xFF0E5D31),
+                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 title: Text(innerScrolled ? 'Dashboard Admin' : ''),
                 actions: [
-                  IconButton(icon: const Icon(Icons.notifications_none), onPressed: () => context.push('/app/notifications')),
-                  IconButton(icon: const Icon(Icons.logout), onPressed: () => context.read<AuthBloc>().add(AuthLogoutRequested())),
+                  IconButton(
+                      icon: const Icon(Icons.notifications_none),
+                      onPressed: () => context.push('/app/notifications')),
+                  IconButton(
+                      icon: const Icon(Icons.logout),
+                      onPressed: () =>
+                          context.read<AuthBloc>().add(AuthLogoutRequested())),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
                   collapseMode: CollapseMode.parallax,
-                  background: FutureBuilder<dynamic>(
-                    future: ApiClient().get('/app-config'),
-                    builder: (_, config) {
-                      final url = config.hasData ? config.data!.data['data']['branding']['hero_image_url']?.toString() : null;
-                      return Container(
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(colors: [Color(0xE60B3D22), Color(0x9915803D)]),
-                          image: DecorationImage(image: (url != null && url.isNotEmpty ? NetworkImage(url) : const AssetImage('assets/images/wonten-biometric-hero-v2.png')) as ImageProvider<Object>, fit: BoxFit.cover, alignment: Alignment.centerRight, colorFilter: const ColorFilter.mode(Color(0x880B3D22), BlendMode.darken)),
-                        ),
-                        padding: EdgeInsets.fromLTRB(24.w, 100.h, 24.w, 28.h), alignment: Alignment.bottomLeft,
-                        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text('MONITORING KEHADIRAN', style: TextStyle(color: const Color(0xFFB8F15A), fontSize: 11.sp, fontWeight: FontWeight.w800, letterSpacing: 1.3)), SizedBox(height: 6.h),
-                          Text('Halo, $userName', style: TextStyle(color: Colors.white, fontSize: 28.sp, fontWeight: FontWeight.w800)),
-                        ]).animate().fadeIn(duration: 500.ms).slideY(begin: .15, end: 0),
-                      );
-                    },
+                  background: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 88, 16, 16),
+                    child: BrandPanel(
+                        child: Align(
+                      alignment: Alignment.bottomLeft,
+                      child: ViewEntrance(
+                          child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                            Text('PUSAT KENDALI',
+                                style: TextStyle(
+                                    color: AppColors.primaryFixed,
+                                    fontSize: 11.sp,
+                                    letterSpacing: 2,
+                                    fontWeight: FontWeight.w700)),
+                            const SizedBox(height: 8),
+                            Text('Halo, $userName',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 26.sp,
+                                    fontWeight: FontWeight.w800)),
+                            const SizedBox(height: 6),
+                            const Text('Tim terhubung. Kehadiran terpantau.',
+                                style: TextStyle(color: Colors.white)),
+                          ])),
+                    )),
                   ),
                 ),
               ),
             ],
             body: SingleChildScrollView(
-                        padding: EdgeInsets.all(20.w),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildQuickStats(context),
-                            SizedBox(height: 24.h),
+              padding: EdgeInsets.all(20.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildQuickStats(context),
+                  SizedBox(height: 24.h),
 
-                            // 2. Admin Features Grid
-                            // 2. Admin Features Grids (Categorized)
-                            _buildSectionHeader('Kepegawaian'),
-                            SizedBox(height: 12.h),
-                            _buildKepegawaianGrid(context),
-                            SizedBox(height: 24.h),
+                  // 2. Admin Features Grid
+                  // 2. Admin Features Grids (Categorized)
+                  _buildSectionHeader('Kepegawaian'),
+                  SizedBox(height: 12.h),
+                  _buildKepegawaianGrid(context),
+                  SizedBox(height: 24.h),
 
-                            _buildSectionHeader('Kehadiran & Jadwal'),
-                            SizedBox(height: 12.h),
-                            _buildKehadiranGrid(context),
-                            SizedBox(height: 24.h),
+                  _buildSectionHeader('Kehadiran & Jadwal'),
+                  SizedBox(height: 12.h),
+                  _buildKehadiranGrid(context),
+                  SizedBox(height: 24.h),
 
-                            _buildSectionHeader('Penggajian'),
-                            SizedBox(height: 12.h),
-                            _buildPayrollGrid(context),
-                            SizedBox(height: 24.h),
+                  _buildSectionHeader('Penggajian'),
+                  SizedBox(height: 12.h),
+                  _buildPayrollGrid(context),
+                  SizedBox(height: 24.h),
 
-                            _buildSectionHeader('Komunikasi & Informasi'),
-                            SizedBox(height: 12.h),
-                            _buildKomunikasiGrid(context),
-                            SizedBox(height: 24.h),
+                  _buildSectionHeader('Komunikasi & Informasi'),
+                  SizedBox(height: 12.h),
+                  _buildKomunikasiGrid(context),
+                  SizedBox(height: 24.h),
 
-                            _buildSectionHeader('Sistem & Data'),
-                            SizedBox(height: 12.h),
-                            _buildSistemGrid(context),
-                            SizedBox(height: 24.h),
+                  _buildSectionHeader('Sistem & Data'),
+                  SizedBox(height: 12.h),
+                  _buildSistemGrid(context),
+                  SizedBox(height: 24.h),
 
-                            // 3. Admin Calendar Monitoring
-                            Text(
-                              'Kalender Kehadiran & Libur',
-                              style: TextStyle(
-                                  fontSize: 18.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.onSurface),
-                            ),
-                            SizedBox(height: 16.h),
-                            const AdminDashboardCalendar(),
-                            SizedBox(height: 60.h),
-                          ],
-                        ),
-                      ),
-                    ),
+                  // 3. Admin Calendar Monitoring
+                  Text(
+                    'Kalender Kehadiran & Libur',
+                    style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.onSurface),
+                  ),
+                  SizedBox(height: 16.h),
+                  const AdminDashboardCalendar(),
+                  SizedBox(height: 60.h),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );
@@ -112,7 +139,7 @@ class AdminDashboardScreen extends StatelessWidget {
 
   Widget _buildQuickStats(BuildContext context) {
     return FutureBuilder<dynamic>(
-      future: context.read<ApiClient>().get('/admin/dashboard'),
+      future: _stats,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -122,7 +149,15 @@ class AdminDashboardScreen extends StatelessWidget {
             width: double.infinity,
             padding: EdgeInsets.all(20.w),
             color: AppColors.surface,
-            child: const Text('Ringkasan belum dapat dimuat.', textAlign: TextAlign.center),
+            child: Column(children: [
+              const Text('Ringkasan belum dapat dimuat.'),
+              TextButton(
+                  onPressed: () => setState(() {
+                        _stats =
+                            context.read<ApiClient>().get('/admin/dashboard');
+                      }),
+                  child: const Text('Coba lagi'))
+            ]),
           );
         }
         final payload = snapshot.data!.data as Map<String, dynamic>;
@@ -136,7 +171,8 @@ class AdminDashboardScreen extends StatelessWidget {
 
   Widget _buildQuickStatsContent(
       BuildContext context, Map<String, dynamic> stats) {
-    final attendance = stats['attendance_today'] as Map<String, dynamic>? ?? const {};
+    final attendance =
+        stats['attendance_today'] as Map<String, dynamic>? ?? const {};
     final departments = (stats['department_attendance'] as List? ?? const [])
         .whereType<Map>()
         .toList();
@@ -169,27 +205,55 @@ class AdminDashboardScreen extends StatelessWidget {
             SizedBox(height: 24.h),
             const Divider(),
             SizedBox(height: 12.h),
-            Align(alignment: Alignment.centerLeft, child: Text('Kehadiran per departemen', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.sp))),
+            Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Kehadiran per departemen',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 14.sp))),
             SizedBox(height: 14.h),
             ...departments.map((item) {
               final rate = ((item['attendance_rate'] as num?) ?? 0).toDouble();
-              return Padding(padding: EdgeInsets.only(bottom: 12.h), child: Column(children: [
-                Row(children: [Expanded(child: Text(item['department']?.toString() ?? 'Tanpa departemen', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600))), Text('${rate.toStringAsFixed(1)}%', style: TextStyle(fontSize: 12.sp, color: AppColors.primary, fontWeight: FontWeight.w800))]),
-                SizedBox(height: 6.h),
-                TweenAnimationBuilder<double>(tween: Tween(begin: 0, end: rate / 100), duration: const Duration(milliseconds: 700), curve: Curves.easeOutCubic, builder: (_, value, __) => LinearProgressIndicator(value: value.clamp(0, 1), minHeight: 9.h, borderRadius: BorderRadius.circular(8.r), backgroundColor: AppColors.surfaceContainerHigh, color: AppColors.primary)),
-              ]));
+              return Padding(
+                  padding: EdgeInsets.only(bottom: 12.h),
+                  child: Column(children: [
+                    Row(children: [
+                      Expanded(
+                          child: Text(
+                              item['department']?.toString() ??
+                                  'Tanpa departemen',
+                              style: TextStyle(
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w600))),
+                      Text('${rate.toStringAsFixed(1)}%',
+                          style: TextStyle(
+                              fontSize: 12.sp,
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w800))
+                    ]),
+                    SizedBox(height: 6.h),
+                    TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: rate / 100),
+                        duration: const Duration(milliseconds: 700),
+                        curve: Curves.easeOutCubic,
+                        builder: (_, value, __) => LinearProgressIndicator(
+                            value: value.clamp(0, 1),
+                            minHeight: 9.h,
+                            borderRadius: BorderRadius.circular(8.r),
+                            backgroundColor: AppColors.surfaceContainerHigh,
+                            color: AppColors.primary)),
+                  ]));
             }),
           ],
           SizedBox(height: 20.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem(
-                  'Hadir', '${attendance['present'] ?? 0}', AppColors.successEmerald, Icons.how_to_reg),
-              _buildStatItem(
-                  'Alpha', '${attendance['absent'] ?? 0}', AppColors.errorCrimson, Icons.person_off),
-              _buildStatItem(
-                  'Cuti/Sakit', '${attendance['on_leave'] ?? 0}', AppColors.warningAmber, Icons.sick),
+              _buildStatItem('Hadir', '${attendance['present'] ?? 0}',
+                  AppColors.successEmerald, Icons.how_to_reg),
+              _buildStatItem('Alpha', '${attendance['absent'] ?? 0}',
+                  AppColors.errorCrimson, Icons.person_off),
+              _buildStatItem('Cuti/Sakit', '${attendance['on_leave'] ?? 0}',
+                  AppColors.warningAmber, Icons.sick),
             ],
           ),
           SizedBox(height: 20.h),
@@ -212,7 +276,7 @@ class AdminDashboardScreen extends StatelessWidget {
           )
         ],
       ),
-    ).animate().fadeIn().slideY(begin: 0.2, end: 0);
+    );
   }
 
   Widget _buildStatItem(
@@ -223,7 +287,7 @@ class AdminDashboardScreen extends StatelessWidget {
           padding: EdgeInsets.all(12.w),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Icon(icon, color: color, size: 28.w),
         ),
@@ -292,8 +356,10 @@ class AdminDashboardScreen extends StatelessWidget {
             () => context.push('/admin/reports')),
         _buildActionCard(context, 'Anomali Absen', Icons.warning_amber,
             () => context.push('/admin/attendance-flags')),
-        _buildActionCard(context, 'Jadwal Shift', Icons.event_available,
+        _buildActionCard(context, 'Template Shift', Icons.event_available,
             () => context.push('/admin/shifts')),
+        _buildActionCard(context, 'Penugasan Shift', Icons.assignment_ind,
+            () => context.push('/admin/shift-assignments')),
       ],
     );
   }
@@ -377,10 +443,10 @@ class AdminDashboardScreen extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: AppColors.errorCrimson.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
+                color: AppColors.secondaryContainer,
+                borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(icon, color: AppColors.errorCrimson, size: 26.sp),
+              child: Icon(icon, color: AppColors.primary, size: 26.sp),
             ),
             SizedBox(height: 12.h),
             Text(
@@ -396,5 +462,4 @@ class AdminDashboardScreen extends StatelessWidget {
       ),
     );
   }
-
 }

@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/models/leave_models.dart';
 import '../../../bloc/leave_cubit.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class LeaveRequestFormScreen extends StatefulWidget {
   const LeaveRequestFormScreen({super.key});
@@ -19,6 +21,23 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
   int? _selectedTypeId;
   DateTimeRange? _dateRange;
   final _reasonController = TextEditingController();
+  File? _attachment;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickFile() async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+      if (image != null) {
+        setState(() {
+          _attachment = File(image.path);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal memilih gambar: $e')));
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -58,6 +77,7 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
             startDate: df.format(_dateRange!.start),
             endDate: df.format(_dateRange!.end),
             reason: _reasonController.text,
+            attachment: _attachment,
           );
     } else if (_dateRange == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -300,6 +320,30 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
                                     contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
                                   ),
                                   validator: (v) => v?.isEmpty ?? true ? 'Wajib diisi' : null,
+                                ),
+                                SizedBox(height: 24.h),
+                                
+                                Text('Lampiran Bukti (Opsional / Sakit)', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                                SizedBox(height: 8.h),
+                                InkWell(
+                                  onTap: isLoading ? null : _pickFile,
+                                  borderRadius: BorderRadius.circular(16.r),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: EdgeInsets.symmetric(vertical: 24.h),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[50],
+                                      borderRadius: BorderRadius.circular(16.r),
+                                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), style: BorderStyle.solid),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Icon(Icons.cloud_upload_outlined, size: 32.w, color: AppColors.primary),
+                                        SizedBox(height: 8.h),
+                                        Text(_attachment == null ? 'Upload Foto Surat Keterangan' : 'File dipilih: ${_attachment!.path.split('/').last.split('\\').last}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                                 
                                 SizedBox(height: 32.h),

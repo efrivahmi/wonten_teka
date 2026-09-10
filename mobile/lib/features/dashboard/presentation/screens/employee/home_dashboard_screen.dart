@@ -9,6 +9,8 @@ import '../../../../company/bloc/company_cubit.dart';
 import '../../../../schedule/bloc/shift_cubit.dart';
 import '../../../../schedule/bloc/task_cubit.dart';
 import 'package:intl/intl.dart';
+import '../../../../../core/widgets/brand_panel.dart';
+import '../../../../../core/repositories/attendance_repository.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
   const HomeDashboardScreen({super.key});
@@ -19,22 +21,34 @@ class HomeDashboardScreen extends StatefulWidget {
 
 class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   DateTime _selectedDate = DateTime.now();
+  Map<String, dynamic>? _todayInfo;
 
   @override
   void initState() {
     super.initState();
+    _loadTodayInfo();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<AttendanceCubit>().loadHistory();
       context.read<CompanyCubit>().loadAll();
       context.read<ShiftCubit>().loadUpcoming();
-      context.read<TaskCubit>().loadTasksByDate(DateFormat('yyyy-MM-dd').format(_selectedDate));
+      context
+          .read<TaskCubit>()
+          .loadTasksByDate(DateFormat('yyyy-MM-dd').format(_selectedDate));
     });
+  }
+
+  Future<void> _loadTodayInfo() async {
+    try {
+      final info = await context.read<AttendanceRepository>().getTodayInfo();
+      if (mounted) setState(() => _todayInfo = info);
+    } catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLowest,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: RefreshIndicator(
           color: AppColors.primary,
@@ -43,23 +57,32 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             context.read<AttendanceCubit>().loadHistory();
             context.read<CompanyCubit>().loadAll();
             context.read<ShiftCubit>().loadUpcoming();
-            context.read<TaskCubit>().loadTasksByDate(DateFormat('yyyy-MM-dd').format(_selectedDate));
+            context.read<TaskCubit>().loadTasksByDate(
+                DateFormat('yyyy-MM-dd').format(_selectedDate));
+            await _loadTodayInfo();
             await Future.delayed(const Duration(milliseconds: 600));
           },
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
+              SliverAppBar(
+                  pinned: true,
+                  title: const Text('Ruang kerja'),
+                  actions: [
+                    IconButton(
+                        tooltip: 'Notifikasi',
+                        onPressed: () => context.push('/app/notifications'),
+                        icon: const Icon(Icons.notifications_none_rounded))
+                  ]),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.all(20.w),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildHeader(),
-                      SizedBox(height: 24.h),
                       _buildGreeting(),
                       SizedBox(height: 24.h),
-                      _buildHeroCard(context),
+                      ViewEntrance(child: _buildHeroCard(context)),
                       SizedBox(height: 32.h),
                       _buildFeaturesGrid(context),
                       SizedBox(height: 32.h),
@@ -78,70 +101,12 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     );
   }
 
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: AppColors.primaryContainer,
-                borderRadius: BorderRadius.circular(20.r),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.stars, color: Colors.white, size: 16.sp),
-                  SizedBox(width: 4.w),
-                  Text(
-                    'Poin',
-                    style: TextStyle(color: Colors.white, fontSize: 12.sp, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(width: 8.w),
-            BlocBuilder<AuthBloc, AuthState>(
-              builder: (context, state) {
-                if (state is AuthAuthenticated && state.user.isAdmin) {
-                  return Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                    decoration: BoxDecoration(
-                      color: AppColors.errorCrimson,
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                    child: Text(
-                      'ADMIN',
-                      style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.bold),
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.notifications_outlined, color: AppColors.onSurface),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: const Icon(Icons.receipt_long_outlined, color: AppColors.onSurface),
-              onPressed: () {},
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   Widget _buildGreeting() {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
-        final userName = state is AuthAuthenticated ? state.user.name.split(' ').first : 'Karyawan';
+        final userName = state is AuthAuthenticated
+            ? state.user.name.split(' ').first
+            : 'Karyawan';
         return Row(
           children: [
             Icon(Icons.account_circle_outlined, size: 28.sp),
@@ -161,26 +126,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   }
 
   Widget _buildHeroCard(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0B0B0B),
-        image: const DecorationImage(
-          image: AssetImage('assets/images/wonten-biometric-hero-v2.png'),
-          fit: BoxFit.cover,
-          alignment: Alignment.centerRight,
-          colorFilter: ColorFilter.mode(Color(0x99000000), BlendMode.darken),
-        ),
-        borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return BrandPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -192,6 +138,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               fontSize: 16.sp,
             ),
           ),
+          if (_todayInfo != null) ...[
+            SizedBox(height: 8.h),
+            Text(
+              _getTodayStatusText(),
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 13.sp),
+            ),
+          ],
           SizedBox(height: 16.h),
           Row(
             children: [
@@ -200,8 +153,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   context,
                   title: 'Absen Masuk',
                   icon: Icons.login,
-                  color: AppColors.successEmerald,
-                  onTap: () => context.push('/app/attendance/check-in'),
+                  color: _canCheckIn() ? AppColors.successEmerald : Colors.grey,
+                  onTap: _canCheckIn() ? () => context.push('/app/attendance/check-in').then((_) => _loadTodayInfo()) : null,
                 ),
               ),
               SizedBox(width: 12.w),
@@ -210,8 +163,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   context,
                   title: 'Absen Keluar',
                   icon: Icons.logout,
-                  color: AppColors.error,
-                  onTap: () => context.push('/app/attendance/check-out'),
+                  color: _canCheckOut() ? AppColors.error : Colors.grey,
+                  onTap: _canCheckOut() ? () => context.push('/app/attendance/check-out').then((_) => _loadTodayInfo()) : null,
                 ),
               ),
               SizedBox(width: 12.w),
@@ -220,7 +173,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   context,
                   title: 'Lembur',
                   icon: Icons.more_time,
-                  color: AppColors.secondaryContainer,
+                  color: AppColors.primary,
                   onTap: () => context.push('/app/overtime/new'),
                 ),
               ),
@@ -231,7 +184,34 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     );
   }
 
-  Widget _buildAttendanceButton(BuildContext context, {required String title, required IconData icon, required Color color, required VoidCallback onTap}) {
+  String _getTodayStatusText() {
+    final shifts = _todayInfo?['shifts'] as List? ?? [];
+    if (shifts.isEmpty) return 'Tidak ada jadwal shift hari ini.';
+    final attendance = shifts.first['attendance'] as Map?;
+    if (attendance == null) return 'Belum absen masuk.';
+    if (attendance['check_out_time'] == null) {
+      return 'Sudah masuk pkl ${DateFormat('HH:mm').format(DateTime.parse(attendance['check_in_time']).toLocal())}';
+    }
+    return 'Absensi selesai hari ini.';
+  }
+
+  bool _canCheckIn() {
+    if (_todayInfo == null) return false;
+    final shifts = _todayInfo!['shifts'] as List? ?? [];
+    return shifts.any((s) => s['attendance'] == null);
+  }
+
+  bool _canCheckOut() {
+    if (_todayInfo == null) return false;
+    final shifts = _todayInfo!['shifts'] as List? ?? [];
+    return shifts.any((s) => s['attendance'] != null && s['attendance']['check_out_time'] == null);
+  }
+
+  Widget _buildAttendanceButton(BuildContext context,
+      {required String title,
+      required IconData icon,
+      required Color color,
+      VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -291,13 +271,41 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           runSpacing: 24.h,
           alignment: WrapAlignment.start,
           children: [
-            _buildFeatureItem(context, icon: Icons.event_busy, label: 'Cuti', color: AppColors.primaryContainer, route: '/app/leave'),
-            _buildFeatureItem(context, icon: Icons.flight_takeoff, label: 'Dinas Luar', color: AppColors.secondaryContainer, route: '/app/attendance/business-trip-form'),
-            _buildFeatureItem(context, icon: Icons.edit_calendar, label: 'Lupa Absen', color: AppColors.tertiaryContainer, route: '/app/attendance/adjustment-form'),
-            _buildFeatureItem(context, icon: Icons.history, label: 'Riwayat', color: AppColors.primaryFixedDim, route: '/app/attendance'),
-            _buildFeatureItem(context, icon: Icons.receipt_long, label: 'Klaim', color: AppColors.secondaryContainer, route: '/app/claims'),
-            _buildFeatureItem(context, icon: Icons.payments, label: 'Slip\nGaji', color: AppColors.primaryContainer, route: '/app/payslip'),
-            _buildFeatureItem(context, icon: Icons.schedule, label: 'Jadwal', color: AppColors.tertiaryContainer, route: '/app/schedule/shifts'),
+            _buildFeatureItem(context,
+                icon: Icons.event_busy,
+                label: 'Cuti',
+                color: AppColors.primaryContainer,
+                route: '/app/leave'),
+            _buildFeatureItem(context,
+                icon: Icons.flight_takeoff,
+                label: 'Dinas Luar',
+                color: AppColors.secondaryContainer,
+                route: '/app/attendance/business-trip-form'),
+            _buildFeatureItem(context,
+                icon: Icons.edit_calendar,
+                label: 'Lupa Absen',
+                color: AppColors.tertiaryContainer,
+                route: '/app/attendance/adjustment-form'),
+            _buildFeatureItem(context,
+                icon: Icons.history,
+                label: 'Riwayat',
+                color: AppColors.primaryFixedDim,
+                route: '/app/attendance'),
+            _buildFeatureItem(context,
+                icon: Icons.receipt_long,
+                label: 'Klaim',
+                color: AppColors.secondaryContainer,
+                route: '/app/claims'),
+            _buildFeatureItem(context,
+                icon: Icons.payments,
+                label: 'Slip\nGaji',
+                color: AppColors.primaryContainer,
+                route: '/app/payslip'),
+            _buildFeatureItem(context,
+                icon: Icons.schedule,
+                label: 'Jadwal',
+                color: AppColors.tertiaryContainer,
+                route: '/app/schedule/shifts'),
             GestureDetector(
               onTap: () => context.push('/app/all-features'),
               child: SizedBox(
@@ -340,7 +348,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     );
   }
 
-  Widget _buildFeatureItem(BuildContext context, {required IconData icon, required String label, required Color color, required String route}) {
+  Widget _buildFeatureItem(BuildContext context,
+      {required IconData icon,
+      required String label,
+      required Color color,
+      required String route}) {
     return GestureDetector(
       onTap: () => context.push(route),
       child: SizedBox(
@@ -352,13 +364,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               width: 56.w,
               height: 56.w,
               decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(16.r),
+                color: AppColors.secondaryContainer,
+                borderRadius: BorderRadius.circular(20.r),
               ),
               child: Icon(
                 icon,
-                color: Colors.white,
-                size: 28.w,
+                color: AppColors.primary,
+                size: 26.w,
               ),
             ),
             SizedBox(height: 8.h),
@@ -408,34 +420,50 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           ],
         ),
         SizedBox(height: 16.h),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              _buildPromoCard(
-                title: 'Townhall Meeting',
-                subtitle: '25 Agustus - 26 Agustus',
-                color: AppColors.primaryFixedDim,
-                icon: Icons.campaign,
+        BlocBuilder<CompanyCubit, CompanyState>(
+          builder: (context, state) {
+            if (state is CompanyLoaded && state.announcements.isNotEmpty) {
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: state.announcements.take(5).map((announcement) {
+                    return Padding(
+                      padding: EdgeInsets.only(right: 16.w),
+                      child: _buildPromoCard(
+                        title: announcement.title,
+                        subtitle: DateFormat('dd MMM yyyy').format(announcement.createdAt ?? DateTime.now()),
+                        color: announcement.priority == 'high' ? AppColors.errorContainer : AppColors.primaryFixedDim,
+                        icon: Icons.campaign,
+                        onTap: () => context.push('/app/announcements/detail', extra: announcement),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              );
+            }
+            return Center(
+              child: Text(
+                'Belum ada pengumuman.',
+                style: TextStyle(color: Colors.grey[600], fontSize: 14.sp),
               ),
-              SizedBox(width: 16.w),
-              _buildPromoCard(
-                title: 'Klaim Medis Baru',
-                subtitle: 'Mulai 1 September',
-                color: AppColors.secondaryFixed,
-                icon: Icons.health_and_safety,
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ],
     );
   }
 
-  Widget _buildPromoCard({required String title, required String subtitle, required Color color, required IconData icon}) {
-    return Container(
-      width: 260.w,
-      height: 120.h,
+  Widget _buildPromoCard(
+      {required String title,
+      required String subtitle,
+      required Color color,
+      required IconData icon,
+      VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 260.w,
+        height: 120.h,
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(20.r),
@@ -456,7 +484,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   ),
                   child: Text(
                     subtitle,
-                    style: TextStyle(fontSize: 10.sp, fontWeight: FontWeight.bold),
+                    style:
+                        TextStyle(fontSize: 10.sp, fontWeight: FontWeight.bold),
                   ),
                 ),
                 SizedBox(height: 8.h),
@@ -474,7 +503,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           Icon(icon, size: 48.sp, color: Colors.black.withValues(alpha: 0.2)),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildTasksSection(BuildContext context) {
@@ -516,7 +545,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 return Center(
                   child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 20.h),
-                    child: const Text('Tidak ada tugas di hari ini.', style: TextStyle(color: Colors.grey)),
+                    child: const Text('Tidak ada tugas di hari ini.',
+                        style: TextStyle(color: Colors.grey)),
                   ),
                 );
               }
@@ -539,21 +569,30 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                         value: !task.isActive,
                         activeColor: AppColors.primary,
                         onChanged: (val) {
-                          context.read<TaskCubit>().toggleTask(task.id, !task.isActive, DateFormat('yyyy-MM-dd').format(_selectedDate));
+                          context.read<TaskCubit>().toggleTask(
+                              task.id,
+                              !task.isActive,
+                              DateFormat('yyyy-MM-dd').format(_selectedDate));
                         },
                       ),
                       title: Text(
                         task.title,
                         style: TextStyle(
-                          decoration: !task.isActive ? TextDecoration.lineThrough : null,
+                          decoration: !task.isActive
+                              ? TextDecoration.lineThrough
+                              : null,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      subtitle: task.reminderTime != null ? Text('Jam: ${task.reminderTime!.substring(0,5)}') : null,
+                      subtitle: task.reminderTime != null
+                          ? Text('Jam: ${task.reminderTime!.substring(0, 5)}')
+                          : null,
                       trailing: IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        icon:
+                            const Icon(Icons.delete_outline, color: Colors.red),
                         onPressed: () {
-                          context.read<TaskCubit>().deleteTask(task.id, DateFormat('yyyy-MM-dd').format(_selectedDate));
+                          context.read<TaskCubit>().deleteTask(task.id,
+                              DateFormat('yyyy-MM-dd').format(_selectedDate));
                         },
                       ),
                     ),
@@ -571,56 +610,72 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   Widget _buildWeeklyCalendar() {
     final now = DateTime.now();
     final firstDayOfWeek = now.subtract(Duration(days: now.weekday - 1));
-    
+
     return SizedBox(
       height: 70.h,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: 14,
-        itemBuilder: (context, index) {
-          final date = firstDayOfWeek.add(Duration(days: index));
-          final isSelected = date.year == _selectedDate.year && date.month == _selectedDate.month && date.day == _selectedDate.day;
+      child: BlocBuilder<CompanyCubit, CompanyState>(
+        builder: (context, state) {
+          final logs = state is CompanyLoaded ? state.attendanceLogs : <Map<String, dynamic>>[];
           
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedDate = date;
+          return ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: 14,
+            itemBuilder: (context, index) {
+              final date = firstDayOfWeek.add(Duration(days: index));
+              final isSelected = date.year == _selectedDate.year &&
+                  date.month == _selectedDate.month &&
+                  date.day == _selectedDate.day;
+
+              // Check if attended on this date
+              final dateString = DateFormat('yyyy-MM-dd').format(date);
+              final hasAttended = logs.any((log) {
+                if (log['check_in_time'] == null) return false;
+                return log['check_in_time'].toString().startsWith(dateString);
               });
-              context.read<TaskCubit>().loadTasksByDate(DateFormat('yyyy-MM-dd').format(_selectedDate));
+
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedDate = date;
+                  });
+                  context.read<TaskCubit>().loadTasksByDate(dateString);
+                },
+                child: Container(
+                  width: 50.w,
+                  margin: EdgeInsets.only(right: 12.w),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.primary : AppColors.surface,
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(
+                        color: isSelected ? AppColors.primary : (hasAttended ? AppColors.successEmerald : Colors.grey[300]!)),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        DateFormat('EEE').format(date).substring(0, 3),
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : (hasAttended ? AppColors.successEmerald : Colors.grey[600]),
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        '${date.day}',
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : AppColors.onSurface,
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             },
-            child: Container(
-              width: 50.w,
-              margin: EdgeInsets.only(right: 12.w),
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : AppColors.surface,
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(color: isSelected ? AppColors.primary : Colors.grey[300]!),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    DateFormat('EEE').format(date).substring(0, 3),
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.grey[600],
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    '${date.day}',
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : AppColors.onSurface,
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           );
-        },
+        }
       ),
     );
   }
@@ -652,13 +707,16 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Catat Tugas Baru', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
+                  Text('Catat Tugas Baru',
+                      style: TextStyle(
+                          fontSize: 18.sp, fontWeight: FontWeight.bold)),
                   SizedBox(height: 16.h),
                   TextField(
                     controller: titleController,
                     decoration: InputDecoration(
                       labelText: 'Judul Tugas / Kegiatan',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r)),
                     ),
                   ),
                   SizedBox(height: 16.h),
@@ -666,16 +724,20 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     controller: descController,
                     decoration: InputDecoration(
                       labelText: 'Keterangan (Opsional)',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r)),
                     ),
                   ),
                   SizedBox(height: 16.h),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: Text(selectedTime == null ? 'Pilih Jam Pengingat (Opsional)' : 'Pengingat: ${selectedTime!.format(context)}'),
+                    title: Text(selectedTime == null
+                        ? 'Pilih Jam Pengingat (Opsional)'
+                        : 'Pengingat: ${selectedTime!.format(context)}'),
                     trailing: const Icon(Icons.alarm),
                     onTap: () async {
-                      final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                      final time = await showTimePicker(
+                          context: context, initialTime: TimeOfDay.now());
                       if (time != null) {
                         setModalState(() => selectedTime = time);
                       }
@@ -688,23 +750,27 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r)),
                       ),
                       onPressed: () {
                         if (titleController.text.isEmpty) return;
-                        final reminderStr = selectedTime != null 
-                          ? '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}'
-                          : null;
-                        
+                        final reminderStr = selectedTime != null
+                            ? '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}'
+                            : null;
+
                         context.read<TaskCubit>().addTask(
-                          titleController.text,
-                          descController.text,
-                          DateFormat('yyyy-MM-dd').format(_selectedDate),
-                          reminderStr,
-                        );
+                              titleController.text,
+                              descController.text,
+                              DateFormat('yyyy-MM-dd').format(_selectedDate),
+                              reminderStr,
+                            );
                         Navigator.pop(context);
                       },
-                      child: const Text('Simpan Tugas', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      child: const Text('Simpan Tugas',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],

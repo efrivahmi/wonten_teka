@@ -13,6 +13,8 @@ class ApiClient {
   late final Dio _dio;
   final SecureStorage _storage;
 
+  final VoidCallback? onUnauthorized;
+
   /// Production server URL (cPanel).
   static const String _defaultBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
@@ -21,6 +23,7 @@ class ApiClient {
   ApiClient({
     SecureStorage? storage,
     String? baseUrl,
+    this.onUnauthorized,
   }) : _storage = storage ?? SecureStorage() {
     _dio = Dio(
       BaseOptions(
@@ -39,7 +42,7 @@ class ApiClient {
       _AuthInterceptor(_storage),
       if (kDebugMode || const bool.fromEnvironment('API_LOGGING'))
         LogInterceptor(requestBody: true, responseBody: true, error: true),
-      _ErrorInterceptor(),
+      _ErrorInterceptor(onUnauthorized: onUnauthorized),
     ]);
   }
 
@@ -76,10 +79,10 @@ class ApiClient {
     required FormData formData,
   }) {
     return _execute(() => _dio.post(
-      path,
-      data: formData,
-      options: Options(contentType: 'multipart/form-data'),
-    ));
+          path,
+          data: formData,
+          options: Options(contentType: 'multipart/form-data'),
+        ));
   }
 
   /// For downloading files (e.g. payslip PDFs).
@@ -95,7 +98,10 @@ class ApiClient {
       return await request();
     } on DioException catch (error) {
       if (error.error is ApiException) throw error.error as ApiException;
-      rethrow;
+      throw ApiException(
+        message: error.message ?? 'Permintaan API gagal diproses.',
+        statusCode: error.response?.statusCode,
+      );
     }
   }
 }
@@ -129,16 +135,21 @@ class _AuthInterceptor extends Interceptor {
 // ── Error Interceptor ──────────────────────────────────────────────────────
 
 class _ErrorInterceptor extends Interceptor {
+  final VoidCallback? onUnauthorized;
+
+  _ErrorInterceptor({this.onUnauthorized});
+
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final response = err.response;
 
     // Network error (no response received)
-    if (response == null && (err.type == DioExceptionType.connectionTimeout ||
-        err.type == DioExceptionType.sendTimeout ||
-        err.type == DioExceptionType.receiveTimeout ||
-        err.type == DioExceptionType.connectionError ||
-        err.type == DioExceptionType.unknown)) {
+    if (response == null &&
+        (err.type == DioExceptionType.connectionTimeout ||
+            err.type == DioExceptionType.sendTimeout ||
+            err.type == DioExceptionType.receiveTimeout ||
+            err.type == DioExceptionType.connectionError ||
+            err.type == DioExceptionType.unknown)) {
       return handler.reject(err.copyWith(error: const NetworkException()));
     }
 
@@ -150,14 +161,26 @@ class _ErrorInterceptor extends Interceptor {
 
     final statusCode = response?.statusCode;
     final data = response?.data;
+    final rawErrors = data is Map ? data['errors'] : null;
+    final firstValidationMessage = rawErrors is Map
+        ? rawErrors.values
+            .whereType<List>()
+            .expand((messages) => messages)
+            .map((message) => message.toString())
+            .firstOrNull
+        : null;
     final message = data is Map && data['message'] != null
         ? data['message'].toString()
-        : 'Server tidak dapat memproses permintaan.';
+        : firstValidationMessage ??
+            (data is String && data.trim().isNotEmpty
+                ? 'Server mengembalikan respons yang tidak valid.'
+                : 'Server tidak dapat memproses permintaan.');
 
     final ApiException exception;
     switch (statusCode) {
       case 401:
         exception = const UnauthorizedException();
+        onUnauthorized?.call();
         break;
       case 403:
         exception = ForbiddenException(message: message);
@@ -166,7 +189,6 @@ class _ErrorInterceptor extends Interceptor {
         exception = NotFoundException(message: message);
         break;
       case 422:
-        final rawErrors = data is Map ? data['errors'] : null;
         final errors = rawErrors is Map
             ? Map<String, dynamic>.from(rawErrors)
             : <String, dynamic>{};
