@@ -166,6 +166,7 @@ final appRouter = GoRouter(
         builder: (_, __) => const ShiftScheduleScreen()),
     GoRoute(
         path: '/app/habits', builder: (_, __) => const HabitTrackerScreen()),
+    GoRoute(path: '/app/tasks', redirect: (_, __) => '/app/home'),
     GoRoute(
         path: '/app/habits/new', builder: (_, __) => const HabitFormScreen()),
     GoRoute(
@@ -210,7 +211,10 @@ final appRouter = GoRouter(
         builder: (_, __) => const CompanyCalendarScreen()),
     GoRoute(
         path: '/app/calendar/event',
-        builder: (_, __) => const EventDetailScreen()),
+        builder: (_, state) {
+          final event = state.extra as CalendarEventModel?;
+          return event == null ? const CompanyCalendarScreen() : EventDetailScreen(event: event);
+        }),
     GoRoute(
         path: '/app/announcements',
         builder: (_, __) => const AnnouncementsScreen()),

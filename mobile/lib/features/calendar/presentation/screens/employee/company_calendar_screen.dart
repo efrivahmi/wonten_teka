@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
 import '../../../../company/bloc/company_cubit.dart';
@@ -337,7 +338,7 @@ class _CompanyCalendarScreenState extends State<CompanyCalendarScreen> {
                               child: InfoCard(
                                 borderLeftColor: color,
                                 onTap:
-                                    () {}, // context.push('/app/calendar/event', extra: e)
+                                    () => context.push('/app/calendar/event', extra: e),
                                 child: Row(children: [
                                   Expanded(
                                       child: Column(

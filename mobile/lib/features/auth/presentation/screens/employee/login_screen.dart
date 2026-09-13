@@ -84,13 +84,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(16.r)),
                                 child: Image.asset(
-                                    'assets/images/lemdiklat-logo.png',
+                                    'assets/images/e-absensi-logo-generated.png',
                                     height: 48.h,
                                     fit: BoxFit.contain),
                               ),
                               SizedBox(height: 16.h),
                               Text(
-                                'Wonten Teka',
+                                'e-Absensi Lemdiklat',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 28.sp,

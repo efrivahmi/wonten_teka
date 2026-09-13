@@ -67,7 +67,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             slivers: [
               SliverAppBar(
                   pinned: true,
-                  title: const Text('Ruang kerja'),
+                  title: const Text('e-Absensi Lemdiklat'),
                   actions: [
                     IconButton(
                         tooltip: 'Notifikasi',

@@ -9,6 +9,8 @@ class CalendarEventModel extends Equatable {
   final DateTime? endDate;
   final String? type; // 'holiday', 'meeting', etc.
   final String? department;
+  final String? startTime;
+  final String? endTime;
 
   const CalendarEventModel({
     required this.id,
@@ -19,6 +21,8 @@ class CalendarEventModel extends Equatable {
     this.endDate,
     this.type,
     this.department,
+    this.startTime,
+    this.endTime,
   });
 
   factory CalendarEventModel.fromJson(Map<String, dynamic> json) {
@@ -31,6 +35,8 @@ class CalendarEventModel extends Equatable {
       endDate: json['end_date'] != null ? DateTime.tryParse(json['end_date']) : null,
       type: json['type'] as String?,
       department: json['department'] as String?,
+      startTime: json['start_time'] as String?,
+      endTime: json['end_time'] as String?,
     );
   }
 
@@ -47,6 +53,7 @@ class AnnouncementModel extends Equatable {
   final String targetType; // 'company', 'department', 'employee'
   final bool isAcknowledged;
   final DateTime? createdAt;
+  final String? attachmentUrl;
 
   const AnnouncementModel({
     required this.id,
@@ -57,6 +64,7 @@ class AnnouncementModel extends Equatable {
     this.targetType = 'company',
     this.isAcknowledged = false,
     this.createdAt,
+    this.attachmentUrl,
   });
 
   bool get isUrgent => priority == 'urgent' || priority == 'high';
@@ -75,6 +83,7 @@ class AnnouncementModel extends Equatable {
       targetType: json['target_type'] as String? ?? 'company',
       isAcknowledged: acknowledged,
       createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at']) : null,
+      attachmentUrl: json['attachment_url'] as String?,
     );
   }
 

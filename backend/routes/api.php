@@ -27,7 +27,8 @@ use App\Http\Controllers\Api\AdminBiometricController;
 Route::get('/', function () {
     return response()->json([
         'status' => 'success',
-        'message' => 'Wonten Teka API is running and ready for connections!',
+        // Nama produk lama: Wonten Teka.
+        'message' => 'e-Absensi Lemdiklat Taruna Nusantara Indonesia API siap digunakan.',
         'version' => '1.0.0',
         'timestamp' => now()->toIso8601String(),
     ]);
@@ -37,6 +38,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/app-config', [AppConfigController::class, 'show']);
     Route::post('/notifications/read-all', [NotificationController::class, 'readAll']);

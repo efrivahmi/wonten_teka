@@ -97,6 +97,7 @@ const AdminLayout = () => {
             children: [
                 { name: 'Perangkat', href: '/admin/devices', icon: Smartphone },
                 { name: 'Event', href: '/admin/events', icon: CalendarDays },
+                { name: 'Pengumuman', href: '/admin/announcements', icon: Bell },
                 { name: 'Payroll', href: '/admin/payroll', icon: Banknote },
                 { name: 'Biometrik Wajah', href: '/admin/biometrics', icon: Shield },
             ]
@@ -120,24 +121,12 @@ const AdminLayout = () => {
             {/* Sidebar */}
             <div className={`teka-sidebar fixed inset-y-0 left-0 z-50 flex w-[min(18rem,calc(100vw-1.5rem))] flex-col overflow-hidden shadow-xl transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:w-64 md:translate-x-0 transition-transform duration-300 ease-in-out`}>
                 <div className="flex h-20 flex-shrink-0 items-center justify-between px-5 border-b border-slate-100">
-                    <img src="/images/lemdiklat-logo.png" alt="Lemdiklat Taruna Nusantara Indonesia" className="h-11 w-auto max-w-[190px] object-contain object-left" />
+                    <div className="flex min-w-0 items-center gap-3"><img src="/images/e-absensi-logo-generated.png" alt="Logo e-Absensi" className="h-11 w-11 object-contain" /><span className="min-w-0 text-sm font-extrabold leading-tight text-emerald-900">e-Absensi<br/><span className="text-[11px] font-semibold text-slate-500">Lemdiklat Taruna Nusantara Indonesia</span></span></div>
                     <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-slate-500 hover:text-green-700">
                         <X className="h-6 w-6" />
                     </button>
                 </div>
                 
-                <div className="flex-shrink-0 p-4 pb-2">
-                    <div className="bg-lime-50 rounded-2xl p-4 flex items-center space-x-3 border border-lime-100">
-                        <div className="bg-green-100 text-green-700 p-2 rounded-lg">
-                            <Shield className="h-5 w-5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-slate-800 truncate">{user.name || 'Super Admin'}</p>
-                            <p className="text-xs text-slate-500 truncate">{user.email || 'Administrator'}</p>
-                        </div>
-                    </div>
-                </div>
-
                 <nav className="scrollbar-hidden min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain px-4 py-2 pb-6">
                     {navigation.map((item) => {
                         if (item.children) {
@@ -205,15 +194,6 @@ const AdminLayout = () => {
                     })}
                 </nav>
 
-                <div className="w-full flex-shrink-0 border-t border-slate-100 bg-white p-4">
-                    <button 
-                        onClick={handleLogout}
-                        className="flex items-center space-x-3 px-4 py-3 w-full rounded-lg text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-colors"
-                    >
-                        <LogOut className="h-5 w-5 flex-shrink-0" />
-                        <span className="font-medium text-sm">Keluar</span>
-                    </button>
-                </div>
             </div>
 
             {/* Main Content */}
@@ -227,6 +207,10 @@ const AdminLayout = () => {
                         <button className="text-slate-400 hover:text-emerald-600 transition-colors p-2">
                             <Bell className="h-5 w-5" />
                         </button>
+                        <div className="relative">
+                            <button onClick={() => setProfileOpen(value => !value)} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 hover:border-emerald-300"><span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-100 text-emerald-700"><Shield className="h-4 w-4" /></span><span className="hidden max-w-40 text-left sm:block"><span className="block truncate text-sm font-semibold text-slate-800">{user.name || 'Administrator'}</span><span className="block text-[11px] text-slate-500">Profil admin</span></span><ChevronDown className="h-4 w-4 text-slate-400" /></button>
+                            {profileOpen && <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"><div className="px-4 py-3"><p className="truncate text-sm font-semibold text-slate-800">{user.name}</p><p className="truncate text-xs text-slate-500">{user.email}</p></div><Link to="/admin/profile" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 border-t border-slate-100 px-4 py-3 text-sm text-slate-700 hover:bg-emerald-50"><Shield className="h-4 w-4"/>Edit profil</Link><button onClick={handleLogout} className="flex w-full items-center gap-3 border-t border-slate-100 px-4 py-3 text-sm text-rose-600 hover:bg-rose-50"><LogOut className="h-4 w-4" />Keluar</button></div>}
+                        </div>
                     </div>
                 </header>
 

@@ -17,7 +17,7 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
 
   final List<Map<String, dynamic>> _items = [
     {
-      'title': 'Selamat Datang di Wonten Teka',
+      'title': 'Selamat Datang di e-Absensi Lemdiklat',
       'desc': 'Sistem presensi cerdas, cepat, dan aman.',
       'icon': Icons.stars,
       'color': AppColors.primary,

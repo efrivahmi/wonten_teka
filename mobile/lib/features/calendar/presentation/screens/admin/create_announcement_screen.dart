@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/api/api_client.dart';
+import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CreateAnnouncementScreen extends StatefulWidget {
   const CreateAnnouncementScreen({super.key});
@@ -45,6 +47,7 @@ class _CreateAnnouncementScreenState extends State<CreateAnnouncementScreen> {
   ];
 
   bool _isSubmitting = false;
+  XFile? _attachment;
 
   @override
   void dispose() {
@@ -70,15 +73,16 @@ class _CreateAnnouncementScreenState extends State<CreateAnnouncementScreen> {
     try {
       final api = context.read<ApiClient>();
 
-      final data = {
+      final data = FormData.fromMap({
         'title': _titleController.text.trim(),
         'content': _contentController.text.trim(),
         'priority': _priorityMap[_selectedPriority],
         'target_type': _targetMap[_selectedTarget],
-      };
+        if (_attachment != null) 'attachment': await MultipartFile.fromFile(_attachment!.path, filename: _attachment!.name),
+      });
 
       if (_selectedTarget == 'Departemen') {
-        data['target_id'] = _selectedDepartment;
+        data.fields.add(MapEntry('target_value', _selectedDepartment!));
       }
 
       await api.post('/admin/announcements', data: data);
@@ -135,6 +139,8 @@ class _CreateAnnouncementScreenState extends State<CreateAnnouncementScreen> {
                         validator: (v) =>
                             v == null || v.isEmpty ? 'Judul wajib diisi' : null,
                       ),
+                      SizedBox(height: 20.h),
+                      OutlinedButton.icon(onPressed: () async { final file = await ImagePicker().pickImage(source: ImageSource.gallery); if (file != null) setState(() => _attachment = file); }, icon: const Icon(Icons.attach_file), label: Text(_attachment?.name ?? 'Lampirkan gambar/surat (opsional)')),
                       SizedBox(height: 24.h),
                       _label('PRIORITAS'),
                       SizedBox(height: 8.h),

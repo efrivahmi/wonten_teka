@@ -183,7 +183,8 @@ class WontenTekaApp extends StatelessWidget {
             splitScreenMode: true,
             builder: (context, child) {
               return MaterialApp.router(
-                title: 'Wonten Teka',
+                // Nama produk lama: Wonten Teka.
+                title: 'e-Absensi Lemdiklat Taruna Nusantara Indonesia',
                 debugShowCheckedModeBanner: false,
                 theme: AppTheme.lightTheme,
                 routerConfig: appRouter,

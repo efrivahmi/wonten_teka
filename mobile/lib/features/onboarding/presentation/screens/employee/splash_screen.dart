@@ -77,7 +77,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             SizedBox(height: 32.h),
             Text(
-              'Wonten Teka',
+              'e-Absensi Lemdiklat',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 32.sp,

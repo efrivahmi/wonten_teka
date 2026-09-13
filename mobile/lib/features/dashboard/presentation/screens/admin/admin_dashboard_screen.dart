@@ -39,7 +39,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 expandedHeight: 260.h,
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                title: Text(innerScrolled ? 'Dashboard Admin' : ''),
+                title: Text(innerScrolled ? 'e-Absensi Lemdiklat' : ''),
                 actions: [
                   IconButton(
                       icon: const Icon(Icons.notifications_none),

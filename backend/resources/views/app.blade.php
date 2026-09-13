@@ -3,7 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Wonten Teka - Presensi</title>
+    {{-- Nama produk lama: Wonten Teka. --}}
+    <title>e-Absensi Lemdiklat Taruna Nusantara Indonesia</title>
+    <link rel="icon" type="image/svg+xml" href="/images/e-absensi-logo.svg">
     
     <!-- Meta tag for Vite React Fast Refresh -->
     @viteReactRefresh

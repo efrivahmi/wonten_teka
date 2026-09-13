@@ -14,7 +14,7 @@ class _AppTourGuideScreenState extends State<AppTourGuideScreen> {
   int _currentStep = 0;
   final _steps = [
     {
-      'title': 'Selamat Datang di Wonten Teka',
+      'title': 'Selamat Datang di e-Absensi Lemdiklat',
       'desc': 'Mari kita mulai tur singkat aplikasi ini.',
       'icon': Icons.waving_hand
     },

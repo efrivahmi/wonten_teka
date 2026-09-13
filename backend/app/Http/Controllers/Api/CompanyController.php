@@ -179,11 +179,17 @@ class CompanyController extends Controller
             'priority' => 'required|in:low,normal,high,urgent',
             'target_type' => 'required|in:company,department,employee',
             'target_value' => 'nullable|string',
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
         ]);
+
+        $attachmentUrl = $request->hasFile('attachment')
+            ? $request->file('attachment')->store('announcements', 'public')
+            : null;
 
         $announcement = Announcement::create([
             'title' => $validated['title'],
             'body' => $validated['content'],
+            'attachment_url' => $attachmentUrl,
             'priority' => $validated['priority'],
             'target_type' => $validated['target_type'],
             'target_value' => $validated['target_value'] ?? null,

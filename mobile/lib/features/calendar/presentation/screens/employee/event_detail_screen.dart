@@ -1,132 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import '../../../../../core/models/company_models.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
+import '../../../../tasks/notification_service.dart';
 
 class EventDetailScreen extends StatelessWidget {
-  const EventDetailScreen({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
-      appBar: AppBar(
-          backgroundColor: AppColors.surface,
-          elevation: 0,
-          leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-              onPressed: () => context.pop()),
-          title: Text('Detail Event',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.primary, fontWeight: FontWeight.bold)),
-          centerTitle: true),
-      body: SingleChildScrollView(
-          padding: EdgeInsets.all(16.w),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            InfoCard(
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                  Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                      decoration: BoxDecoration(
-                          color: AppColors.infoCerulean.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8.r)),
-                      child: Text('Meeting',
-                          style: TextStyle(
-                              color: AppColors.infoCerulean,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11.sp))),
-                  SizedBox(height: 12.h),
-                  Text('Townhall Q3',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold)),
-                  SizedBox(height: 16.h),
-                  const _Row(
-                      icon: Icons.calendar_today, text: 'Selasa, 15 Juli 2025'),
-                  SizedBox(height: 8.h),
-                  const _Row(icon: Icons.schedule, text: '14:00 - 16:00 WIB'),
-                  SizedBox(height: 8.h),
-                  const _Row(
-                      icon: Icons.location_on, text: 'Ruang Utama Lt. 3'),
-                  SizedBox(height: 8.h),
-                  const _Row(icon: Icons.people, text: 'Seluruh Karyawan'),
-                ])),
-            SizedBox(height: 16.h),
-            Text('Deskripsi',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w600)),
-            SizedBox(height: 8.h),
-            InfoCard(
-                child: Text(
-                    'Pembahasan pencapaian Q2 dan target Q3 2025. CEO akan menyampaikan update strategi perusahaan.',
-                    style: TextStyle(
-                        color: AppColors.onSurface,
-                        fontSize: 14.sp,
-                        height: 1.5))),
-            SizedBox(height: 16.h),
-            Text('Agenda',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w600)),
-            SizedBox(height: 8.h),
-            const InfoCard(
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                  _AgendaItem(time: '14:00', title: 'Opening & Welcome'),
-                  _AgendaItem(time: '14:15', title: 'Q2 Performance Review'),
-                  _AgendaItem(time: '14:45', title: 'Q3 Strategy & Targets'),
-                  _AgendaItem(time: '15:30', title: 'Q&A Session'),
-                  _AgendaItem(time: '16:00', title: 'Closing'),
-                ])),
-          ])),
-    );
+  final CalendarEventModel event;
+  const EventDetailScreen({super.key, required this.event});
+
+  DateTime? get eventDateTime {
+    if (event.startTime == null) return null;
+    final time = event.startTime!.split(':');
+    return DateTime(event.startDate.year, event.startDate.month, event.startDate.day, int.parse(time[0]), int.parse(time[1]));
   }
-}
 
-class _Row extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  const _Row({required this.icon, required this.text});
+  Future<void> enableReminder(BuildContext context) async {
+    final startsAt = eventDateTime;
+    if (startsAt == null) return;
+    await NotificationService().scheduleAlarm(id: 900000 + event.id, title: 'Acara dimulai 30 menit lagi', body: event.title, scheduledDate: startsAt.subtract(const Duration(minutes: 30)));
+    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pengingat 30 menit sebelum acara telah diaktifkan.')));
+  }
+
   @override
-  Widget build(BuildContext context) => Row(children: [
-        Icon(icon, size: 16.w, color: AppColors.onSurfaceVariant),
-        SizedBox(width: 8.w),
-        Text(text,
-            style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp)),
-      ]);
-}
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: AppColors.surfaceContainerLow,
+    appBar: AppBar(leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: context.pop), title: const Text('Detail Acara')),
+    body: SingleChildScrollView(padding: EdgeInsets.all(16.w), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      InfoCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text((event.type ?? 'event').toUpperCase(), style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11.sp)),
+        SizedBox(height: 10.h), Text(event.title, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)), SizedBox(height: 16.h),
+        row(Icons.calendar_today, DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(event.startDate)),
+        if (event.startTime != null) row(Icons.schedule, '${event.startTime!.substring(0, 5)}${event.endTime != null ? ' - ${event.endTime!.substring(0, 5)}' : ''} WIB'),
+      ])), SizedBox(height: 16.h),
+      InfoCard(child: Text(event.description?.trim().isNotEmpty == true ? event.description! : 'Tidak ada detail tambahan.', style: TextStyle(fontSize: 14.sp, height: 1.5))),
+      if (eventDateTime != null) Padding(padding: EdgeInsets.only(top: 18.h), child: ElevatedButton.icon(onPressed: () => enableReminder(context), icon: const Icon(Icons.alarm_add), label: const Text('Aktifkan pengingat 30 menit sebelumnya'))),
+    ])),
+  );
 
-class _AgendaItem extends StatelessWidget {
-  final String time, title;
-  const _AgendaItem({required this.time, required this.title});
-  @override
-  Widget build(BuildContext context) => Padding(
-      padding: EdgeInsets.only(bottom: 8.h),
-      child: Row(children: [
-        SizedBox(
-            width: 48.w,
-            child: Text(time,
-                style: TextStyle(
-                    color: AppColors.onSurfaceVariant,
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w600))),
-        Container(
-            width: 8.w,
-            height: 8.w,
-            decoration: const BoxDecoration(
-                shape: BoxShape.circle, color: AppColors.primaryContainer)),
-        SizedBox(width: 12.w),
-        Text(title,
-            style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp)),
-      ]));
+  Widget row(IconData icon, String text) => Padding(padding: EdgeInsets.only(bottom: 9.h), child: Row(children: [Icon(icon, size: 17.w, color: AppColors.onSurfaceVariant), SizedBox(width: 9.w), Expanded(child: Text(text))]));
 }
-

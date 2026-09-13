@@ -80,7 +80,8 @@ class NotificationService {
       platformChannelSpecifics,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
+      // Pengingat satu kali tidak boleh berulang setiap hari.
+      matchDateTimeComponents: null,
     );
   }
 

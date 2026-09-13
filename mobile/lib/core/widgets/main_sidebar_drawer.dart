@@ -202,6 +202,8 @@ class MainSidebarDrawer extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(children: [Image.asset('assets/images/e-absensi-logo-generated.png', width: 38.w, height: 38.w), SizedBox(width: 10.w), Expanded(child: Text('e-Absensi Lemdiklat', style: TextStyle(color: Colors.white, fontSize: 15.sp, fontWeight: FontWeight.w800)))]),
+          SizedBox(height: 20.h),
           CircleAvatar(
             radius: 32.r,
             backgroundColor: Colors.white,

@@ -50,7 +50,7 @@ class _OtpScreenState extends State<OtpScreen> {
           onPressed: () => context.pop(),
         ),
         title: Text(
-          'Wonten Teka',
+          'e-Absensi Lemdiklat',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 color: AppColors.primary,
                 fontWeight: FontWeight.bold,
