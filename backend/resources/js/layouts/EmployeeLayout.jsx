@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import api from '../api';
 import { getDeviceFingerprint } from '../deviceIdentity';
+import BrandLogo from '../components/BrandLogo';
 
 const EmployeeLayout = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -96,6 +97,7 @@ const EmployeeLayout = () => {
         { name: 'Pengajuan', icon: Briefcase, children: items(['leave', 'overtime', 'claims', 'adjustments']) },
         { name: 'Informasi & Aktivitas', icon: Bell, children: items(['calendar', 'tasks', 'notifications']) },
         { name: 'Keuangan', icon: FileText, children: items(['payroll']) },
+        { name: 'Profil Saya', href: '/employee/profile', icon: User },
         {
             name: 'Biometrik',
             icon: User,
@@ -125,7 +127,7 @@ const EmployeeLayout = () => {
             {/* Sidebar */}
             <div className={`teka-sidebar fixed inset-y-0 left-0 z-50 flex w-[min(18rem,calc(100vw-1.5rem))] flex-col overflow-hidden border-r shadow-sm transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:w-64 md:translate-x-0 transition-transform duration-300 ease-in-out`}>
                 <div className="flex h-20 flex-shrink-0 items-center justify-between px-5 border-b border-slate-100">
-                    <div className="flex min-w-0 items-center gap-3"><img src="/images/e-absensi-logo-generated.png" alt="Logo e-Absensi" className="h-11 w-11 object-contain" /><span className="min-w-0 text-sm font-extrabold leading-tight text-emerald-900">e-Absensi<br/><span className="text-[11px] font-semibold text-slate-500">Lemdiklat Taruna Nusantara Indonesia</span></span></div>
+                    <div className="flex min-w-0 items-center gap-3"><BrandLogo className="h-11 w-11 shrink-0"/><span className="min-w-0 text-sm font-extrabold leading-tight text-emerald-900">e-Absensi<br/><span className="text-[11px] font-semibold text-slate-500">Lemdiklat Taruna Nusantara Indonesia</span></span></div>
                     <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-slate-400 hover:text-slate-600">
                         <X className="h-6 w-6" />
                     </button>
