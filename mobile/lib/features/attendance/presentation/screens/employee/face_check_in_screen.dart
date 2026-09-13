@@ -313,7 +313,8 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
       !_submissionStarted;
 
   void _scheduleAutomaticCapture() {
-    if (!_isReadyForAutomaticCapture || (_autoCaptureTimer?.isActive ?? false)) {
+    if (!_isReadyForAutomaticCapture ||
+        (_autoCaptureTimer?.isActive ?? false)) {
       return;
     }
     _autoCaptureTimer = Timer(const Duration(milliseconds: 1200), () {
@@ -668,7 +669,9 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                                             : _isFaceProper &&
                                                     _registeredEmbeddings
                                                         .isNotEmpty
-                                                ? 'Mencocokkan wajah • ${(_liveSimilarity * 100).toStringAsFixed(0)}%'
+                                                ? _liveEmbedding.isEmpty
+                                                    ? 'Menganalisis detail wajah...'
+                                                    : 'Mencocokkan wajah • ${(_liveSimilarity * 100).toStringAsFixed(0)}%'
                                                 : _isFaceDetected
                                                     ? 'Arahkan wajah lurus ke depan'
                                                     : 'Wajah tidak terdeteksi',

@@ -173,6 +173,15 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
         await storage.saveFaceEmbedding(jsonEncode(_capturedEmbeddings));
       }
 
+      // Raw captures are temporary submission artifacts. Keep only the
+      // encrypted descriptors in secure storage after enrollment succeeds.
+      for (final image in _capturedImages) {
+        try {
+          if (await image.exists()) await image.delete();
+        } catch (_) {}
+      }
+      _capturedImages.clear();
+
       if (mounted) {
         setState(() {
           _isSubmitting = false;

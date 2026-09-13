@@ -1,0 +1,30 @@
+{
+  "fileKey": "5Rxy70IroM38rg4G5qBxCH",
+  "status": "blocked_by_starter_mcp_quota",
+  "foundation": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"createdNodeIds\":[\"0:1\",\"4:2\",\"4:3\"],\"pages\":{\"01 · Portal karyawan\":\"4:2\",\"02 · Administrasi HR\":\"4:3\"},\"vars\":{\"forest\":\"VariableID:4:5\",\"green\":\"VariableID:4:6\",\"lime\":\"VariableID:4:7\",\"ink\":\"VariableID:4:8\",\"muted\":\"VariableID:4:9\",\"canvas\":\"VariableID:4:10\",\"white\":\"VariableID:4:11\",\"line\":\"VariableID:4:12\",\"soft\":\"VariableID:4:13\",\"danger\":\"VariableID:4:14\",\"warning\":\"VariableID:4:15\",\"space/4\":\"VariableID:4:16\",\"space/8\":\"VariableID:4:17\",\"space/12\":\"VariableID:4:18\",\"space/16\":\"VariableID:4:19\",\"space/20\":\"VariableID:4:20\",\"space/24\":\"VariableID:4:21\",\"space/32\":\"VariableID:4:22\",\"space/40\":\"VariableID:4:23\",\"space/48\":\"VariableID:4:24\"},\"styles\":{\"Display\":\"S:8f95cbe5e08bff53e50692b9c8e785b19e6a1260,\",\"Heading\":\"S:a013e56ca8b44cccec2a16afc1c5263c353f9daf,\",\"Section\":\"S:a6dbdc263df7ff2376bbd34e9302f548c0321599,\",\"Body\":\"S:462dc67908a3b6a029738b381f20b915067247c5,\",\"Label\":\"S:70fd0dd423d838310d5b93a234ad9e1889bde36d,\",\"Caption\":\"S:9786c969abd273664c080269a89e211b72a579bc,\"}}"
+      }
+    ],
+    "isError": false
+  },
+  "frames": [
+    {
+      "key": "dashboard",
+      "width": 390,
+      "id": "5:209",
+      "main": "5:219",
+      "content": "5:214"
+    },
+    {
+      "key": "dashboard",
+      "width": 1440,
+      "id": "5:220",
+      "main": "5:247",
+      "content": "5:242"
+    }
+  ],
+  "pending": "All screen content, visual verification, and remaining screens"
+}

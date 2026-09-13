@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../bloc/shift_cubit.dart';
+import '../../shift_time_formatter.dart';
 
 class ShiftScheduleScreen extends StatefulWidget {
   const ShiftScheduleScreen({super.key});
@@ -309,22 +310,10 @@ class _ShiftScheduleScreenState extends State<ShiftScheduleScreen> {
                                             .toLowerCase()
                                             .contains('libur') ||
                                         shiftName.toLowerCase().contains('off');
-                                    final startTime =
-                                        assignment.shiftTemplate?.startTime !=
-                                                null
-                                            ? DateFormat('HH:mm').format(
-                                                DateFormat('HH:mm:ss').parse(
-                                                    assignment.shiftTemplate!
-                                                        .startTime!))
-                                            : '-';
-                                    final endTime =
-                                        assignment.shiftTemplate?.endTime !=
-                                                null
-                                            ? DateFormat('HH:mm').format(
-                                                DateFormat('HH:mm:ss').parse(
-                                                    assignment.shiftTemplate!
-                                                        .endTime!))
-                                            : '-';
+                                    final startTime = formatShiftTime(
+                                        assignment.shiftTemplate?.startTime);
+                                    final endTime = formatShiftTime(
+                                        assignment.shiftTemplate?.endTime);
 
                                     return Container(
                                       margin: EdgeInsets.only(bottom: 16.h),

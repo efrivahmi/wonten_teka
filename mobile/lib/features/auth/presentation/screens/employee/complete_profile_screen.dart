@@ -247,7 +247,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 if (state is AuthAuthenticated) {
                   if (state.user.employee != null) {
                     if (state.user.employee!.faceEnrolled) {
-                      context.go('/app');
+                      context.go('/app/home');
                     } else {
                       context.go('/face-enrollment');
                     }

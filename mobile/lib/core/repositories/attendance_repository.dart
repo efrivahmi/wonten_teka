@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import '../api/api_client.dart';
@@ -19,7 +18,14 @@ class AttendanceRepository {
       'device_id': deviceId,
     });
     for (int i = 0; i < faceEmbeddings.length; i++) {
-      formData.fields.add(MapEntry('embeddings[$i]', jsonEncode(faceEmbeddings[i])));
+      for (int j = 0; j < faceEmbeddings[i].length; j++) {
+        // Send real multipart array fields. A JSON string at embeddings[i]
+        // fails Laravel's `embeddings.* => array` validation and can leave the
+        // employee marked as enrolled without usable mobile references.
+        formData.fields.add(
+          MapEntry('embeddings[$i][$j]', faceEmbeddings[i][j].toString()),
+        );
+      }
     }
     for (int i = 0; i < faceImages.length; i++) {
       formData.files.add(MapEntry(
@@ -38,6 +44,15 @@ class AttendanceRepository {
       return raw.whereType<List>().map((e) => e.map((n) => (n as num).toDouble()).toList()).toList();
     }
     return null;
+  }
+
+  Future<Map<String, dynamic>> getFaceStatus() async {
+    final response = await _api.get('/biometrics/status');
+    final body = response.data;
+    if (body is! Map || body['data'] is! Map) {
+      throw const FormatException('Status biometrik tidak valid');
+    }
+    return Map<String, dynamic>.from(body['data'] as Map);
   }
 
   Future<AttendanceLogModel> checkIn({

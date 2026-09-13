@@ -84,6 +84,17 @@ class SecureStorage {
     await _storage.delete(key: 'face_embedding');
   }
 
+  /// Clears account/session data while preserving the physical device
+  /// identity. Device approval belongs to the installation/device and is
+  /// always revalidated against the authenticated employee on the backend.
+  Future<void> clearSession() async {
+    await Future.wait([
+      _storage.delete(key: _tokenKey),
+      _storage.delete(key: _userKey),
+      _storage.delete(key: 'face_embedding'),
+    ]);
+  }
+
   // ── Clear All ──────────────────────────────────────────────────────────
 
   Future<void> clearAll() async {

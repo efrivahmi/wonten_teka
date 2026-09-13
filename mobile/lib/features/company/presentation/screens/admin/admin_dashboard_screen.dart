@@ -42,7 +42,7 @@ class AdminDashboardScreen extends StatelessWidget {
                 icon: Icons.map,
                 title: 'Lokasi & Geofence',
                 subtitle: 'Atur koordinat pusat absensi',
-                onTap: () => context.push('/admin/geofence-settings'),
+                onTap: () => context.push('/admin/settings'),
               ),
               _buildAdminCard(
                 icon: Icons.schedule,

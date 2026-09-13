@@ -131,6 +131,99 @@ class _ShiftAssignmentGridScreenState extends State<ShiftAssignmentGridScreen> {
     }
   }
 
+  Future<void> _showRecurringAssignmentDialog() async {
+    int dayOfWeek = DateTime.now().weekday;
+    int? templateId;
+    final selectedEmployees = <int>{};
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Jadwal Mingguan Berulang'),
+          content: SizedBox(
+            width: 420.w,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                      'Pilih hari, template shift, dan beberapa karyawan yang bertugas.'),
+                  SizedBox(height: 16.h),
+                  DropdownButtonFormField<int>(
+                    initialValue: dayOfWeek,
+                    decoration: const InputDecoration(labelText: 'Hari piket'),
+                    items: const [
+                      DropdownMenuItem(value: 1, child: Text('Senin')),
+                      DropdownMenuItem(value: 2, child: Text('Selasa')),
+                      DropdownMenuItem(value: 3, child: Text('Rabu')),
+                      DropdownMenuItem(value: 4, child: Text('Kamis')),
+                      DropdownMenuItem(value: 5, child: Text('Jumat')),
+                      DropdownMenuItem(value: 6, child: Text('Sabtu')),
+                      DropdownMenuItem(value: 7, child: Text('Minggu')),
+                    ],
+                    onChanged: (value) =>
+                        setDialogState(() => dayOfWeek = value!),
+                  ),
+                  SizedBox(height: 12.h),
+                  DropdownButtonFormField<int>(
+                    decoration:
+                        const InputDecoration(labelText: 'Template shift'),
+                    items: _templates
+                        .map((template) => DropdownMenuItem<int>(
+                              value: template['id'] as int,
+                              child: Text(
+                                  '${template['name']} (${template['start_time'].toString().substring(0, 5)}–${template['end_time'].toString().substring(0, 5)})'),
+                            ))
+                        .toList(),
+                    onChanged: (value) =>
+                        setDialogState(() => templateId = value),
+                  ),
+                  SizedBox(height: 16.h),
+                  Text('Karyawan',
+                      style: Theme.of(context).textTheme.titleSmall),
+                  ..._employees.map((employee) => CheckboxListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        value: selectedEmployees.contains(employee['id']),
+                        title: Text(employee['full_name'] ?? '-'),
+                        onChanged: (checked) => setDialogState(() {
+                          if (checked == true) {
+                            selectedEmployees.add(employee['id'] as int);
+                          } else {
+                            selectedEmployees.remove(employee['id']);
+                          }
+                        }),
+                      )),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Batal')),
+            FilledButton(
+              onPressed: templateId == null || selectedEmployees.isEmpty
+                  ? null
+                  : () async {
+                      await _api.post('/admin/shift-assignments', data: {
+                        'employee_ids': selectedEmployees.toList(),
+                        'shift_template_id': templateId,
+                        'recurring_day_of_week': dayOfWeek,
+                      });
+                      if (dialogContext.mounted) Navigator.pop(dialogContext);
+                      await _loadGrid();
+                    },
+              child: const Text('Simpan'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final endOfWeek = _currentWeekStart.add(const Duration(days: 6));
@@ -147,7 +240,14 @@ class _ShiftAssignmentGridScreenState extends State<ShiftAssignmentGridScreen> {
               onPressed: () => context.pop()),
           title: Text('Assign Shift',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.primary, fontWeight: FontWeight.bold))),
+                  color: AppColors.primary, fontWeight: FontWeight.bold)),
+          actions: [
+            IconButton(
+              tooltip: 'Jadwal mingguan',
+              onPressed: _showRecurringAssignmentDialog,
+              icon: const Icon(Icons.repeat),
+            ),
+          ]),
       body: Column(children: [
         Container(
             color: AppColors.surface,
@@ -249,4 +349,3 @@ class _ShiftAssignmentGridScreenState extends State<ShiftAssignmentGridScreen> {
     );
   }
 }
-

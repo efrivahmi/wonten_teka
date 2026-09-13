@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' show Point;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
@@ -29,7 +30,10 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
     options: FaceDetectorOptions(
       enableContours: true,
       enableLandmarks: true,
-      performanceMode: FaceDetectorMode.fast,
+      // Accurate mode is important here because the descriptor below depends
+      // on all five landmarks. Fast mode omits one or more landmarks on a
+      // number of Android devices, leaving the similarity stuck at 0%.
+      performanceMode: FaceDetectorMode.accurate,
     ),
   );
   bool _isDetecting = false;
@@ -102,9 +106,7 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
       CameraImage image, CameraDescription camera, int generation) async {
     try {
       if (_isDisposed || image.planes.isEmpty) return;
-      // camera_android provides NV21/BGRA as a packed first plane. Appending
-      // every plane corrupts the buffer expected by ML Kit.
-      final bytes = image.planes.first.bytes;
+      final imageData = _imageDataForMlKit(image);
 
       final Size imageSize =
           Size(image.width.toDouble(), image.height.toDouble());
@@ -113,19 +115,15 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
             _rotationFor(camera),
           ) ??
           InputImageRotation.rotation0deg;
-      final inputImageFormat =
-          InputImageFormatValue.fromRawValue(image.format.raw) ??
-              InputImageFormat.nv21;
-
       final metadata = InputImageMetadata(
         size: imageSize,
         rotation: imageRotation,
-        format: inputImageFormat,
-        bytesPerRow: image.planes[0].bytesPerRow,
+        format: imageData.format,
+        bytesPerRow: imageData.bytesPerRow,
       );
 
       final inputImage = InputImage.fromBytes(
-        bytes: bytes,
+        bytes: imageData.bytes,
         metadata: metadata,
       );
 
@@ -175,9 +173,62 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
       }
     } catch (e) {
       debugPrint('Face detection error: $e');
+      if (!_isDisposed && mounted && generation == _cameraGeneration) {
+        widget.onFaceValidationChanged(false, false, 0.0, false);
+      }
     } finally {
       _isDetecting = false;
     }
+  }
+
+  ({Uint8List bytes, InputImageFormat format, int bytesPerRow})
+      _imageDataForMlKit(CameraImage image) {
+    if (!Platform.isAndroid || image.planes.length == 1) {
+      return (
+        bytes: image.planes.first.bytes,
+        format:
+            Platform.isIOS ? InputImageFormat.bgra8888 : InputImageFormat.nv21,
+        bytesPerRow: image.planes.first.bytesPerRow,
+      );
+    }
+
+    // camera_android 0.10 can return YUV_420_888 even when NV21 is requested.
+    // ML Kit's Flutter bridge accepts a single NV21 buffer, so convert the
+    // three camera planes (Y, U, V) instead of passing only the Y plane.
+    if (image.planes.length < 3) {
+      throw StateError('Format frame kamera Android tidak didukung');
+    }
+    final yPlane = image.planes[0];
+    final uPlane = image.planes[1];
+    final vPlane = image.planes[2];
+    final bytes = Uint8List(image.width * image.height * 3 ~/ 2);
+    var offset = 0;
+
+    for (var row = 0; row < image.height; row++) {
+      final rowStart = row * yPlane.bytesPerRow;
+      for (var column = 0; column < image.width; column++) {
+        bytes[offset++] = yPlane.bytes[rowStart + column];
+      }
+    }
+
+    final chromaWidth = image.width ~/ 2;
+    final chromaHeight = image.height ~/ 2;
+    final uPixelStride = uPlane.bytesPerPixel ?? 1;
+    final vPixelStride = vPlane.bytesPerPixel ?? 1;
+    for (var row = 0; row < chromaHeight; row++) {
+      final uRowStart = row * uPlane.bytesPerRow;
+      final vRowStart = row * vPlane.bytesPerRow;
+      for (var column = 0; column < chromaWidth; column++) {
+        bytes[offset++] = vPlane.bytes[vRowStart + column * vPixelStride];
+        bytes[offset++] = uPlane.bytes[uRowStart + column * uPixelStride];
+      }
+    }
+
+    return (
+      bytes: bytes,
+      format: InputImageFormat.nv21,
+      bytesPerRow: image.width,
+    );
   }
 
   int _rotationFor(CameraDescription camera) {
@@ -207,15 +258,62 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
     ];
     final result = <double>[];
     for (final type in order) {
-      final landmark = face.landmarks[type];
-      if (landmark == null) return null;
+      final point = _landmarkOrContourPoint(face, type);
+      if (point == null) return null;
       result
-        ..add((landmark.position.x - face.boundingBox.left) /
-            face.boundingBox.width)
-        ..add((landmark.position.y - face.boundingBox.top) /
-            face.boundingBox.height);
+        ..add((point.x - face.boundingBox.left) / face.boundingBox.width)
+        ..add((point.y - face.boundingBox.top) / face.boundingBox.height);
     }
     return result;
+  }
+
+  ({double x, double y})? _landmarkOrContourPoint(
+      Face face, FaceLandmarkType type) {
+    final landmark = face.landmarks[type];
+    if (landmark != null) {
+      return (
+        x: landmark.position.x.toDouble(),
+        y: landmark.position.y.toDouble(),
+      );
+    }
+
+    // ML Kit can detect a face while omitting an individual landmark,
+    // especially on iOS when the face is slightly tilted. Contours are still
+    // available in those frames, so derive the same semantic feature point
+    // from them instead of dropping the complete descriptor.
+    return switch (type) {
+      FaceLandmarkType.leftEye => _contourCenter(face, FaceContourType.leftEye),
+      FaceLandmarkType.rightEye =>
+        _contourCenter(face, FaceContourType.rightEye),
+      FaceLandmarkType.noseBase =>
+        _contourCenter(face, FaceContourType.noseBottom),
+      FaceLandmarkType.leftMouth => _mouthCorner(face, takeLeft: true),
+      FaceLandmarkType.rightMouth => _mouthCorner(face, takeLeft: false),
+      _ => null,
+    };
+  }
+
+  ({double x, double y})? _contourCenter(Face face, FaceContourType type) {
+    final points = face.contours[type]?.points;
+    if (points == null || points.isEmpty) return null;
+    var x = 0.0;
+    var y = 0.0;
+    for (final point in points) {
+      x += point.x;
+      y += point.y;
+    }
+    return (x: x / points.length, y: y / points.length);
+  }
+
+  ({double x, double y})? _mouthCorner(Face face, {required bool takeLeft}) {
+    final points = <Point<int>>[
+      ...?face.contours[FaceContourType.upperLipTop]?.points,
+      ...?face.contours[FaceContourType.lowerLipBottom]?.points,
+    ];
+    if (points.isEmpty) return null;
+    final point = points.reduce(
+        (a, b) => takeLeft ? (a.x <= b.x ? a : b) : (a.x >= b.x ? a : b));
+    return (x: point.x.toDouble(), y: point.y.toDouble());
   }
 
   Future<void> takePhoto() async {

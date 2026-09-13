@@ -1,0 +1,817 @@
+[
+  {
+    "page": "0:1",
+    "key": "login",
+    "title": "Selamat datang kembali.",
+    "sub": "Ruang kerja yang lebih teratur dimulai dari sini.",
+    "kind": "form",
+    "fields": [
+      [
+        "Email perusahaan",
+        "nama@perusahaan.co.id"
+      ],
+      [
+        "Kata sandi",
+        "••••••••••••"
+      ]
+    ],
+    "action": "Masuk ke ruang kerja",
+    "note": "Butuh akses akun? Hubungi admin perusahaan.",
+    "index": 0
+  },
+  {
+    "page": "0:1",
+    "key": "onboarding",
+    "title": "Mari mulai hari baik.",
+    "sub": "Siapkan akun Anda dalam tiga langkah sederhana.",
+    "kind": "list",
+    "rows": [
+      [
+        "01 · Lengkapi profil",
+        "Identitas dan kontak kerja Anda"
+      ],
+      [
+        "02 · Daftarkan perangkat",
+        "Satu akun, satu perangkat yang tepercaya"
+      ],
+      [
+        "03 · Verifikasi wajah",
+        "Siapkan absensi yang aman dan praktis"
+      ]
+    ],
+    "action": "Mulai pengaturan",
+    "index": 1
+  },
+  {
+    "page": "0:1",
+    "key": "device",
+    "title": "Perangkat tepercaya.",
+    "sub": "Hubungkan perangkat ini dengan akun kerja Anda.",
+    "kind": "form",
+    "fields": [
+      [
+        "Nama perangkat",
+        "Laptop kerja saya"
+      ],
+      [
+        "Perangkat terdeteksi",
+        "Chrome · Windows"
+      ]
+    ],
+    "action": "Ajukan pendaftaran",
+    "note": "Pergantian perangkat harus disetujui admin. Anda tidak dapat mereset perangkat sendiri.",
+    "index": 2
+  },
+  {
+    "page": "0:1",
+    "key": "device-pending",
+    "title": "Sedang ditinjau.",
+    "sub": "Permintaan perangkat sudah diterima oleh admin.",
+    "kind": "list",
+    "rows": [
+      [
+        "Permintaan terkirim",
+        "10 September 2026 · 08.12"
+      ],
+      [
+        "Menunggu persetujuan admin",
+        "Kami memberi tahu saat perangkat siap digunakan."
+      ]
+    ],
+    "action": "Periksa status",
+    "note": "Anda dapat kembali nanti tanpa mengulang pendaftaran.",
+    "index": 3
+  },
+  {
+    "page": "0:1",
+    "key": "face",
+    "title": "Kenali wajah Anda.",
+    "sub": "Pastikan wajah terlihat jelas dan cahaya cukup.",
+    "kind": "scan",
+    "action": "Mulai verifikasi wajah",
+    "note": "Ikuti 3–5 arah gerakan. Jangan gunakan foto atau video.",
+    "index": 4
+  },
+  {
+    "page": "0:1",
+    "key": "complete-profile",
+    "title": "Lengkapi profil kerja.",
+    "sub": "Bantu tim mengenal dan menghubungi Anda.",
+    "kind": "form",
+    "fields": [
+      [
+        "Nama lengkap",
+        "Alya Putri"
+      ],
+      [
+        "Nomor telepon",
+        "08•• •••• ••••"
+      ],
+      [
+        "Alamat",
+        "Masukkan alamat Anda"
+      ]
+    ],
+    "action": "Simpan dan lanjutkan",
+    "index": 5
+  },
+  {
+    "page": "4:2",
+    "key": "dashboard",
+    "title": "Selamat pagi, Alya.",
+    "sub": "Kamis, 10 September 2026 · Semangat untuk hari ini.",
+    "kind": "dashboard",
+    "action": "Absen masuk",
+    "index": 0
+  },
+  {
+    "page": "4:2",
+    "key": "attendance",
+    "title": "Setiap hadir, berarti.",
+    "sub": "Kelola kehadiran dan temukan riwayat absensi Anda.",
+    "kind": "attendance",
+    "action": "Absen masuk",
+    "index": 1
+  },
+  {
+    "page": "4:2",
+    "key": "leave",
+    "title": "Ruang untuk beristirahat.",
+    "sub": "Pantau saldo cuti dan proses pengajuan Anda.",
+    "kind": "list",
+    "metrics": [
+      [
+        "8 hari",
+        "Sisa cuti"
+      ],
+      [
+        "2",
+        "Menunggu"
+      ]
+    ],
+    "rows": [
+      [
+        "Cuti tahunan · 14–15 Sep",
+        "2 hari · Menunggu atasan"
+      ],
+      [
+        "Izin pribadi · 02 Sep",
+        "1 hari · Disetujui"
+      ],
+      [
+        "Cuti tahunan · 21 Agu",
+        "1 hari · Disetujui"
+      ]
+    ],
+    "action": "Ajukan cuti",
+    "index": 2
+  },
+  {
+    "page": "4:2",
+    "key": "overtime",
+    "title": "Usaha ekstra, tercatat.",
+    "sub": "Ajukan dan pantau lembur dengan jelas.",
+    "kind": "list",
+    "metrics": [
+      [
+        "12 jam",
+        "Lembur bulan ini"
+      ],
+      [
+        "1",
+        "Pengajuan aktif"
+      ]
+    ],
+    "rows": [
+      [
+        "Penyelesaian laporan · 09 Sep",
+        "18.00–20.00 · Menunggu"
+      ],
+      [
+        "Rilis aplikasi · 05 Sep",
+        "18.00–21.00 · Disetujui"
+      ]
+    ],
+    "action": "Ajukan lembur",
+    "index": 3
+  },
+  {
+    "page": "4:2",
+    "key": "claims",
+    "title": "Pengeluaran jadi ringan.",
+    "sub": "Simpan bukti, ajukan klaim, ikuti prosesnya.",
+    "kind": "list",
+    "metrics": [
+      [
+        "Rp450.000",
+        "Menunggu proses"
+      ],
+      [
+        "3",
+        "Klaim bulan ini"
+      ]
+    ],
+    "rows": [
+      [
+        "Transportasi kunjungan klien",
+        "Rp150.000 · Menunggu"
+      ],
+      [
+        "Kebutuhan operasional",
+        "Rp300.000 · Ditinjau"
+      ],
+      [
+        "Konsumsi rapat tim",
+        "Rp185.000 · Dibayarkan"
+      ]
+    ],
+    "action": "Ajukan klaim",
+    "index": 4
+  },
+  {
+    "page": "4:2",
+    "key": "payslip",
+    "title": "Gaji Anda, transparan.",
+    "sub": "Rincian penghasilan bulanan dalam satu tempat.",
+    "kind": "list",
+    "rows": [
+      [
+        "Agustus 2026",
+        "Slip tersedia · Lihat rincian"
+      ],
+      [
+        "Juli 2026",
+        "Slip tersedia · Lihat rincian"
+      ],
+      [
+        "Juni 2026",
+        "Slip tersedia · Lihat rincian"
+      ]
+    ],
+    "action": "Lihat slip terbaru",
+    "note": "Informasi penghasilan bersifat pribadi.",
+    "index": 5
+  },
+  {
+    "page": "4:2",
+    "key": "shifts",
+    "title": "Rencanakan hari Anda.",
+    "sub": "Jadwal kerja dan penugasan shift terbaru.",
+    "kind": "list",
+    "rows": [
+      [
+        "Kamis, 10 September",
+        "08.00–17.00 · Kantor pusat · Hari ini"
+      ],
+      [
+        "Jumat, 11 September",
+        "08.00–17.00 · Kantor pusat"
+      ],
+      [
+        "Sabtu, 12 September",
+        "Libur mingguan"
+      ]
+    ],
+    "action": "Lihat kalender",
+    "index": 6
+  },
+  {
+    "page": "4:2",
+    "key": "calendar",
+    "title": "Agenda yang menyatukan.",
+    "sub": "Hari kerja, libur, dan kegiatan perusahaan.",
+    "kind": "calendar",
+    "action": "Lihat agenda hari ini",
+    "index": 7
+  },
+  {
+    "page": "4:2",
+    "key": "announcements",
+    "title": "Kabar dari ruang kerja.",
+    "sub": "Informasi penting agar Anda selalu terhubung.",
+    "kind": "list",
+    "rows": [
+      [
+        "Town hall September",
+        "Penting · 18 September · Semua karyawan"
+      ],
+      [
+        "Panduan pengajuan klaim",
+        "HR · Diperbarui hari ini"
+      ],
+      [
+        "Selamat bergabung, tim baru!",
+        "People & Culture · Kemarin"
+      ]
+    ],
+    "action": "Baca pengumuman",
+    "index": 8
+  },
+  {
+    "page": "4:2",
+    "key": "tasks",
+    "title": "Satu per satu, selesai.",
+    "sub": "Atur fokus dan tuntaskan pekerjaan hari ini.",
+    "kind": "list",
+    "rows": [
+      [
+        "Finalisasi presentasi klien",
+        "Hari ini · Belum selesai"
+      ],
+      [
+        "Periksa laporan mingguan",
+        "Hari ini · Belum selesai"
+      ],
+      [
+        "Sinkronisasi dengan tim",
+        "Selesai · 09.00"
+      ]
+    ],
+    "action": "Tambah tugas",
+    "note": "Setiap tugas menyediakan aksi selesai dan hapus.",
+    "index": 9
+  },
+  {
+    "page": "4:2",
+    "key": "attendance-adjustments",
+    "title": "Catatan yang akurat.",
+    "sub": "Ajukan koreksi saat catatan kehadiran perlu diperbaiki.",
+    "kind": "list",
+    "rows": [
+      [
+        "09 September · Jam pulang",
+        "17.05 · Menunggu persetujuan"
+      ],
+      [
+        "01 September · Jam masuk",
+        "08.02 · Disetujui"
+      ]
+    ],
+    "action": "Ajukan koreksi",
+    "index": 10
+  },
+  {
+    "page": "4:2",
+    "key": "business-trips",
+    "title": "Bekerja melampaui kantor.",
+    "sub": "Rencanakan perjalanan dinas dan ikuti persetujuannya.",
+    "kind": "list",
+    "rows": [
+      [
+        "Kunjungan klien · Bandung",
+        "16–17 Sep · Menunggu atasan"
+      ],
+      [
+        "Koordinasi cabang · Jakarta",
+        "02 Sep · Selesai"
+      ]
+    ],
+    "action": "Ajukan perjalanan",
+    "index": 11
+  },
+  {
+    "page": "4:2",
+    "key": "notifications",
+    "title": "Yang perlu Anda tahu.",
+    "sub": "Pembaruan pengajuan dan aktivitas akun.",
+    "kind": "list",
+    "rows": [
+      [
+        "Pengajuan cuti disetujui",
+        "Atasan menyetujui permintaan Anda · 10 menit lalu"
+      ],
+      [
+        "Slip gaji Agustus tersedia",
+        "Buka halaman slip gaji untuk melihat rincian"
+      ],
+      [
+        "Jadwal kerja diperbarui",
+        "Penugasan Jumat telah diperbarui oleh HR"
+      ]
+    ],
+    "action": "Tandai semua dibaca",
+    "index": 12
+  },
+  {
+    "page": "4:2",
+    "key": "directory",
+    "title": "Kenali tim Anda.",
+    "sub": "Temukan rekan kerja dan kontak yang Anda perlukan.",
+    "kind": "list",
+    "rows": [
+      [
+        "Dimas Pratama",
+        "Product Design · dimas@contoh.id"
+      ],
+      [
+        "Nadia Safitri",
+        "People & Culture · nadia@contoh.id"
+      ],
+      [
+        "Raka Wijaya",
+        "Engineering · raka@contoh.id"
+      ]
+    ],
+    "action": "Cari rekan kerja",
+    "index": 13
+  },
+  {
+    "page": "4:3",
+    "key": "admin-dashboard",
+    "title": "Tim yang hadir. Bisnis bergerak.",
+    "sub": "Ringkasan ruang kerja · Kamis, 10 September 2026.",
+    "kind": "admin-dashboard",
+    "action": "Lihat laporan",
+    "index": 0
+  },
+  {
+    "page": "4:3",
+    "key": "approvals",
+    "title": "Keputusan tanpa hambatan.",
+    "sub": "Tinjau pengajuan tim dalam satu antrean.",
+    "kind": "list",
+    "metrics": [
+      [
+        "12",
+        "Menunggu"
+      ],
+      [
+        "8",
+        "Selesai hari ini"
+      ]
+    ],
+    "rows": [
+      [
+        "Alya Putri · Cuti tahunan",
+        "14–15 Sep · 2 hari · Tahap 1 dari 2"
+      ],
+      [
+        "Raka Wijaya · Lembur",
+        "09 Sep · 3 jam · Menunggu"
+      ],
+      [
+        "Dimas Pratama · Klaim",
+        "Transportasi · Rp150.000 · Menunggu"
+      ]
+    ],
+    "action": "Tinjau pengajuan",
+    "index": 1
+  },
+  {
+    "page": "4:3",
+    "key": "employees",
+    "title": "Orang hebat, satu tim.",
+    "sub": "Kelola data, status, dan struktur karyawan.",
+    "kind": "list",
+    "metrics": [
+      [
+        "128",
+        "Karyawan aktif"
+      ],
+      [
+        "5",
+        "Departemen"
+      ]
+    ],
+    "rows": [
+      [
+        "Alya Putri · WT-024",
+        "Product Design · Tetap · Aktif"
+      ],
+      [
+        "Dimas Pratama · WT-031",
+        "Product Design · Tetap · Aktif"
+      ],
+      [
+        "Nadia Safitri · WT-008",
+        "People & Culture · Tetap · Aktif"
+      ]
+    ],
+    "action": "Tambah karyawan",
+    "index": 2
+  },
+  {
+    "page": "4:3",
+    "key": "schedule",
+    "title": "Shift tertata, tim siap.",
+    "sub": "Atur template dan penugasan kerja tanpa tumpang tindih.",
+    "kind": "calendar",
+    "action": "Tambah penugasan",
+    "index": 3
+  },
+  {
+    "page": "4:3",
+    "key": "reports",
+    "title": "Data menjadi arah.",
+    "sub": "Laporan kehadiran dan aktivitas tenaga kerja.",
+    "kind": "report",
+    "action": "Ekspor laporan",
+    "index": 4
+  },
+  {
+    "page": "4:3",
+    "key": "settings",
+    "title": "Ruang kerja, cara Anda.",
+    "sub": "Sesuaikan aturan dan identitas perusahaan.",
+    "kind": "form",
+    "fields": [
+      [
+        "Nama perusahaan",
+        "Wonten Teka"
+      ],
+      [
+        "Warna utama",
+        "#19734A"
+      ],
+      [
+        "Radius lokasi kantor",
+        "100 meter"
+      ],
+      [
+        "Titik kantor",
+        "-6.1754, 106.8272"
+      ]
+    ],
+    "action": "Simpan pengaturan",
+    "note": "Tab: Perusahaan · Lokasi · Menu karyawan · Pilihan formulir",
+    "index": 5
+  },
+  {
+    "page": "4:3",
+    "key": "devices",
+    "title": "Perangkat yang dipercaya.",
+    "sub": "Tinjau pendaftaran dan penggantian perangkat karyawan.",
+    "kind": "list",
+    "rows": [
+      [
+        "Alya Putri · Laptop kerja",
+        "Chrome · Windows · Menunggu"
+      ],
+      [
+        "Raka Wijaya · Ponsel kerja",
+        "Chrome · Android · Penggantian perangkat"
+      ]
+    ],
+    "action": "Tinjau perangkat",
+    "note": "Aktifkan atau tolak setelah memeriksa identitas. Satu karyawan hanya boleh memakai satu perangkat terikat.",
+    "index": 6
+  },
+  {
+    "page": "4:3",
+    "key": "events",
+    "title": "Bangun momen bersama.",
+    "sub": "Kelola agenda dan hari libur perusahaan.",
+    "kind": "calendar",
+    "action": "Tambah agenda",
+    "index": 7
+  },
+  {
+    "page": "4:3",
+    "key": "payroll",
+    "title": "Penggajian yang tertata.",
+    "sub": "Pantau periode dan proses payroll perusahaan.",
+    "kind": "list",
+    "rows": [
+      [
+        "September 2026",
+        "Draf · 128 karyawan"
+      ],
+      [
+        "Agustus 2026",
+        "Selesai · 128 karyawan"
+      ],
+      [
+        "Juli 2026",
+        "Selesai · 125 karyawan"
+      ]
+    ],
+    "action": "Lihat periode",
+    "note": "Tarif pajak dan BPJS mengikuti konfigurasi perusahaan dan tanggal berlakunya.",
+    "index": 8
+  },
+  {
+    "page": "4:3",
+    "key": "leave-types",
+    "title": "Kebijakan yang jelas.",
+    "sub": "Jenis cuti dan izin yang berlaku di perusahaan.",
+    "kind": "list",
+    "rows": [
+      [
+        "Cuti tahunan",
+        "Aktif · Memerlukan persetujuan"
+      ],
+      [
+        "Izin pribadi",
+        "Aktif · Memerlukan alasan"
+      ],
+      [
+        "Sakit",
+        "Aktif · Lampiran sesuai kebijakan"
+      ]
+    ],
+    "action": "Lihat kebijakan",
+    "index": 9
+  },
+  {
+    "page": "4:3",
+    "key": "attendance-flags",
+    "title": "Tinjau dengan konteks.",
+    "sub": "Periksa anomali kehadiran sebelum mengambil keputusan.",
+    "kind": "list",
+    "rows": [
+      [
+        "WT-024 · Lokasi di luar radius",
+        "09 Sep · Perlu ditinjau"
+      ],
+      [
+        "WT-031 · Verifikasi gagal",
+        "08 Sep · Perlu ditinjau"
+      ]
+    ],
+    "action": "Periksa flag",
+    "note": "Simpan hasil pemeriksaan dan alasan penyelesaian.",
+    "index": 10
+  },
+  {
+    "page": "4:3",
+    "key": "biometrics",
+    "title": "Verifikasi yang terjaga.",
+    "sub": "Pantau kesiapan biometrik karyawan.",
+    "kind": "list",
+    "metrics": [
+      [
+        "120",
+        "Sudah terdaftar"
+      ],
+      [
+        "8",
+        "Belum lengkap"
+      ]
+    ],
+    "rows": [
+      [
+        "Alya Putri",
+        "Terdaftar · Siap digunakan"
+      ],
+      [
+        "Dimas Pratama",
+        "Perlu pendaftaran ulang"
+      ],
+      [
+        "Nadia Safitri",
+        "Terdaftar · Siap digunakan"
+      ]
+    ],
+    "action": "Lihat data biometrik",
+    "index": 11
+  },
+  {
+    "page": "4:2",
+    "key": "profile",
+    "title": "Tentang Anda.",
+    "sub": "Profil, kontak, dan keamanan akun kerja.",
+    "kind": "form",
+    "fields": [
+      [
+        "Nama lengkap",
+        "Alya Putri"
+      ],
+      [
+        "Email kerja",
+        "alya@contoh.id"
+      ],
+      [
+        "Nomor telepon",
+        "0812 •••• ••••"
+      ]
+    ],
+    "action": "Simpan profil",
+    "note": "Perangkat terikat: Laptop kerja · Aktif. Hubungi admin untuk penggantian.",
+    "index": 14
+  },
+  {
+    "page": "4:2",
+    "key": "request-new",
+    "title": "Ajukan cuti.",
+    "sub": "Isi rincian permintaan, lalu periksa sebelum mengirim.",
+    "kind": "form",
+    "fields": [
+      [
+        "Jenis cuti",
+        "Cuti tahunan"
+      ],
+      [
+        "Tanggal mulai",
+        "14 September 2026"
+      ],
+      [
+        "Tanggal selesai",
+        "15 September 2026"
+      ],
+      [
+        "Alasan",
+        "Keperluan keluarga"
+      ],
+      [
+        "Lampiran (opsional)",
+        "Pilih berkas"
+      ]
+    ],
+    "action": "Periksa pengajuan",
+    "note": "2 hari kerja · Sisa cuti setelah disetujui: 6 hari.",
+    "index": 15
+  },
+  {
+    "page": "4:2",
+    "key": "request-detail",
+    "title": "Pengajuan Anda.",
+    "sub": "CT-2026-0094 · Cuti tahunan · 14–15 September.",
+    "kind": "list",
+    "rows": [
+      [
+        "Pengajuan dikirim",
+        "10 Sep · 08.30 · Alya Putri"
+      ],
+      [
+        "Persetujuan atasan",
+        "Menunggu · Dimas Pratama"
+      ],
+      [
+        "Verifikasi HR",
+        "Menunggu tahap sebelumnya"
+      ]
+    ],
+    "action": "Kembali ke pengajuan",
+    "note": "Alasan: keperluan keluarga. Durasi: 2 hari kerja.",
+    "index": 16
+  },
+  {
+    "page": "4:2",
+    "key": "payslip-detail",
+    "title": "Slip gaji Agustus.",
+    "sub": "Alya Putri · WT-024 · Data ilustrasi.",
+    "kind": "list",
+    "rows": [
+      [
+        "Gaji pokok",
+        "Rp8.000.000"
+      ],
+      [
+        "Tunjangan",
+        "Rp1.000.000"
+      ],
+      [
+        "Lembur",
+        "Rp450.000"
+      ],
+      [
+        "Potongan",
+        "Rp650.000"
+      ],
+      [
+        "Penghasilan bersih",
+        "Rp8.800.000"
+      ]
+    ],
+    "action": "Unduh slip PDF",
+    "index": 17
+  },
+  {
+    "page": "0:1",
+    "key": "help",
+    "title": "Kami bantu Anda hadir.",
+    "sub": "Panduan cepat untuk kendala absensi.",
+    "kind": "list",
+    "rows": [
+      [
+        "Kamera tidak terbuka",
+        "Izinkan akses kamera di pengaturan browser, lalu coba lagi."
+      ],
+      [
+        "Lokasi di luar radius",
+        "Periksa alamat terdeteksi dan pastikan Anda berada di area kantor."
+      ],
+      [
+        "Wajah belum cocok",
+        "Cari cahaya yang cukup, lepaskan penutup wajah, lalu ulangi verifikasi."
+      ]
+    ],
+    "action": "Hubungi admin",
+    "index": 6
+  },
+  {
+    "page": "0:1",
+    "key": "not-found",
+    "title": "Sepertinya tersesat.",
+    "sub": "Halaman ini tidak ditemukan atau sudah dipindahkan.",
+    "kind": "list",
+    "rows": [
+      [
+        "404 · Halaman tidak ditemukan",
+        "Kembali ke ruang kerja untuk melanjutkan aktivitas."
+      ]
+    ],
+    "action": "Kembali ke beranda",
+    "index": 7
+  }
+]

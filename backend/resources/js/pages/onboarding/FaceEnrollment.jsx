@@ -4,6 +4,8 @@ import Webcam from 'react-webcam';
 import * as faceapi from 'face-api.js';
 import { Camera, Loader2, CheckCircle2 } from 'lucide-react';
 import api from '../../api';
+import { getDeviceFingerprint } from '../../deviceIdentity';
+import { saveLocalFaceEmbeddings } from '../../biometricStorage';
 
 const steps = [
     { title: 'Menghadap Depan', instruction: 'Posisikan wajah Anda tepat di tengah.' },
@@ -54,10 +56,7 @@ const FaceEnrollment = ({ returnTo = '/onboarding' }) => {
                 setModelsLoaded(true);
                 setMessage(steps[0].instruction);
 
-                // Try to get FP ID for device_id
-                const fp = await import('@fingerprintjs/fingerprintjs').then(fpPromise => fpPromise.load());
-                const result = await fp.get();
-                setDeviceId(result.visitorId);
+                setDeviceId(await getDeviceFingerprint());
 
             } catch (err) {
                 console.error("Failed to load models", err);
@@ -149,6 +148,7 @@ const FaceEnrollment = ({ returnTo = '/onboarding' }) => {
                 embeddings: finalEmbeddings,
                 device_id: deviceId
             });
+            await saveLocalFaceEmbeddings(finalEmbeddings);
             
             // Go to next step
             navigate(returnTo);
@@ -167,7 +167,7 @@ const FaceEnrollment = ({ returnTo = '/onboarding' }) => {
                 
                 <div className="p-7 bg-black text-white">
                     <p className="teka-kicker text-stone-400 mb-5">Identitas biometrik</p>
-                    <h2 className="teka-display text-4xl">Daftarkan <span className="teka-accent">wajah.</span></h2>
+                    <h2 className="teka-display text-4xl">{returnTo.startsWith('/employee') ? 'Perbarui' : 'Daftarkan'} <span className="teka-accent">wajah.</span></h2>
                     <p className="text-stone-400 text-sm mt-4">Tahap {Math.min(step + 1, 3)} dari 3 · {steps[step]?.title || 'Selesai'}</p>
                 </div>
 
@@ -207,6 +207,7 @@ const FaceEnrollment = ({ returnTo = '/onboarding' }) => {
                         {(saving || detecting) ? <Loader2 className="animate-spin h-5 w-5 mr-2 text-emerald-600" /> : <Camera className="h-5 w-5 mr-2 text-slate-500" />}
                         {saving ? 'Menyimpan Data...' : (modelsLoaded && step <= 2) ? 'Memindai Otomatis...' : 'Selesai'}
                     </div>
+                    <p className="text-xs text-slate-500 mt-4">Descriptor wajah disimpan terenkripsi di perangkat ini dan menggantikan data lokal lama setelah perekaman berhasil.</p>
                 </div>
             </div>
         </div>

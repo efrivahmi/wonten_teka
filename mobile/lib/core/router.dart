@@ -71,7 +71,7 @@ import '../features/overtime/presentation/screens/employee/overtime_list_screen.
 import '../features/overtime/presentation/screens/employee/overtime_form_screen.dart';
 import '../features/overtime/presentation/screens/employee/overtime_detail_screen.dart';
 
-// Admin 
+// Admin
 import '../features/dashboard/presentation/screens/admin/admin_dashboard_screen.dart';
 import '../features/company/presentation/screens/admin/employee_management_screen.dart';
 import '../features/company/presentation/screens/admin/employee_detail_admin_screen.dart';
@@ -126,24 +126,25 @@ final appRouter = GoRouter(
     GoRoute(path: '/app/tour', builder: (_, __) => const AppTourGuideScreen()),
 
     // Independent full-screen routes (no bottom nav)
-      GoRoute(
-          path: '/app/attendance/check-in',
-          builder: (_, __) => const FaceCheckInScreen()),
-      GoRoute(
-          path: '/app/attendance/check-out',
-          builder: (_, __) => const FaceCheckInScreen(isCheckOut: true)),
-      GoRoute(
-          path: '/app/attendance/success',
-          builder: (_, state) {
-            final extra = state.extra as Map<String, dynamic>? ?? {};
-            final log = extra['log'] as AttendanceLogModel;
-            final isCheckOut = extra['isCheckOut'] as bool? ?? false;
-            return CheckInSuccessScreen(log: log, isCheckOut: isCheckOut);
-          }),
-      GoRoute(
+    GoRoute(
+        path: '/app/attendance/check-in',
+        builder: (_, __) => const FaceCheckInScreen()),
+    GoRoute(
+        path: '/app/attendance/check-out',
+        builder: (_, __) => const FaceCheckInScreen(isCheckOut: true)),
+    GoRoute(
+        path: '/app/attendance/success',
+        builder: (_, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          final log = extra['log'] as AttendanceLogModel?;
+          if (log == null) return const AttendanceHistoryScreen();
+          final isCheckOut = extra['isCheckOut'] as bool? ?? false;
+          return CheckInSuccessScreen(log: log, isCheckOut: isCheckOut);
+        }),
+    GoRoute(
         path: '/app/attendance/adjustment-form',
         builder: (_, __) => const AttendanceAdjustmentFormScreen()),
-      GoRoute(
+    GoRoute(
         path: '/app/attendance/business-trip-form',
         builder: (_, __) => const BusinessTripFormScreen()),
     GoRoute(
@@ -171,9 +172,7 @@ final appRouter = GoRouter(
         path: '/app/habits/detail',
         builder: (_, __) => const HabitDetailScreen()),
 
-    GoRoute(
-        path: '/app/leave',
-        builder: (_, __) => const LeaveHistoryScreen()),
+    GoRoute(path: '/app/leave', builder: (_, __) => const LeaveHistoryScreen()),
     GoRoute(
         path: '/app/leave/new',
         builder: (_, __) => const LeaveRequestFormScreen()),
@@ -190,7 +189,11 @@ final appRouter = GoRouter(
         builder: (_, __) => const ClaimSubmissionScreen()),
     GoRoute(
         path: '/app/claims/detail',
-        builder: (_, state) => ClaimDetailScreen(claim: state.extra as ClaimModel)),
+        builder: (_, state) {
+          final claim = state.extra as ClaimModel?;
+          if (claim == null) return const ClaimListScreen();
+          return ClaimDetailScreen(claim: claim);
+        }),
 
     GoRoute(
         path: '/app/payslip', builder: (_, __) => const PayslipListScreen()),
@@ -213,7 +216,11 @@ final appRouter = GoRouter(
         builder: (_, __) => const AnnouncementsScreen()),
     GoRoute(
         path: '/app/announcements/detail',
-        builder: (_, __) => const AnnouncementDetailScreen()),
+        builder: (_, state) {
+          final announcement = state.extra as AnnouncementModel?;
+          if (announcement == null) return const AnnouncementsScreen();
+          return AnnouncementDetailScreen(announcement: announcement);
+        }),
 
     GoRoute(
         path: '/app/notifications',
@@ -238,8 +245,11 @@ final appRouter = GoRouter(
         builder: (_, __) => const OvertimeFormScreen()),
     GoRoute(
         path: '/app/overtime/detail',
-        builder: (_, state) => OvertimeDetailScreen(
-            overtime: state.extra! as Map<String, dynamic>)),
+        builder: (_, state) {
+          final overtime = state.extra as Map<String, dynamic>?;
+          if (overtime == null) return const OvertimeListScreen();
+          return OvertimeDetailScreen(overtime: overtime);
+        }),
 
     // Admin routes
     GoRoute(
@@ -271,7 +281,7 @@ final appRouter = GoRouter(
     GoRoute(
         path: '/admin/attendance-daily',
         builder: (_, __) => const DailyAttendanceTableScreen()),
-      GoRoute(
+    GoRoute(
         path: '/admin/attendance-flags',
         builder: (_, __) => const AttendanceFlagReviewScreen()),
     GoRoute(
@@ -289,7 +299,8 @@ final appRouter = GoRouter(
     GoRoute(
         path: '/admin/payroll/detail',
         builder: (_, state) {
-          final runId = state.extra as int;
+          final runId = state.extra as int?;
+          if (runId == null) return const PayrollRunListScreen();
           return PayrollRunDetailScreen(runId: runId);
         }),
     GoRoute(
@@ -386,5 +397,3 @@ final appRouter = GoRouter(
     ),
   ],
 );
-
-

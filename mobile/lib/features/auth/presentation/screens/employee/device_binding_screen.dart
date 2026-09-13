@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'dart:io';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/storage/secure_storage.dart';
 import '../../../../../core/repositories/device_repository.dart';
 import '../../../../../core/api/api_exceptions.dart';
 import '../../../../../core/widgets/brand_panel.dart';
 import '../../../../../core/widgets/wonten_card.dart';
+import '../../../../../core/services/device_identity_service.dart';
 import '../../../../auth/bloc/auth_bloc.dart';
 
 class DeviceBindingScreen extends StatefulWidget {
@@ -20,11 +19,19 @@ class DeviceBindingScreen extends StatefulWidget {
 }
 
 class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
+  final TextEditingController _identityNameController =
+      TextEditingController();
   String _deviceName = 'Mendeteksi perangkat...';
   String _deviceOS = '';
   String _deviceFingerprint = '';
   bool _isLoading = true;
   bool _isBinding = false;
+
+  @override
+  void dispose() {
+    _identityNameController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -33,20 +40,11 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
   }
 
   Future<void> _detectDevice() async {
-    final deviceInfo = DeviceInfoPlugin();
     try {
-      if (Platform.isAndroid) {
-        final androidInfo = await deviceInfo.androidInfo;
-        _deviceName = '${androidInfo.brand} ${androidInfo.model}';
-        _deviceOS = 'Android ${androidInfo.version.release}';
-        _deviceFingerprint = androidInfo.id;
-      } else if (Platform.isIOS) {
-        final iosInfo = await deviceInfo.iosInfo;
-        _deviceName = iosInfo.utsname.machine;
-        _deviceOS = '${iosInfo.systemName} ${iosInfo.systemVersion}';
-        _deviceFingerprint =
-            iosInfo.identifierForVendor ?? iosInfo.utsname.machine;
-      }
+      final identity = await DeviceIdentityService().getIdentity();
+      _deviceName = identity.name;
+      _deviceOS = identity.osVersion;
+      _deviceFingerprint = identity.fingerprint;
 
       if (!mounted) return;
 
@@ -106,6 +104,16 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
 
   Future<void> _handleBindDevice() async {
     if (_deviceFingerprint.isEmpty) return;
+    final identityName = _identityNameController.text.trim();
+    if (identityName.length < 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Masukkan nama perangkat minimal 3 karakter.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
     setState(() {
       _isLoading = false;
       _isBinding = true;
@@ -116,7 +124,8 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
       final deviceRepo = context.read<DeviceRepository>();
       final device = await deviceRepo.register(
         deviceFingerprint: _deviceFingerprint,
-        deviceName: _deviceName,
+        deviceName: identityName,
+        deviceModel: _deviceName,
         osVersion: _deviceOS,
       );
 
@@ -225,6 +234,20 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
                           Text(_deviceOS,
                               style: TextStyle(
                                   color: Colors.grey[600], fontSize: 14.sp)),
+                          SizedBox(height: 24.h),
+                          TextField(
+                            controller: _identityNameController,
+                            enabled: !_isBinding,
+                            maxLength: 80,
+                            textCapitalization: TextCapitalization.words,
+                            decoration: const InputDecoration(
+                              labelText: 'Nama identitas perangkat',
+                              hintText: 'Contoh: HP Andi atau Laptop Kantor',
+                              prefixIcon: Icon(Icons.badge_outlined),
+                              helperText:
+                                  'Nama ini akan terlihat oleh admin saat menyetujui.',
+                            ),
+                          ),
                           SizedBox(height: 12.h),
                           Text(
                             'Ajukan perangkat ini untuk dikaitkan ke akun Anda. Akses dashboard tersedia setelah admin menyetujuinya.',

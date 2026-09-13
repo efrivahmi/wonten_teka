@@ -155,12 +155,11 @@ class MainSidebarDrawer extends StatelessWidget {
                         if (menu.contains('payroll'))
                           _buildListTile(context, 'Slip Gaji',
                               Icons.request_quote, '/app/payroll'),
-                        if (menu.contains('biometric'))
-                          _buildListTile(
-                              context,
-                              'Pendaftaran Wajah',
-                              Icons.face_retouching_natural,
-                              '/app/profile/face-update'),
+                        _buildListTile(
+                            context,
+                            'Data Wajah Saya',
+                            Icons.face_retouching_natural,
+                            '/app/profile/face-update'),
                         if (menu.contains('profile'))
                           _buildListTile(
                               context, 'Profil', Icons.person, '/app/profile'),

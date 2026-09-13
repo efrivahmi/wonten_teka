@@ -118,7 +118,8 @@ class CompanyController extends Controller
      */
     public function getGeofence(Request $request)
     {
-        
+        // Every authenticated employee needs the active location and radius
+        // to validate attendance. Updating it remains admin-only at the route.
         $geofenceSetting = \App\Models\Setting::where('key', 'geofence')->first();
         $geofence = $geofenceSetting ? $geofenceSetting->value : [
             'latitude' => null,
@@ -200,7 +201,8 @@ class CompanyController extends Controller
      */
     public function getWorkingDays(Request $request)
     {
-        
+        // Working-day information is visible to every authenticated employee;
+        // the update endpoint remains protected by the admin middleware.
         $workingDaysSetting = \App\Models\Setting::where('key', 'working_days')->first();
         $workingDays = $workingDaysSetting ? $workingDaysSetting->value : [1, 2, 3, 4, 5];
         

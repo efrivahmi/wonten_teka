@@ -49,7 +49,7 @@ class AuthRepository {
     } catch (_) {
       // Even if the server call fails, clear local state
     }
-    await _storage.clearAll();
+    await _storage.clearSession();
   }
 
   /// Get the currently authenticated user from the backend.

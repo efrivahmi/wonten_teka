@@ -17,6 +17,7 @@ import 'core/repositories/company_repository.dart';
 import 'core/repositories/task_repository.dart';
 import 'core/repositories/device_repository.dart';
 import 'core/repositories/device_admin_repository.dart';
+import 'core/services/device_identity_service.dart';
 
 import 'features/auth/bloc/auth_bloc.dart';
 import 'features/attendance/bloc/attendance_cubit.dart';
@@ -117,9 +118,17 @@ class WontenTekaApp extends StatelessWidget {
                 // 0. Force Device Binding Check via Backend
                 final deviceRepo = context.read<DeviceRepository>();
                 final storage = SecureStorage();
-                final fingerprint = await storage.getDeviceFingerprint();
+                var fingerprint = await storage.getDeviceFingerprint();
+
+                // Recover the stable hardware identity when upgrading from an
+                // older build that erased secure storage during logout.
+                if (fingerprint == null || fingerprint.isEmpty) {
+                  final identity = await DeviceIdentityService().getIdentity();
+                  fingerprint = identity.fingerprint;
+                  await storage.saveDeviceFingerprint(fingerprint);
+                }
                 
-                if (fingerprint == null) {
+                if (fingerprint.isEmpty) {
                    appRouter.go('/device-binding');
                    return;
                 }

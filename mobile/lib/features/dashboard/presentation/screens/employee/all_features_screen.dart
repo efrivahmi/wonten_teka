@@ -56,6 +56,11 @@ class AllFeaturesScreen extends StatelessWidget {
                         color: AppColors.primaryFixedDim,
                         route: '/app/attendance'),
                     _FeatureItem(
+                        icon: Icons.assessment_outlined,
+                        label: 'Laporan Absensi',
+                        color: AppColors.primaryContainer,
+                        route: '/app/attendance/report'),
+                    _FeatureItem(
                         icon: Icons.edit_calendar,
                         label: 'Lupa Absen',
                         color: AppColors.tertiaryContainer,
@@ -126,6 +131,11 @@ class AllFeaturesScreen extends StatelessWidget {
                         label: 'Tasks',
                         color: AppColors.primaryContainer,
                         route: '/app/tasks'),
+                    _FeatureItem(
+                        icon: Icons.face_retouching_natural,
+                        label: 'Data Wajah Saya',
+                        color: AppColors.primaryContainer,
+                        route: '/app/profile/face-update'),
                   ],
                 ),
                 if (isAdmin) ...[

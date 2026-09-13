@@ -14,14 +14,17 @@ import {
     CalendarDays,
     ClipboardList,
     Plane,
-    SlidersHorizontal
+    SlidersHorizontal,
+    ChevronDown
 } from 'lucide-react';
-import fpPromise from '@fingerprintjs/fingerprintjs';
 import api from '../api';
+import { getDeviceFingerprint } from '../deviceIdentity';
 
 const EmployeeLayout = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [menuConfig, setMenuConfig] = useState([]);
+    const [openMenus, setOpenMenus] = useState({ Presensi: true });
+    const [profileOpen, setProfileOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
     
@@ -39,11 +42,9 @@ const EmployeeLayout = () => {
         let intervalId;
         const checkDeviceValidity = async () => {
             try {
-                const fp = await fpPromise.load();
-                const result = await fp.get();
-                
+                const fingerprint = await getDeviceFingerprint();
                 const response = await api.get('/device/status', {
-                    params: { device_fingerprint: result.visitorId }
+                    params: { device_fingerprint: fingerprint }
                 });
 
                 if (!response.data.device || response.data.device.status !== 'active') {
@@ -76,16 +77,36 @@ const EmployeeLayout = () => {
         calendar: { name: 'Kalender', href: '/employee/calendar', icon: CalendarDays },
         announcements: { name: 'Pengumuman', href: '/employee/announcements', icon: Bell },
         tasks: { name: 'Tugas Pribadi', href: '/employee/tasks', icon: ClipboardList },
-        adjustments: { name: 'Koreksi Absensi', href: '/employee/attendance-adjustments', icon: SlidersHorizontal },
+        adjustments: { name: 'Ajukan Koreksi Absensi', href: '/employee/attendance-adjustments', icon: SlidersHorizontal },
         business_trips: { name: 'Perjalanan Dinas', href: '/employee/business-trips', icon: Plane },
         directory: { name: 'Direktori Karyawan', href: '/employee/directory', icon: User },
         notifications: { name: 'Notifikasi', href: '/employee/notifications', icon: Bell },
-        biometric: { name: 'Pendaftaran Wajah', href: '/employee/face-enrollment', icon: User },
+        biometric: { name: 'Data Wajah Saya', href: '/employee/face-profile', icon: User },
     };
-    const configuredNavigation = menuConfig.length
-        ? menuConfig.filter(item => item.enabled && menuDefinitions[item.key]).map(item => ({ ...menuDefinitions[item.key], name: item.label }))
-        : Object.values(menuDefinitions);
-    const navigation = [{ name: 'Dashboard', href: '/employee/dashboard', icon: LayoutDashboard }, ...configuredNavigation];
+    const configuredItem = (key) => {
+        const definition = menuDefinitions[key];
+        const configured = menuConfig.find(item => item.key === key);
+        if (!definition || (key !== 'biometric' && configured?.enabled === false)) return null;
+        return { ...definition, name: key === 'biometric' ? definition.name : (configured?.label || definition.name) };
+    };
+    const items = (keys) => keys.map(configuredItem).filter(Boolean);
+    const navigation = [
+        { name: 'Dashboard', href: '/employee/dashboard', icon: LayoutDashboard },
+        { name: 'Presensi', icon: CalendarCheck, children: items(['attendance', 'schedule', 'business_trips']) },
+        { name: 'Pengajuan', icon: Briefcase, children: items(['leave', 'overtime', 'claims', 'adjustments']) },
+        { name: 'Informasi & Aktivitas', icon: Bell, children: items(['calendar', 'tasks', 'notifications']) },
+        { name: 'Keuangan', icon: FileText, children: items(['payroll']) },
+        {
+            name: 'Biometrik',
+            icon: User,
+            children: [
+                configuredItem('biometric'),
+                { name: 'Rekam Ulang Wajah', href: '/employee/face-enrollment', icon: CalendarCheck },
+            ].filter(Boolean),
+        },
+    ].filter(item => !item.children || item.children.length > 0);
+
+    const toggleMenu = (name) => setOpenMenus(previous => ({ ...previous, [name]: !previous[name] }));
 
     const handleLogout = async () => {
         try {
@@ -102,15 +123,15 @@ const EmployeeLayout = () => {
     return (
         <div className="teka-shell flex h-screen">
             {/* Sidebar */}
-            <div className={`teka-sidebar fixed inset-y-0 left-0 z-50 w-64 border-r shadow-sm transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 ease-in-out`}>
-                <div className="flex items-center justify-between h-20 px-5 border-b border-slate-100">
+            <div className={`teka-sidebar fixed inset-y-0 left-0 z-50 flex w-[min(18rem,calc(100vw-1.5rem))] flex-col overflow-hidden border-r shadow-sm transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:w-64 md:translate-x-0 transition-transform duration-300 ease-in-out`}>
+                <div className="flex h-20 flex-shrink-0 items-center justify-between px-5 border-b border-slate-100">
                     <img src="/images/lemdiklat-logo.png" alt="Lemdiklat Taruna Nusantara Indonesia" className="h-11 w-auto max-w-[190px] object-contain object-left" />
                     <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-slate-400 hover:text-slate-600">
                         <X className="h-6 w-6" />
                     </button>
                 </div>
                 
-                <div className="p-4">
+                <div className="flex-shrink-0 p-4 pb-2">
                     <div className="bg-lime-50 rounded-2xl p-4 flex items-center space-x-3 border border-lime-100">
                         <div className="bg-emerald-100 text-emerald-600 p-2 rounded-lg">
                             <User className="h-5 w-5" />
@@ -122,8 +143,22 @@ const EmployeeLayout = () => {
                     </div>
                 </div>
 
-                <nav className="px-4 py-4 space-y-1 overflow-y-auto" style={{ height: 'calc(100vh - 180px)' }}>
+                <nav className="scrollbar-hidden min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain px-4 py-2 pb-6">
                     {navigation.map((item) => {
+                        if (item.children) {
+                            const isChildActive = item.children.some(child => location.pathname.startsWith(child.href));
+                            const isOpen = openMenus[item.name] ?? isChildActive;
+                            return <div key={item.name} className="space-y-1">
+                                <button onClick={() => toggleMenu(item.name)} className={`w-full flex items-center justify-between gap-2 px-4 py-3 rounded-lg transition-colors ${isChildActive ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                    <div className="flex min-w-0 items-center space-x-3 text-left"><item.icon className="h-5 w-5 flex-shrink-0" /><span className="text-sm font-medium leading-tight">{item.name}</span></div>
+                                    <ChevronDown className={`h-4 w-4 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                                {isOpen && <div className="pl-10 pr-1 py-1 space-y-1">{item.children.map(child => {
+                                    const isActive = location.pathname.startsWith(child.href);
+                                    return <Link key={child.href} to={child.href} onClick={() => setIsMobileMenuOpen(false)} className={`flex items-start space-x-3 px-3 py-2 rounded-lg transition-colors ${isActive ? 'bg-lime-50 text-emerald-700 font-medium' : 'text-slate-500 hover:text-emerald-700'}`}><child.icon className="mt-0.5 h-4 w-4 flex-shrink-0" /><span className="text-sm leading-snug">{child.name}</span></Link>;
+                                })}</div>}
+                            </div>;
+                        }
                         const isActive = location.pathname.startsWith(item.href);
                         return (
                             <Link
@@ -143,15 +178,6 @@ const EmployeeLayout = () => {
                     })}
                 </nav>
 
-                <div className="absolute bottom-0 w-full p-4 border-t border-slate-100 bg-white">
-                    <button 
-                        onClick={handleLogout}
-                        className="flex items-center space-x-3 px-4 py-3 w-full rounded-lg text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors"
-                    >
-                        <LogOut className="h-5 w-5 flex-shrink-0 text-slate-400" />
-                        <span className="font-medium text-sm">Keluar</span>
-                    </button>
-                </div>
             </div>
 
             {/* Main Content */}
@@ -165,6 +191,17 @@ const EmployeeLayout = () => {
                         <Link to="/employee/notifications" className="text-slate-400 hover:text-emerald-600 transition-colors p-2">
                             <Bell className="h-5 w-5" />
                         </Link>
+                        <div className="relative">
+                            <button onClick={() => setProfileOpen(value => !value)} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-left hover:border-emerald-300">
+                                <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-100 text-emerald-700"><User className="h-4 w-4" /></span>
+                                <span className="hidden sm:block max-w-40"><span className="block truncate text-sm font-semibold text-slate-800">{user.name || 'Karyawan'}</span><span className="block truncate text-[11px] text-slate-500">Profil saya</span></span>
+                                <ChevronDown className="h-4 w-4 text-slate-400" />
+                            </button>
+                            {profileOpen && <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+                                <Link to="/employee/profile" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-emerald-50"><User className="h-4 w-4" />Lihat & edit profil</Link>
+                                <button onClick={handleLogout} className="flex w-full items-center gap-3 border-t border-slate-100 px-4 py-3 text-sm text-rose-600 hover:bg-rose-50"><LogOut className="h-4 w-4" />Keluar</button>
+                            </div>}
+                        </div>
                     </div>
                 </header>
 

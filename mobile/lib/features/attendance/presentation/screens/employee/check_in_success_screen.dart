@@ -105,7 +105,7 @@ class CheckInSuccessScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 56.h,
                     child: ElevatedButton(
-                      onPressed: () => context.go('/app/dashboard'),
+                      onPressed: () => context.go('/app/home'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,

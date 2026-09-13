@@ -40,8 +40,16 @@ class ApiClient {
 
     _dio.interceptors.addAll([
       _AuthInterceptor(_storage),
-      if (kDebugMode || const bool.fromEnvironment('API_LOGGING'))
-        LogInterceptor(requestBody: true, responseBody: true, error: true),
+      // Logging is opt-in and deliberately excludes credentials, request
+      // payloads, and biometric/API response data.
+      if (const bool.fromEnvironment('API_LOGGING'))
+        LogInterceptor(
+          requestHeader: false,
+          requestBody: false,
+          responseHeader: false,
+          responseBody: false,
+          error: true,
+        ),
       _ErrorInterceptor(onUnauthorized: onUnauthorized),
     ]);
   }
