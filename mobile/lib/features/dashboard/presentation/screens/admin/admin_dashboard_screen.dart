@@ -87,34 +87,44 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildQuickStats(context),
+                  ViewEntrance(child: _buildQuickStats(context)),
                   SizedBox(height: 24.h),
 
                   // 2. Admin Features Grid
                   // 2. Admin Features Grids (Categorized)
                   _buildSectionHeader('Kepegawaian'),
                   SizedBox(height: 12.h),
-                  _buildKepegawaianGrid(context),
+                  ViewEntrance(
+                      delay: const Duration(milliseconds: 80),
+                      child: _buildKepegawaianGrid(context)),
                   SizedBox(height: 24.h),
 
                   _buildSectionHeader('Kehadiran & Jadwal'),
                   SizedBox(height: 12.h),
-                  _buildKehadiranGrid(context),
+                  ViewEntrance(
+                      delay: const Duration(milliseconds: 140),
+                      child: _buildKehadiranGrid(context)),
                   SizedBox(height: 24.h),
 
                   _buildSectionHeader('Penggajian'),
                   SizedBox(height: 12.h),
-                  _buildPayrollGrid(context),
+                  ViewEntrance(
+                      delay: const Duration(milliseconds: 200),
+                      child: _buildPayrollGrid(context)),
                   SizedBox(height: 24.h),
 
                   _buildSectionHeader('Komunikasi & Informasi'),
                   SizedBox(height: 12.h),
-                  _buildKomunikasiGrid(context),
+                  ViewEntrance(
+                      delay: const Duration(milliseconds: 260),
+                      child: _buildKomunikasiGrid(context)),
                   SizedBox(height: 24.h),
 
                   _buildSectionHeader('Sistem & Data'),
                   SizedBox(height: 12.h),
-                  _buildSistemGrid(context),
+                  ViewEntrance(
+                      delay: const Duration(milliseconds: 320),
+                      child: _buildSistemGrid(context)),
                   SizedBox(height: 24.h),
 
                   // 3. Admin Calendar Monitoring
@@ -126,7 +136,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         color: AppColors.onSurface),
                   ),
                   SizedBox(height: 16.h),
-                  const AdminDashboardCalendar(),
+                  const ViewEntrance(
+                      delay: Duration(milliseconds: 380),
+                      child: AdminDashboardCalendar()),
                   SizedBox(height: 60.h),
                 ],
               ),

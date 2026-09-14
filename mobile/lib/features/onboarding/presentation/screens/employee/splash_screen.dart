@@ -37,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
     } else {
       // No token, check if user has seen tour
       final hasSeenTour = await storage.hasSeenTour();
-      
+
       if (!mounted) return;
 
       if (hasSeenTour) {
@@ -57,27 +57,27 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(24.w),
+              padding: EdgeInsets.all(14.w),
               decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  )
-                ]
-              ),
-              child: Icon(
-                Icons.fingerprint,
-                size: 72.w,
-                color: AppColors.primary,
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(28.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    )
+                  ]),
+              child: Image.asset(
+                'assets/images/e-absensi-logo-generated.png',
+                width: 92.w,
+                height: 92.w,
+                fit: BoxFit.contain,
               ),
             ),
             SizedBox(height: 32.h),
             Text(
-              'e-Absensi Lemdiklat',
+              'e-Absensi',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 32.sp,
@@ -87,7 +87,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             SizedBox(height: 8.h),
             Text(
-              'Sistem Presensi Modern',
+              'Lemdiklat Taruna Nusantara Indonesia',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.8),
                 fontSize: 14.sp,

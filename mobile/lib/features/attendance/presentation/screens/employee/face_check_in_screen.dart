@@ -291,11 +291,42 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
   ) {
     var bestScore = 0.0;
     for (final reference in references) {
+      // Web face-api descriptors and mobile ML Kit landmark vectors have
+      // different dimensions and must never be compared to each other.
+      if (reference.length != liveEmbedding.length) continue;
       final score = FaceMatcherService.calculateCosineSimilarity(
           liveEmbedding, reference);
       if (score > bestScore) bestScore = score;
     }
     return bestScore;
+  }
+
+  bool get _hasCompatibleReference => _liveEmbedding.isEmpty ||
+      _registeredEmbeddings.any((item) => item.length == _liveEmbedding.length);
+
+  double get _scanProgress {
+    if (_submissionStarted) return 1;
+    var progress = 0.0;
+    if (_currentPosition != null && _isLocationValid) progress += .15;
+    if (_selectedShift != null) progress += .15;
+    if (_isFaceDetected) progress += .20;
+    if (_isFaceProper) progress += .15;
+    if (!_isTooDark && _isFaceDetected) progress += .10;
+    if (_liveEmbedding.isNotEmpty && _hasCompatibleReference) progress += .10;
+    progress += (_liveSimilarity.clamp(0.0, .80) / .80) * .15;
+    return progress.clamp(0.0, 1.0);
+  }
+
+  String get _scanGuidance {
+    if (_currentPosition == null || !_isLocationValid) return _locationStatus;
+    if (_selectedShift == null) return 'Pilih atau minta admin menetapkan shift aktif.';
+    if (!_isFaceDetected) return 'Wajah belum terdeteksi. Posisikan di tengah bingkai.';
+    if (_isTooDark) return 'Terlalu gelap. Pindah ke tempat yang lebih terang.';
+    if (!_isFaceProper) return 'Dekatkan kamera dan arahkan wajah lurus ke depan.';
+    if (!_hasCompatibleReference) return 'Data wajah berasal dari pemindai berbeda. Rekam ulang wajah melalui mobile.';
+    if (_liveEmbedding.isEmpty) return 'Tahan posisi, sedang membaca detail wajah.';
+    if (_liveSimilarity < .80) return 'Wajah terbaca, sedang mencocokkan identitas.';
+    return 'Semua pemeriksaan valid. Tahan posisi sebentar.';
   }
 
   bool get _isReadyForAutomaticCapture =>
@@ -619,9 +650,7 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                                                 curve: Curves.easeOutBack,
                                                 end:
                                                     const Offset(1.015, 1.015)),
-                                        if (_isFaceProper &&
-                                            !_isTooDark &&
-                                            _capturedImage == null &&
+                                        if (_capturedImage == null &&
                                             !isLoading)
                                           Positioned.fill(
                                             child: ClipRRect(
@@ -633,13 +662,11 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                                                   width: double.infinity,
                                                   height: 4.h,
                                                   decoration:
-                                                      const BoxDecoration(
-                                                          color:
-                                                              AppColors.primary,
+                                                      BoxDecoration(
+                                                          color: _isTooDark ? AppColors.error : AppColors.primary,
                                                           boxShadow: [
                                                         BoxShadow(
-                                                            color: AppColors
-                                                                .primary,
+                                                            color: _isTooDark ? AppColors.error : AppColors.primary,
                                                             blurRadius: 10)
                                                       ]),
                                                 )
@@ -655,6 +682,8 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                                               ),
                                             ),
                                           ),
+                                        if (_capturedImage == null)
+                                          IgnorePointer(child: Container(width: 230.w, height: 300.h, decoration: BoxDecoration(borderRadius: BorderRadius.circular(115.r), border: Border.all(color: Colors.white.withValues(alpha: .8), width: 2.w)))),
                                       ],
                                     ),
                                   ),
@@ -686,6 +715,20 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
+
+                                  SizedBox(height: 14.h),
+                                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Expanded(child: Text(_scanGuidance, style: TextStyle(fontSize: 12.sp, color: _isTooDark || !_hasCompatibleReference ? AppColors.error : AppColors.onSurfaceVariant))), SizedBox(width: 8.w), Text('${(_scanProgress * 100).round()}%', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary))]),
+                                  SizedBox(height: 8.h),
+                                  ClipRRect(borderRadius: BorderRadius.circular(10.r), child: LinearProgressIndicator(value: _scanProgress, minHeight: 10.h, backgroundColor: AppColors.surfaceContainerHigh, color: _isTooDark || !_hasCompatibleReference ? AppColors.error : AppColors.primary)),
+                                  SizedBox(height: 12.h),
+                                  Wrap(spacing: 8.w, runSpacing: 8.h, alignment: WrapAlignment.center, children: [
+                                    _ScanChip(label: 'Lokasi', valid: _currentPosition != null && _isLocationValid),
+                                    _ScanChip(label: 'Shift', valid: _selectedShift != null),
+                                    _ScanChip(label: 'Wajah', valid: _isFaceDetected),
+                                    _ScanChip(label: 'Cahaya', valid: _isFaceDetected && !_isTooDark),
+                                    _ScanChip(label: 'Posisi', valid: _isFaceProper),
+                                    _ScanChip(label: 'Cocok', valid: _liveSimilarity >= .80),
+                                  ]),
 
                                   SizedBox(height: 24.h),
 
@@ -1006,4 +1049,10 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
       ),
     );
   }
+}
+
+class _ScanChip extends StatelessWidget {
+  final String label; final bool valid;
+  const _ScanChip({required this.label, required this.valid});
+  @override Widget build(BuildContext context) => Container(padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 6.h), decoration: BoxDecoration(color: valid ? AppColors.primary.withValues(alpha: .1) : AppColors.surfaceContainerHigh, borderRadius: BorderRadius.circular(20.r)), child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(valid ? Icons.check_circle : Icons.radio_button_unchecked, size: 14.w, color: valid ? AppColors.primary : AppColors.onSurfaceVariant), SizedBox(width: 4.w), Text(label, style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w600))]));
 }

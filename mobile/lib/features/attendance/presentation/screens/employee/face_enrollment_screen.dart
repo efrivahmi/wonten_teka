@@ -1,7 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:camera/camera.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -35,13 +33,12 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
   bool _isFaceProper = false;
   bool _isTooDark = false;
   double _currentAngleY = 0.0;
+  int? _firstSideSign;
 
-  final List<File> _capturedImages = [];
   final List<List<double>> _capturedEmbeddings = [];
   List<double> _latestEmbedding = [];
-  final GlobalKey<CameraPreviewWidgetState> _cameraKey = GlobalKey<CameraPreviewWidgetState>();
-  
-  bool _isTakingPicture = false;
+  final GlobalKey<CameraPreviewWidgetState> _cameraKey =
+      GlobalKey<CameraPreviewWidgetState>();
 
   bool _isSubmitting = false;
   String? _errorMessage;
@@ -58,12 +55,17 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
 
     bool isAngleCorrect = false;
     if (isProper) {
-      if (_currentStep == 0 && angleY > -10 && angleY < 10) {
+      if (_currentStep == 0 && angleY > -12 && angleY < 12) {
         isAngleCorrect = true;
-      } else if (_currentStep == 1 && angleY > 15) {
-        // Front camera is mirrored
+      } else if (_currentStep == 1 && angleY.abs() > 8) {
+        // Different Android camera stacks report mirrored yaw with opposite
+        // signs, so accept either first side. Its stable direction is saved
+        // only after this scan step completes.
         isAngleCorrect = true;
-      } else if (_currentStep == 2 && angleY < -15) {
+      } else if (_currentStep == 2 &&
+          angleY.abs() > 8 &&
+          _firstSideSign != null &&
+          angleY.sign.toInt() != _firstSideSign) {
         isAngleCorrect = true;
       }
     }
@@ -94,24 +96,15 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
         });
 
         if (_scanProgress >= 1.0) {
-          if (_isTakingPicture) continue;
           if (_latestEmbedding.isEmpty) {
             setState(() => _scanProgress = 0.0);
             continue;
           }
-          
-          setState(() {
-            _isTakingPicture = true;
-          });
-          
-          await _cameraKey.currentState?.takePhoto();
-          
-          // Wait for picture to be processed in callback
-          while (_isTakingPicture) {
-            await Future.delayed(const Duration(milliseconds: 100));
-          }
 
           _capturedEmbeddings.add(List.from(_latestEmbedding));
+          if (_currentStep == 1) {
+            _firstSideSign = _currentAngleY.sign.toInt();
+          }
 
           if (_currentStep < 2) {
             setState(() {
@@ -146,7 +139,8 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
 
   Future<void> _submitEnrollment() async {
     if (_isSubmitting) return;
-    if (_capturedImages.length != 3 || _capturedEmbeddings.length != 3) {
+    if (_capturedEmbeddings.length != 3 ||
+        _capturedEmbeddings.any((embedding) => embedding.length != 10)) {
       setState(() {
         _errorMessage = 'Data wajah belum lengkap. Silakan rekam ulang.';
         _isScanning = false;
@@ -164,23 +158,21 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
       final deviceId = await storage.getDeviceFingerprint() ?? 'unknown-device';
 
       await attendanceRepo.enrollFace(
-        faceImages: _capturedImages,
         faceEmbeddings: _capturedEmbeddings,
         deviceId: deviceId,
       );
 
-      if (_capturedEmbeddings.isNotEmpty) {
-        await storage.saveFaceEmbedding(jsonEncode(_capturedEmbeddings));
+      // Do not show success until the server returns the newly persisted
+      // descriptor set. This prevents a green completion screen with unusable
+      // or stale references.
+      final confirmedEmbeddings = await attendanceRepo.syncFace();
+      if (confirmedEmbeddings == null ||
+          confirmedEmbeddings.length < 3 ||
+          confirmedEmbeddings.any((embedding) => embedding.length != 10)) {
+        throw const FormatException(
+            'Server tidak mengembalikan data wajah mobile yang valid.');
       }
-
-      // Raw captures are temporary submission artifacts. Keep only the
-      // encrypted descriptors in secure storage after enrollment succeeds.
-      for (final image in _capturedImages) {
-        try {
-          if (await image.exists()) await image.delete();
-        } catch (_) {}
-      }
-      _capturedImages.clear();
+      await storage.saveFaceEmbedding(jsonEncode(confirmedEmbeddings));
 
       if (mounted) {
         setState(() {
@@ -358,14 +350,6 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                                 key: _cameraKey,
                                 onFaceValidationChanged: _handleFaceValidation,
                                 onFaceEmbeddingGenerated: _handleFaceEmbedding,
-                                onPhotoCaptured: (XFile? file) {
-                                  if (file != null) {
-                                    _capturedImages.add(File(file.path));
-                                  }
-                                  setState(() {
-                                    _isTakingPicture = false;
-                                  });
-                                },
                               )
                             : const ColoredBox(
                                 color: AppColors.surfaceContainerLow,
@@ -427,6 +411,42 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                           ],
                         ),
                       ).animate().fade(),
+                    if (_isScanning)
+                      IgnorePointer(
+                          child: Container(
+                              width: 190.w,
+                              height: 260.h,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(90.r),
+                                  border: Border.all(
+                                      color: Colors.white.withValues(alpha: .8),
+                                      width: 2.w)))),
+                    if (_isScanning && !_isSubmitting)
+                      Positioned(
+                              top: 20.h,
+                              left: 20.w,
+                              right: 20.w,
+                              child: Container(
+                                  height: 3.h,
+                                  decoration: BoxDecoration(
+                                      color: _isTooDark
+                                          ? AppColors.error
+                                          : AppColors.primaryContainer,
+                                      boxShadow: [
+                                        BoxShadow(
+                                            color: _isTooDark
+                                                ? AppColors.error
+                                                : AppColors.primaryContainer,
+                                            blurRadius: 12)
+                                      ])))
+                          .animate(
+                              onPlay: (controller) =>
+                                  controller.repeat(reverse: true))
+                          .moveY(
+                              begin: 0,
+                              end: 265.h,
+                              duration: 1500.ms,
+                              curve: Curves.easeInOut),
                     if (_isScanning)
                       Positioned(
                         left: 10.w,
@@ -502,9 +522,11 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                                   _isScanning = true;
                                   _currentStep = 0;
                                   _scanProgress = 0.0;
-                                  _capturedImages.clear();
                                   _capturedEmbeddings.clear();
                                   _latestEmbedding = [];
+                                  _firstSideSign = null;
+                                  _isFaceProper = false;
+                                  _isTooDark = false;
                                   _errorMessage = null;
                                 });
                                 _runScanLoop();

@@ -50,7 +50,14 @@ class _BrandLines extends CustomPainter {
 /// One-shot entrance; respects accessibility and pauses when app is inactive.
 class ViewEntrance extends StatefulWidget {
   final Widget child;
-  const ViewEntrance({super.key, required this.child});
+  final Duration delay;
+  final double offset;
+  const ViewEntrance({
+    super.key,
+    required this.child,
+    this.delay = Duration.zero,
+    this.offset = 12,
+  });
   @override
   State<ViewEntrance> createState() => _ViewEntranceState();
 }
@@ -58,10 +65,14 @@ class ViewEntrance extends StatefulWidget {
 class _ViewEntranceState extends State<ViewEntrance>
     with WidgetsBindingObserver {
   bool _active = true;
+  bool _visible = false;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    Future<void>.delayed(widget.delay, () {
+      if (mounted) setState(() => _visible = true);
+    });
   }
 
   @override
@@ -79,7 +90,7 @@ class _ViewEntranceState extends State<ViewEntrance>
   Widget build(BuildContext context) => TickerMode(
         enabled: _active && TickerMode.valuesOf(context).enabled,
         child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0, end: 1),
+          tween: Tween(begin: 0, end: _visible ? 1 : 0),
           duration: MediaQuery.disableAnimationsOf(context)
               ? Duration.zero
               : const Duration(milliseconds: 360),
@@ -88,7 +99,9 @@ class _ViewEntranceState extends State<ViewEntrance>
           builder: (_, value, child) => Opacity(
               opacity: value,
               child: Transform.translate(
-                  offset: Offset(0, 12 * (1 - value)), child: child)),
+                  offset: Offset(0, widget.offset * (1 - value)),
+                  child: Transform.scale(
+                      scale: .98 + (.02 * value), child: child))),
         ),
       );
 }

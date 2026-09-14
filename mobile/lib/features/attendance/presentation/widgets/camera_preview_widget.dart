@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:screen_brightness/screen_brightness.dart';
 
 class CameraPreviewWidget extends StatefulWidget {
   final Function(bool isFaceDetected, bool isProperlyPositioned, double angleY,
@@ -41,6 +42,8 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
   bool _isTakingPicture = false;
   bool _isDisposed = false;
   int _cameraGeneration = 0;
+  bool _brightnessBoosted = false;
+  DateTime _lastBrightnessChange = DateTime.fromMillisecondsSinceEpoch(0);
 
   @override
   void initState() {
@@ -91,15 +94,25 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
         _isCameraInitialized = true;
       });
 
-      await controller.startImageStream((CameraImage image) {
-        if (_isDisposed || _isDetecting) return;
-        _isDetecting = true;
-        _processCameraImage(image, frontCamera, generation);
-      });
+      await _startImageStream(controller, frontCamera, generation);
     } catch (e) {
       debugPrint('Error initializing camera: $e');
       await _releaseCamera(closeDetector: false);
     }
+  }
+
+  Future<void> _startImageStream(CameraController controller,
+      CameraDescription camera, int generation) async {
+    if (_isDisposed ||
+        generation != _cameraGeneration ||
+        controller.value.isStreamingImages) {
+      return;
+    }
+    await controller.startImageStream((CameraImage image) {
+      if (_isDisposed || _isDetecting) return;
+      _isDetecting = true;
+      _processCameraImage(image, camera, generation);
+    });
   }
 
   Future<void> _processCameraImage(
@@ -132,17 +145,29 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
 
       bool isTooDark = false;
       if (image.planes.isNotEmpty) {
-        final bytes = image.planes[0].bytes;
+        final plane = image.planes[0];
+        final bytes = plane.bytes;
         int sum = 0;
         int sampleCount = 0;
-        // Sample pixels to calculate average luma
-        for (int i = 0; i < bytes.length; i += 100) {
-          sum += bytes[i];
-          sampleCount++;
+        // Measure the central face area instead of the whole frame. A bright
+        // window behind the employee must not make a dark face pass.
+        final rowStride = plane.bytesPerRow;
+        final startX = (image.width * .20).round();
+        final endX = (image.width * .80).round();
+        final startY = (image.height * .15).round();
+        final endY = (image.height * .85).round();
+        for (int y = startY; y < endY; y += 8) {
+          for (int x = startX; x < endX; x += 8) {
+            final index = y * rowStride + x;
+            if (index < bytes.length) {
+              sum += bytes[index];
+              sampleCount++;
+            }
+          }
         }
         if (sampleCount > 0) {
           double avgLuma = sum / sampleCount;
-          isTooDark = avgLuma < 50; // Threshold for "too dark"
+          isTooDark = avgLuma < 78;
         }
       }
 
@@ -171,6 +196,7 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
       } else {
         widget.onFaceValidationChanged(faces.isNotEmpty, false, 0.0, isTooDark);
       }
+      _updateBrightnessForLighting(isTooDark);
     } catch (e) {
       debugPrint('Face detection error: $e');
       if (!_isDisposed && mounted && generation == _cameraGeneration) {
@@ -178,6 +204,34 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
       }
     } finally {
       _isDetecting = false;
+    }
+  }
+
+  void _updateBrightnessForLighting(bool isTooDark) {
+    final now = DateTime.now();
+    if (now.difference(_lastBrightnessChange) < const Duration(seconds: 1)) {
+      return;
+    }
+    if (isTooDark && !_brightnessBoosted) {
+      _lastBrightnessChange = now;
+      _brightnessBoosted = true;
+      unawaited(_setBiometricBrightness(1.0));
+    }
+  }
+
+  Future<void> _setBiometricBrightness(double value) async {
+    try {
+      await ScreenBrightness.instance.setApplicationScreenBrightness(value);
+    } catch (e) {
+      debugPrint('Unable to raise application brightness: $e');
+    }
+  }
+
+  Future<void> _restoreBrightness() async {
+    try {
+      await ScreenBrightness.instance.resetApplicationScreenBrightness();
+    } catch (e) {
+      debugPrint('Unable to restore application brightness: $e');
     }
   }
 
@@ -326,6 +380,7 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
     }
 
     _isTakingPicture = true;
+    XFile? capturedFile;
     try {
       // Let the current ML Kit frame finish before changing the camera session.
       // Several Android camera implementations fail when stopImageStream and
@@ -340,13 +395,24 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
         await controller.stopImageStream();
         await Future<void>.delayed(const Duration(milliseconds: 180));
       }
-      final file = await controller.takePicture();
-      widget.onPhotoCaptured?.call(file);
+      capturedFile = await controller.takePicture();
     } catch (e) {
       debugPrint('Error taking photo: $e');
-      widget.onPhotoCaptured?.call(null);
     } finally {
+      // Taking a still photo stops ML Kit's image stream. Start it again here
+      // so the next pose does not depend on pausing/resuming the whole app.
+      if (!_isDisposed &&
+          controller == _cameraController &&
+          controller.value.isInitialized) {
+        try {
+          final camera = controller.description;
+          await _startImageStream(controller, camera, _cameraGeneration);
+        } catch (e) {
+          debugPrint('Error restarting camera analysis: $e');
+        }
+      }
       _isTakingPicture = false;
+      widget.onPhotoCaptured?.call(capturedFile);
     }
   }
 
@@ -355,6 +421,7 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
     _isDisposed = true;
     _cameraGeneration++;
     WidgetsBinding.instance.removeObserver(this);
+    unawaited(_restoreBrightness());
     unawaited(_releaseCamera(closeDetector: true));
     super.dispose();
   }
@@ -363,6 +430,10 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
     _cameraGeneration++;
     final controller = _cameraController;
     _cameraController = null;
+    if (_brightnessBoosted) {
+      _brightnessBoosted = false;
+      await _restoreBrightness();
+    }
     if (mounted && !_isDisposed) {
       setState(() => _isCameraInitialized = false);
     }

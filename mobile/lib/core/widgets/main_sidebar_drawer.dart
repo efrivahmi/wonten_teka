@@ -49,6 +49,10 @@ class MainSidebarDrawer extends StatelessWidget {
                             'overtime',
                             'claims',
                             'payroll',
+                            'calendar',
+                            'tasks',
+                            'adjustments',
+                            'business_trips',
                             'profile'
                           };
                     return ListView(
@@ -143,6 +147,15 @@ class MainSidebarDrawer extends StatelessWidget {
                         if (menu.contains('schedule'))
                           _buildListTile(context, 'Jadwal Shift Saya',
                               Icons.schedule, '/app/schedule/shifts'),
+                        if (menu.contains('business_trips'))
+                          _buildListTile(
+                              context,
+                              'Perjalanan Dinas',
+                              Icons.flight_takeoff,
+                              '/app/attendance/business-trip-form'),
+                        if (menu.contains('adjustments'))
+                          _buildListTile(context, 'Koreksi Absensi', Icons.tune,
+                              '/app/attendance/adjustment-form'),
                         if (menu.contains('leave'))
                           _buildListTile(context, 'Riwayat Cuti',
                               Icons.event_busy, '/app/leave'),
@@ -155,6 +168,12 @@ class MainSidebarDrawer extends StatelessWidget {
                         if (menu.contains('payroll'))
                           _buildListTile(context, 'Slip Gaji',
                               Icons.request_quote, '/app/payroll'),
+                        if (menu.contains('calendar'))
+                          _buildListTile(context, 'Kalender Perusahaan',
+                              Icons.calendar_month, '/app/calendar'),
+                        if (menu.contains('tasks'))
+                          _buildListTile(context, 'Tugas Pribadi',
+                              Icons.task_alt, '/app/tasks'),
                         _buildListTile(
                             context,
                             'Data Wajah Saya',
@@ -202,7 +221,17 @@ class MainSidebarDrawer extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [Image.asset('assets/images/e-absensi-logo-generated.png', width: 38.w, height: 38.w), SizedBox(width: 10.w), Expanded(child: Text('e-Absensi Lemdiklat', style: TextStyle(color: Colors.white, fontSize: 15.sp, fontWeight: FontWeight.w800)))]),
+          Row(children: [
+            Image.asset('assets/images/e-absensi-logo-generated.png',
+                width: 38.w, height: 38.w),
+            SizedBox(width: 10.w),
+            Expanded(
+                child: Text('e-Absensi Lemdiklat',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w800)))
+          ]),
           SizedBox(height: 20.h),
           CircleAvatar(
             radius: 32.r,

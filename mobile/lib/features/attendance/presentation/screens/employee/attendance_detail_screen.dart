@@ -27,9 +27,12 @@ class AttendanceDetailScreen extends StatelessWidget {
       address = log.flags!['address'];
     }
 
-    // Backend base URL for images
-    const String baseUrl =
-        'https://presensi.lemdiklattarunanusantaraindonesia.id/storage/';
+    String photoUrl(String value) {
+      if (value.startsWith('http://') || value.startsWith('https://')) {
+        return value;
+      }
+      return 'https://presensi.lemdiklattarunanusantaraindonesia.id/storage/$value';
+    }
 
     return Scaffold(
       backgroundColor: AppColors.surfaceContainerLow,
@@ -162,9 +165,13 @@ class AttendanceDetailScreen extends StatelessWidget {
                           color:
                               AppColors.successEmerald.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8.r)),
-                      child: Text('Normal',
+                      child: Text(_workStatusLabel(log),
                           style: TextStyle(
-                              color: AppColors.successEmerald,
+                              color: log.status == 'late'
+                                  ? AppColors.warningAmber
+                                  : log.isFlagged
+                                      ? AppColors.error
+                                      : AppColors.successEmerald,
                               fontWeight: FontWeight.bold,
                               fontSize: 12.sp)),
                     ),
@@ -273,7 +280,7 @@ class AttendanceDetailScreen extends StatelessWidget {
                           ClipRRect(
                               borderRadius: BorderRadius.circular(8.r),
                               child: Image.network(
-                                "$baseUrl${log.checkInPhotoUrl}",
+                                photoUrl(log.checkInPhotoUrl!),
                                 height: 120.h,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
@@ -311,7 +318,7 @@ class AttendanceDetailScreen extends StatelessWidget {
                           ClipRRect(
                               borderRadius: BorderRadius.circular(8.r),
                               child: Image.network(
-                                "$baseUrl${log.checkOutPhotoUrl}",
+                                photoUrl(log.checkOutPhotoUrl!),
                                 height: 120.h,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
@@ -366,6 +373,14 @@ class AttendanceDetailScreen extends StatelessWidget {
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     return '${hours}j ${minutes}m';
+  }
+
+  String _workStatusLabel(AttendanceLogModel log) {
+    if (log.isFlagged) return 'Perlu ditinjau';
+    if (log.status == 'late') return 'Terlambat';
+    if (log.status == 'absent') return 'Alpha';
+    if (!log.hasCheckedOut) return 'Belum check-out';
+    return 'Hadir';
   }
 
   Widget _buildStatusBadge(String status) {

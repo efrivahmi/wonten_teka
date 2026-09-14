@@ -90,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               SizedBox(height: 16.h),
                               Text(
-                                'e-Absensi Lemdiklat',
+                                'e-Absensi',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 28.sp,
@@ -100,10 +100,32 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               SizedBox(height: 8.h),
                               Text(
-                                'Portal Kehadiran Lemdiklat Taruna Nusantara Indonesia',
+                                'Lemdiklat Taruna Nusantara Indonesia',
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.8),
                                   fontSize: 14.sp,
+                                ),
+                              ),
+                              SizedBox(height: 14.h),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 14.w, vertical: 7.h),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: .1),
+                                  borderRadius: BorderRadius.circular(99.r),
+                                  border: Border.all(
+                                      color:
+                                          Colors.white.withValues(alpha: .2)),
+                                ),
+                                child: Text(
+                                  'SISTEM KEHADIRAN TERPADU',
+                                  style: TextStyle(
+                                    color: AppColors.primaryFixed,
+                                    fontSize: 9.sp,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 1.5,
+                                  ),
                                 ),
                               ),
                             ],
@@ -111,158 +133,190 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       SizedBox(height: 40.h),
-                      WontenCard(
-                        padding: EdgeInsets.all(28.w),
-                        child: Form(
-                          key: _formKey,
-                          child: AutofillGroup(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                              Text(
-                                'Masuk ke ruang kerja',
-                                style: TextStyle(
-                                  color: AppColors.onSurface,
-                                  fontSize: 24.sp,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.left,
-                              ),
-                              SizedBox(height: 24.h),
-                              Text(
-                                'EMAIL / NIP',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 11.sp,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
-                              SizedBox(height: 8.h),
-                              TextFormField(
-                                controller: _usernameController,
-                                enabled: !isLoading,
-                                autofillHints: const [
-                                  AutofillHints.username,
-                                  AutofillHints.email
-                                ],
-                                textInputAction: TextInputAction.next,
-                                decoration: InputDecoration(
-                                  prefixIcon: const Icon(Icons.person_outline,
-                                      color: AppColors.primary),
-                                  hintText: 'Masukkan email atau NIP',
-                                  filled: true,
-                                  fillColor: AppColors.surfaceContainerLow,
-                                  contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 16.w, vertical: 16.h),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14.r),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14.r),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.outlineVariant),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14.r),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.primary),
-                                  ),
-                                ),
-                                validator: (value) => value?.isEmpty ?? true
-                                    ? 'Wajib diisi'
-                                    : null,
-                              ),
-                              SizedBox(height: 20.h),
-                              Text(
-                                'PASSWORD',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 11.sp,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
-                              SizedBox(height: 8.h),
-                              TextFormField(
-                                controller: _passwordController,
-                                obscureText: _obscurePassword,
-                                enabled: !isLoading,
-                                autofillHints: const [AutofillHints.password],
-                                textInputAction: TextInputAction.done,
-                                onFieldSubmitted: (_) {
-                                  if (!isLoading) _handleLogin();
-                                },
-                                decoration: InputDecoration(
-                                  prefixIcon: const Icon(Icons.lock_outline,
-                                      color: AppColors.primary),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _obscurePassword
-                                          ? Icons.visibility_off
-                                          : Icons.visibility,
-                                      color: Colors.grey[500],
+                      ViewEntrance(
+                        delay: const Duration(milliseconds: 120),
+                        child: WontenCard(
+                          padding: EdgeInsets.all(26.w),
+                          child: Form(
+                            key: _formKey,
+                            child: AutofillGroup(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(
+                                    'Masuk ke ruang kerja',
+                                    style: TextStyle(
+                                      color: AppColors.onSurface,
+                                      fontSize: 24.sp,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    onPressed: () {
-                                      setState(() {
-                                        _obscurePassword = !_obscurePassword;
-                                      });
+                                    textAlign: TextAlign.left,
+                                  ),
+                                  SizedBox(height: 7.h),
+                                  Text(
+                                    'Kelola kehadiran dan aktivitas kerja Anda.',
+                                    style: TextStyle(
+                                      color: AppColors.onSurfaceVariant,
+                                      fontSize: 12.sp,
+                                    ),
+                                  ),
+                                  SizedBox(height: 24.h),
+                                  Text(
+                                    'EMAIL / NIP',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 11.sp,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8.h),
+                                  TextFormField(
+                                    controller: _usernameController,
+                                    enabled: !isLoading,
+                                    autofillHints: const [
+                                      AutofillHints.username,
+                                      AutofillHints.email
+                                    ],
+                                    textInputAction: TextInputAction.next,
+                                    decoration: InputDecoration(
+                                      prefixIcon: const Icon(
+                                          Icons.person_outline,
+                                          color: AppColors.primary),
+                                      hintText: 'Masukkan email atau NIP',
+                                      filled: true,
+                                      fillColor: AppColors.surfaceContainerLow,
+                                      contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 16.w, vertical: 16.h),
+                                      border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(14.r),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(14.r),
+                                        borderSide: const BorderSide(
+                                            color: AppColors.outlineVariant),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(14.r),
+                                        borderSide: const BorderSide(
+                                            color: AppColors.primary),
+                                      ),
+                                    ),
+                                    validator: (value) => value?.isEmpty ?? true
+                                        ? 'Wajib diisi'
+                                        : null,
+                                  ),
+                                  SizedBox(height: 20.h),
+                                  Text(
+                                    'PASSWORD',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 11.sp,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8.h),
+                                  TextFormField(
+                                    controller: _passwordController,
+                                    obscureText: _obscurePassword,
+                                    enabled: !isLoading,
+                                    autofillHints: const [
+                                      AutofillHints.password
+                                    ],
+                                    textInputAction: TextInputAction.done,
+                                    onFieldSubmitted: (_) {
+                                      if (!isLoading) _handleLogin();
                                     },
-                                  ),
-                                  hintText: 'Masukkan Password',
-                                  filled: true,
-                                  fillColor: AppColors.surfaceContainerLow,
-                                  contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 16.w, vertical: 16.h),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14.r),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14.r),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.outlineVariant),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14.r),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.primary),
-                                  ),
-                                ),
-                                validator: (value) => value?.isEmpty ?? true
-                                    ? 'Wajib diisi'
-                                    : null,
-                              ),
-                              SizedBox(height: 12.h),
-                              SizedBox(height: 24.h),
-                              SizedBox(
-                                height: 56.h,
-                                child: FilledButton(
-                                  onPressed: isLoading ? null : _handleLogin,
-                                  child: isLoading
-                                      ? SizedBox(
-                                          height: 24.w,
-                                          width: 24.w,
-                                          child:
-                                              const CircularProgressIndicator(
-                                                  color: Colors.white,
-                                                  strokeWidth: 2))
-                                      : Text(
-                                          'Masuk',
-                                          style: TextStyle(
-                                            fontSize: 16.sp,
-                                            fontWeight: FontWeight.bold,
-                                            letterSpacing: 1.0,
-                                          ),
+                                    decoration: InputDecoration(
+                                      prefixIcon: const Icon(Icons.lock_outline,
+                                          color: AppColors.primary),
+                                      suffixIcon: IconButton(
+                                        icon: Icon(
+                                          _obscurePassword
+                                              ? Icons.visibility_off
+                                              : Icons.visibility,
+                                          color: Colors.grey[500],
                                         ),
-                                ),
+                                        onPressed: () {
+                                          setState(() {
+                                            _obscurePassword =
+                                                !_obscurePassword;
+                                          });
+                                        },
+                                      ),
+                                      hintText: 'Masukkan Password',
+                                      filled: true,
+                                      fillColor: AppColors.surfaceContainerLow,
+                                      contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 16.w, vertical: 16.h),
+                                      border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(14.r),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(14.r),
+                                        borderSide: const BorderSide(
+                                            color: AppColors.outlineVariant),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(14.r),
+                                        borderSide: const BorderSide(
+                                            color: AppColors.primary),
+                                      ),
+                                    ),
+                                    validator: (value) => value?.isEmpty ?? true
+                                        ? 'Wajib diisi'
+                                        : null,
+                                  ),
+                                  SizedBox(height: 12.h),
+                                  SizedBox(height: 24.h),
+                                  SizedBox(
+                                    height: 56.h,
+                                    child: FilledButton(
+                                      onPressed:
+                                          isLoading ? null : _handleLogin,
+                                      child: isLoading
+                                          ? SizedBox(
+                                              height: 24.w,
+                                              width: 24.w,
+                                              child:
+                                                  const CircularProgressIndicator(
+                                                      color: Colors.white,
+                                                      strokeWidth: 2))
+                                          : Text(
+                                              'Masuk',
+                                              style: TextStyle(
+                                                fontSize: 16.sp,
+                                                fontWeight: FontWeight.bold,
+                                                letterSpacing: 1.0,
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
+                      SizedBox(height: 22.h),
+                      Text(
+                        'Akses aman untuk karyawan dan administrator',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppColors.onSurfaceVariant,
+                          fontSize: 11.sp,
+                        ),
                       ),
+                      SizedBox(height: 24.h),
                     ],
                   );
                 },

@@ -22,6 +22,8 @@ class HomeDashboardScreen extends StatefulWidget {
 class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   DateTime _selectedDate = DateTime.now();
   Map<String, dynamic>? _todayInfo;
+  bool _loadingTodayInfo = true;
+  String? _todayInfoError;
 
   @override
   void initState() {
@@ -39,10 +41,22 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   }
 
   Future<void> _loadTodayInfo() async {
+    if (mounted) {
+      setState(() {
+        _loadingTodayInfo = true;
+        _todayInfoError = null;
+      });
+    }
     try {
       final info = await context.read<AttendanceRepository>().getTodayInfo();
       if (mounted) setState(() => _todayInfo = info);
-    } catch (_) {}
+    } catch (_) {
+      if (mounted) {
+        setState(() => _todayInfoError = 'Jadwal belum dapat dimuat.');
+      }
+    } finally {
+      if (mounted) setState(() => _loadingTodayInfo = false);
+    }
   }
 
   @override
@@ -83,12 +97,26 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                       _buildGreeting(),
                       SizedBox(height: 24.h),
                       ViewEntrance(child: _buildHeroCard(context)),
+                      SizedBox(height: 24.h),
+                      ViewEntrance(
+                        delay: const Duration(milliseconds: 90),
+                        child: _buildWorkScheduleSection(context),
+                      ),
                       SizedBox(height: 32.h),
-                      _buildFeaturesGrid(context),
+                      ViewEntrance(
+                        delay: const Duration(milliseconds: 150),
+                        child: _buildFeaturesGrid(context),
+                      ),
                       SizedBox(height: 32.h),
-                      _buildPromoSection(),
+                      ViewEntrance(
+                        delay: const Duration(milliseconds: 210),
+                        child: _buildPromoSection(),
+                      ),
                       SizedBox(height: 32.h),
-                      _buildTasksSection(context),
+                      ViewEntrance(
+                        delay: const Duration(milliseconds: 270),
+                        child: _buildTasksSection(context),
+                      ),
                       SizedBox(height: 40.h),
                     ],
                   ),
@@ -99,6 +127,302 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildWorkScheduleSection(BuildContext context) {
+    final shifts = (_todayInfo?['shifts'] as List? ?? const [])
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(18.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24.r),
+        border: Border.all(color: AppColors.outlineVariant),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.onSurface.withValues(alpha: .045),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 42.w,
+                height: 42.w,
+                decoration: BoxDecoration(
+                  color: AppColors.secondaryContainer,
+                  borderRadius: BorderRadius.circular(14.r),
+                ),
+                child: const Icon(Icons.calendar_month_rounded,
+                    color: AppColors.primary),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Jadwal Kerja',
+                        style: TextStyle(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.onSurface)),
+                    Text('Shift default dan penugasan hari ini',
+                        style: TextStyle(
+                            fontSize: 11.sp,
+                            color: AppColors.onSurfaceVariant)),
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: () => context.push('/app/schedule/shifts'),
+                child: const Text('Semua'),
+              ),
+            ],
+          ),
+          SizedBox(height: 16.h),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 320),
+            switchInCurve: Curves.easeOutCubic,
+            child: _loadingTodayInfo
+                ? _buildScheduleLoading()
+                : _todayInfoError != null
+                    ? _buildScheduleMessage(
+                        icon: Icons.cloud_off_rounded,
+                        message: _todayInfoError!,
+                        action: 'Muat ulang',
+                        onTap: _loadTodayInfo,
+                      )
+                    : shifts.isEmpty
+                        ? _buildScheduleMessage(
+                            icon: Icons.event_busy_rounded,
+                            message: 'Tidak ada shift yang terdaftar hari ini.',
+                          )
+                        : Column(
+                            key: ValueKey(shifts.length),
+                            children: [
+                              for (var index = 0;
+                                  index < shifts.length;
+                                  index++)
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                      bottom: index == shifts.length - 1
+                                          ? 0
+                                          : 12.h),
+                                  child: ViewEntrance(
+                                    delay: Duration(milliseconds: 70 * index),
+                                    offset: 8,
+                                    child: _buildShiftCard(shifts[index]),
+                                  ),
+                                ),
+                            ],
+                          ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScheduleLoading() => Container(
+        key: const ValueKey('schedule-loading'),
+        height: 104.h,
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(18.r),
+        ),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+
+  Widget _buildScheduleMessage({
+    required IconData icon,
+    required String message,
+    String? action,
+    VoidCallback? onTap,
+  }) =>
+      Container(
+        key: ValueKey(message),
+        width: double.infinity,
+        padding: EdgeInsets.all(18.w),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(18.r),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: AppColors.onSurfaceVariant),
+            SizedBox(height: 8.h),
+            Text(message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: AppColors.onSurfaceVariant, fontSize: 12.sp)),
+            if (action != null) ...[
+              SizedBox(height: 6.h),
+              TextButton(onPressed: onTap, child: Text(action)),
+            ],
+          ],
+        ),
+      );
+
+  Widget _buildShiftCard(Map<String, dynamic> shift) {
+    final isDefault =
+        shift['is_default_schedule'] == true || shift['is_default'] == true;
+    final isRecurring = shift['is_recurring_schedule'] == true;
+    final assignmentId = shift['assignment_id'];
+    final badge = isDefault
+        ? 'SHIFT DEFAULT'
+        : isRecurring
+            ? 'JADWAL BERULANG'
+            : assignmentId != null
+                ? 'PENUGASAN'
+                : 'SHIFT LAINNYA';
+    final start = _shortTime(shift['start_time']);
+    final end = _shortTime(shift['end_time']);
+    final attendance = shift['attendance'] is Map
+        ? Map<String, dynamic>.from(shift['attendance'] as Map)
+        : null;
+    final status = _attendanceLabel(attendance, shift['time_status_label']);
+    final statusColor = _attendanceColor(attendance, shift['time_status']);
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(18.r),
+        border: Border.all(
+          color: isDefault
+              ? AppColors.primary.withValues(alpha: .25)
+              : AppColors.outlineVariant,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 48.w,
+            height: 48.w,
+            decoration: BoxDecoration(
+              color: isDefault ? AppColors.primary : AppColors.onSurface,
+              borderRadius: BorderRadius.circular(16.r),
+            ),
+            child: const Icon(Icons.schedule_rounded, color: Colors.white),
+          ),
+          SizedBox(width: 13.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: 6.w,
+                  runSpacing: 6.h,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(shift['name']?.toString() ?? 'Jadwal kerja',
+                        style: TextStyle(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.onSurface)),
+                    _scheduleBadge(badge,
+                        isDefault ? AppColors.primary : AppColors.secondary),
+                  ],
+                ),
+                SizedBox(height: 7.h),
+                Text('$start — $end  •  ${_shiftDuration(start, end)}',
+                    style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.onSurfaceVariant)),
+                SizedBox(height: 9.h),
+                Row(
+                  children: [
+                    Container(
+                      width: 7.w,
+                      height: 7.w,
+                      decoration: BoxDecoration(
+                          color: statusColor, shape: BoxShape.circle),
+                    ),
+                    SizedBox(width: 7.w),
+                    Expanded(
+                      child: Text(status,
+                          style: TextStyle(
+                              color: statusColor,
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w700)),
+                    ),
+                    if (shift['category'] != null)
+                      Text(shift['category'].toString().toUpperCase(),
+                          style: TextStyle(
+                              color: AppColors.onSurfaceVariant,
+                              fontSize: 9.sp,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: .6)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _scheduleBadge(String label, Color color) => Container(
+        padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 4.h),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: .12),
+          borderRadius: BorderRadius.circular(99.r),
+        ),
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 8.sp, fontWeight: FontWeight.w800, color: color)),
+      );
+
+  String _shortTime(dynamic value) {
+    final text = value?.toString() ?? '--:--';
+    return text.length >= 5 ? text.substring(0, 5) : text;
+  }
+
+  String _shiftDuration(String start, String end) {
+    final startParts = start.split(':');
+    final endParts = end.split(':');
+    if (startParts.length < 2 || endParts.length < 2) return 'Durasi -';
+    final startMinutes = (int.tryParse(startParts[0]) ?? 0) * 60 +
+        (int.tryParse(startParts[1]) ?? 0);
+    var endMinutes = (int.tryParse(endParts[0]) ?? 0) * 60 +
+        (int.tryParse(endParts[1]) ?? 0);
+    if (endMinutes <= startMinutes) endMinutes += 24 * 60;
+    final minutes = endMinutes - startMinutes;
+    final hours = minutes ~/ 60;
+    final rest = minutes % 60;
+    return rest == 0 ? '$hours jam' : '$hours jam $rest menit';
+  }
+
+  String _attendanceLabel(Map<String, dynamic>? attendance, dynamic fallback) {
+    if (attendance == null) return fallback?.toString() ?? 'Belum absen';
+    if (attendance['check_out_time'] != null) return 'Absensi selesai';
+    if (attendance['check_in_time'] != null) return 'Sudah absen masuk';
+    final status = attendance['status']?.toString().toLowerCase();
+    if (status == 'absent' || status == 'alpha') return 'Tidak hadir / Alpha';
+    return fallback?.toString() ?? 'Belum absen';
+  }
+
+  Color _attendanceColor(Map<String, dynamic>? attendance, dynamic timeStatus) {
+    final status = attendance?['status']?.toString().toLowerCase();
+    if (status == 'absent' || status == 'alpha') return AppColors.errorCrimson;
+    if (status == 'late' || status == 'terlambat') {
+      return AppColors.warningAmber;
+    }
+    if (attendance?['check_in_time'] != null) return AppColors.successEmerald;
+    if (timeStatus?.toString() == 'active') return AppColors.primary;
+    return AppColors.onSurfaceVariant;
   }
 
   Widget _buildGreeting() {
