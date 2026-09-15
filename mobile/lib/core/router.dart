@@ -97,6 +97,7 @@ import '../features/company/presentation/screens/admin/department_analytics_scre
 import '../features/company/presentation/screens/admin/export_center_screen.dart';
 import '../features/company/presentation/screens/admin/audit_logs_screen.dart';
 import '../features/company/presentation/screens/admin/admin_settings_screen.dart';
+import '../features/company/presentation/screens/admin/admin_content_crud_screen.dart';
 import '../features/calendar/presentation/screens/admin/company_events_manager_screen.dart';
 import '../features/calendar/presentation/screens/admin/event_edit_admin_screen.dart';
 import '../features/auth/presentation/screens/admin/device_approval_admin_screen.dart';
@@ -166,9 +167,11 @@ final appRouter = GoRouter(
         builder: (_, __) => const ShiftScheduleScreen()),
     GoRoute(
         path: '/app/habits', builder: (_, __) => const HabitTrackerScreen()),
-    GoRoute(path: '/app/tasks', builder: (_, __) => const HabitTrackerScreen()),
+    GoRoute(path: '/app/tasks', builder: (_, __) => const HabitTrackerScreen(isHabit: false)),
     GoRoute(
         path: '/app/habits/new', builder: (_, __) => const HabitFormScreen()),
+    GoRoute(
+        path: '/app/tasks/new', builder: (_, __) => const HabitFormScreen(isHabit: false)),
     GoRoute(
         path: '/app/habits/detail',
         builder: (_, __) => const HabitDetailScreen()),
@@ -288,7 +291,7 @@ final appRouter = GoRouter(
         path: '/admin/attendance-daily',
         builder: (_, __) => const DailyAttendanceTableScreen()),
     GoRoute(
-        path: '/admin/attendance-flags',
+        path: '/admin/attendance-security-events',
         builder: (_, __) => const AttendanceFlagReviewScreen()),
     GoRoute(
         path: '/admin/approvals',
@@ -347,6 +350,9 @@ final appRouter = GoRouter(
     GoRoute(
         path: '/admin/settings',
         builder: (_, __) => const AdminSettingsScreen()),
+    GoRoute(
+        path: '/admin/content',
+        builder: (_, __) => const AdminContentCrudScreen()),
     GoRoute(
         path: '/admin/events',
         builder: (_, __) => const CompanyEventsManagerScreen()),

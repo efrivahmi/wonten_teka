@@ -17,6 +17,7 @@ import '../../../../../core/storage/secure_storage.dart';
 import '../../../../../core/services/face_matcher_service.dart';
 import '../../../../../core/repositories/attendance_repository.dart';
 import '../../../../../core/api/api_exceptions.dart';
+import '../../../../../core/api/api_client.dart';
 import '../../../../company/bloc/company_cubit.dart';
 import '../../../bloc/attendance_cubit.dart';
 import '../../widgets/camera_preview_widget.dart';
@@ -39,6 +40,7 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
   bool _isLocationValid = false;
   bool _isOutOfRadius = false;
   Position? _currentPosition;
+  bool _mockLocationEventReported = false;
 
   bool _isFaceDetected = false;
   bool _isFaceProper = false;
@@ -173,25 +175,12 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
     }
 
     try {
-      Position? position;
-      try {
-        position = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.high,
-            timeLimit: Duration(seconds: 5),
-          ),
-        );
-      } catch (e) {
-        // Fallback if getCurrentPosition times out
-        position = await Geolocator.getLastKnownPosition();
-      }
-
-      if (position == null) {
-        if (mounted) {
-          setState(() => _locationStatus = "Gagal mendapatkan lokasi GPS.");
-        }
-        return;
-      }
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 12),
+        ),
+      );
 
       if (!mounted) return;
 
@@ -215,6 +204,10 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
       }
 
       bool isMock = position.isMocked;
+
+      if (isMock) {
+        unawaited(_reportMockLocation(position));
+      }
 
       if (mounted) {
         setState(() {
@@ -250,7 +243,37 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
         if (mounted) setState(() => _currentAddress = "Alamat tidak ditemukan");
       }
     } catch (e) {
-      if (mounted) setState(() => _locationStatus = "Gagal mendapatkan lokasi");
+      if (mounted) {
+        setState(() {
+          _currentPosition = null;
+          _isLocationValid = false;
+          _locationStatus =
+              "Lokasi GPS terbaru belum tersedia. Pastikan GPS aktif lalu coba lagi.";
+        });
+      }
+    }
+  }
+
+  Future<void> _reportMockLocation(Position position) async {
+    if (_mockLocationEventReported) return;
+    _mockLocationEventReported = true;
+
+    try {
+      final api = context.read<ApiClient>();
+      final deviceId =
+          await SecureStorage().getDeviceFingerprint() ?? 'unknown';
+      await api.post(
+        '/attendance/security-events/mock-location',
+        data: {
+          'latitude': position.latitude,
+          'longitude': position.longitude,
+          'device_id': deviceId,
+          'address': _currentAddress,
+          'is_check_out': widget.isCheckOut,
+        },
+      );
+    } catch (_) {
+      // The employee already sees the rejection reason on this screen.
     }
   }
 
@@ -301,7 +324,8 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
     return bestScore;
   }
 
-  bool get _hasCompatibleReference => _liveEmbedding.isEmpty ||
+  bool get _hasCompatibleReference =>
+      _liveEmbedding.isEmpty ||
       _registeredEmbeddings.any((item) => item.length == _liveEmbedding.length);
 
   double get _scanProgress {
@@ -319,13 +343,25 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
 
   String get _scanGuidance {
     if (_currentPosition == null || !_isLocationValid) return _locationStatus;
-    if (_selectedShift == null) return 'Pilih atau minta admin menetapkan shift aktif.';
-    if (!_isFaceDetected) return 'Wajah belum terdeteksi. Posisikan di tengah bingkai.';
+    if (_selectedShift == null) {
+      return 'Pilih atau minta admin menetapkan shift aktif.';
+    }
+    if (!_isFaceDetected) {
+      return 'Wajah belum terdeteksi. Posisikan di tengah bingkai.';
+    }
     if (_isTooDark) return 'Terlalu gelap. Pindah ke tempat yang lebih terang.';
-    if (!_isFaceProper) return 'Dekatkan kamera dan arahkan wajah lurus ke depan.';
-    if (!_hasCompatibleReference) return 'Data wajah berasal dari pemindai berbeda. Rekam ulang wajah melalui mobile.';
-    if (_liveEmbedding.isEmpty) return 'Tahan posisi, sedang membaca detail wajah.';
-    if (_liveSimilarity < .80) return 'Wajah terbaca, sedang mencocokkan identitas.';
+    if (!_isFaceProper) {
+      return 'Dekatkan kamera dan arahkan wajah lurus ke depan.';
+    }
+    if (!_hasCompatibleReference) {
+      return 'Data wajah berasal dari pemindai berbeda. Rekam ulang wajah melalui mobile.';
+    }
+    if (_liveEmbedding.isEmpty) {
+      return 'Tahan posisi, sedang membaca detail wajah.';
+    }
+    if (_liveSimilarity < .80) {
+      return 'Wajah terbaca, sedang mencocokkan identitas.';
+    }
     return 'Semua pemeriksaan valid. Tahan posisi sebentar.';
   }
 
@@ -391,6 +427,7 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                   'is_out_of_radius': _isOutOfRadius,
                   'address': _currentAddress,
                   'is_overtime': widget.isOvertime,
+                  'shift_template_id': _selectedShift?['template_id'],
                 },
                 shiftAssignmentId: _selectedShift?['assignment_id'] as int?,
               );
@@ -661,12 +698,17 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                                                 child: Container(
                                                   width: double.infinity,
                                                   height: 4.h,
-                                                  decoration:
-                                                      BoxDecoration(
-                                                          color: _isTooDark ? AppColors.error : AppColors.primary,
-                                                          boxShadow: [
+                                                  decoration: BoxDecoration(
+                                                      color: _isTooDark
+                                                          ? AppColors.error
+                                                          : AppColors.primary,
+                                                      boxShadow: [
                                                         BoxShadow(
-                                                            color: _isTooDark ? AppColors.error : AppColors.primary,
+                                                            color: _isTooDark
+                                                                ? AppColors
+                                                                    .error
+                                                                : AppColors
+                                                                    .primary,
                                                             blurRadius: 10)
                                                       ]),
                                                 )
@@ -683,7 +725,19 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                                             ),
                                           ),
                                         if (_capturedImage == null)
-                                          IgnorePointer(child: Container(width: 230.w, height: 300.h, decoration: BoxDecoration(borderRadius: BorderRadius.circular(115.r), border: Border.all(color: Colors.white.withValues(alpha: .8), width: 2.w)))),
+                                          IgnorePointer(
+                                              child: Container(
+                                                  width: 230.w,
+                                                  height: 300.h,
+                                                  decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              115.r),
+                                                      border: Border.all(
+                                                          color: Colors.white
+                                                              .withValues(
+                                                                  alpha: .8),
+                                                          width: 2.w)))),
                                       ],
                                     ),
                                   ),
@@ -717,18 +771,65 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                                   ),
 
                                   SizedBox(height: 14.h),
-                                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Expanded(child: Text(_scanGuidance, style: TextStyle(fontSize: 12.sp, color: _isTooDark || !_hasCompatibleReference ? AppColors.error : AppColors.onSurfaceVariant))), SizedBox(width: 8.w), Text('${(_scanProgress * 100).round()}%', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary))]),
+                                  Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                            child: Text(_scanGuidance,
+                                                style: TextStyle(
+                                                    fontSize: 12.sp,
+                                                    color: _isTooDark ||
+                                                            !_hasCompatibleReference
+                                                        ? AppColors.error
+                                                        : AppColors
+                                                            .onSurfaceVariant))),
+                                        SizedBox(width: 8.w),
+                                        Text(
+                                            '${(_scanProgress * 100).round()}%',
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.primary))
+                                      ]),
                                   SizedBox(height: 8.h),
-                                  ClipRRect(borderRadius: BorderRadius.circular(10.r), child: LinearProgressIndicator(value: _scanProgress, minHeight: 10.h, backgroundColor: AppColors.surfaceContainerHigh, color: _isTooDark || !_hasCompatibleReference ? AppColors.error : AppColors.primary)),
+                                  ClipRRect(
+                                      borderRadius: BorderRadius.circular(10.r),
+                                      child: LinearProgressIndicator(
+                                          value: _scanProgress,
+                                          minHeight: 10.h,
+                                          backgroundColor:
+                                              AppColors.surfaceContainerHigh,
+                                          color: _isTooDark ||
+                                                  !_hasCompatibleReference
+                                              ? AppColors.error
+                                              : AppColors.primary)),
                                   SizedBox(height: 12.h),
-                                  Wrap(spacing: 8.w, runSpacing: 8.h, alignment: WrapAlignment.center, children: [
-                                    _ScanChip(label: 'Lokasi', valid: _currentPosition != null && _isLocationValid),
-                                    _ScanChip(label: 'Shift', valid: _selectedShift != null),
-                                    _ScanChip(label: 'Wajah', valid: _isFaceDetected),
-                                    _ScanChip(label: 'Cahaya', valid: _isFaceDetected && !_isTooDark),
-                                    _ScanChip(label: 'Posisi', valid: _isFaceProper),
-                                    _ScanChip(label: 'Cocok', valid: _liveSimilarity >= .80),
-                                  ]),
+                                  Wrap(
+                                      spacing: 8.w,
+                                      runSpacing: 8.h,
+                                      alignment: WrapAlignment.center,
+                                      children: [
+                                        _ScanChip(
+                                            label: 'Lokasi',
+                                            valid: _currentPosition != null &&
+                                                _isLocationValid),
+                                        _ScanChip(
+                                            label: 'Shift',
+                                            valid: _selectedShift != null),
+                                        _ScanChip(
+                                            label: 'Wajah',
+                                            valid: _isFaceDetected),
+                                        _ScanChip(
+                                            label: 'Cahaya',
+                                            valid:
+                                                _isFaceDetected && !_isTooDark),
+                                        _ScanChip(
+                                            label: 'Posisi',
+                                            valid: _isFaceProper),
+                                        _ScanChip(
+                                            label: 'Cocok',
+                                            valid: _liveSimilarity >= .80),
+                                      ]),
 
                                   SizedBox(height: 24.h),
 
@@ -1052,7 +1153,23 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
 }
 
 class _ScanChip extends StatelessWidget {
-  final String label; final bool valid;
+  final String label;
+  final bool valid;
   const _ScanChip({required this.label, required this.valid});
-  @override Widget build(BuildContext context) => Container(padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 6.h), decoration: BoxDecoration(color: valid ? AppColors.primary.withValues(alpha: .1) : AppColors.surfaceContainerHigh, borderRadius: BorderRadius.circular(20.r)), child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(valid ? Icons.check_circle : Icons.radio_button_unchecked, size: 14.w, color: valid ? AppColors.primary : AppColors.onSurfaceVariant), SizedBox(width: 4.w), Text(label, style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w600))]));
+  @override
+  Widget build(BuildContext context) => Container(
+      padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 6.h),
+      decoration: BoxDecoration(
+          color: valid
+              ? AppColors.primary.withValues(alpha: .1)
+              : AppColors.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(20.r)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(valid ? Icons.check_circle : Icons.radio_button_unchecked,
+            size: 14.w,
+            color: valid ? AppColors.primary : AppColors.onSurfaceVariant),
+        SizedBox(width: 4.w),
+        Text(label,
+            style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w600))
+      ]));
 }

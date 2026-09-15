@@ -22,6 +22,54 @@ class BrandPanel extends StatelessWidget {
       );
 }
 
+/// Shared branded backdrop for every mobile route. Content surfaces remain
+/// readable while the dashboard banner linework continues across the app.
+class BrandPageBackground extends StatelessWidget {
+  final Widget child;
+  const BrandPageBackground({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFE5F5E8), Color(0xFFF7F8F5), Color(0xFFEEF6E8)],
+          ),
+        ),
+        child: CustomPaint(
+          painter: _BrandPageLines(),
+          child: child,
+        ),
+      );
+}
+
+class _BrandPageLines extends CustomPainter {
+  const _BrandPageLines();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final pen = Paint()
+      ..color = AppColors.primary.withValues(alpha: .055)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    for (var i = 0; i < 10; i++) {
+      final inset = i * 34.0;
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(size.width * .48 + inset, -120 + inset, size.width * .9,
+              size.height * .75),
+          const Radius.circular(110),
+        ),
+        pen,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _BrandPageLines oldDelegate) => false;
+}
+
 class _BrandLines extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

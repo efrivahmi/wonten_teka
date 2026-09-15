@@ -11,10 +11,12 @@ class DailyAttendanceTableScreen extends StatefulWidget {
   const DailyAttendanceTableScreen({super.key});
 
   @override
-  State<DailyAttendanceTableScreen> createState() => _DailyAttendanceTableScreenState();
+  State<DailyAttendanceTableScreen> createState() =>
+      _DailyAttendanceTableScreenState();
 }
 
-class _DailyAttendanceTableScreenState extends State<DailyAttendanceTableScreen> {
+class _DailyAttendanceTableScreenState
+    extends State<DailyAttendanceTableScreen> {
   late final ApiClient _api;
   bool _isLoading = true;
   List<AttendanceLogModel> _logs = [];
@@ -32,14 +34,21 @@ class _DailyAttendanceTableScreenState extends State<DailyAttendanceTableScreen>
   Future<void> _loadDepartments() async {
     try {
       final response = await _api.get('/employee/options');
-      if (mounted) setState(() => _departments = (response.data['departments'] as List? ?? []).map((e) => e.toString()).toList());
+      if (mounted) {
+        setState(() => _departments =
+            (response.data['departments'] as List? ?? [])
+                .map((e) => e.toString())
+                .toList());
+      }
     } catch (_) {}
   }
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
-      final response = await _api.get('/admin/attendance', queryParameters: _department == null ? null : {'department': _department});
+      final response = await _api.get('/admin/attendance',
+          queryParameters:
+              _department == null ? null : {'department': _department});
       if (mounted) {
         final List<dynamic> rawData = response.data['data'];
         setState(() {
@@ -52,7 +61,8 @@ class _DailyAttendanceTableScreenState extends State<DailyAttendanceTableScreen>
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error fetching data')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Error fetching data')));
       }
     }
   }
@@ -81,9 +91,18 @@ class _DailyAttendanceTableScreenState extends State<DailyAttendanceTableScreen>
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
             child: DropdownButtonFormField<String>(
               initialValue: _department,
-              decoration: const InputDecoration(labelText: 'Filter departemen', filled: true),
-              items: [const DropdownMenuItem<String>(value: null, child: Text('Semua departemen')), ..._departments.map((item) => DropdownMenuItem(value: item, child: Text(item)))],
-              onChanged: (value) { _department = value; _loadData(); },
+              decoration: const InputDecoration(
+                  labelText: 'Filter departemen', filled: true),
+              items: [
+                const DropdownMenuItem<String>(
+                    value: null, child: Text('Semua departemen')),
+                ..._departments.map(
+                    (item) => DropdownMenuItem(value: item, child: Text(item)))
+              ],
+              onChanged: (value) {
+                _department = value;
+                _loadData();
+              },
             ),
           ),
         ),
@@ -97,7 +116,8 @@ class _DailyAttendanceTableScreenState extends State<DailyAttendanceTableScreen>
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: DataTable(
-                      headingRowColor: WidgetStateProperty.all(AppColors.primary.withValues(alpha: 0.1)),
+                      headingRowColor: WidgetStateProperty.all(
+                          AppColors.primary.withValues(alpha: 0.1)),
                       columns: const [
                         DataColumn(label: Text('Nama Karyawan')),
                         DataColumn(label: Text('Masuk')),
@@ -108,23 +128,28 @@ class _DailyAttendanceTableScreenState extends State<DailyAttendanceTableScreen>
                       ],
                       rows: _logs.map((log) {
                         final empName = log.employeeName ?? 'Unknown';
-                        final checkInStr = DateFormat('HH:mm').format(log.checkInAt);
+                        final checkInStr =
+                            DateFormat('HH:mm').format(log.checkInAt);
                         final checkOutStr = log.checkOutAt != null
                             ? DateFormat('HH:mm').format(log.checkOutAt!)
                             : '--:--';
-                            
+
                         return DataRow(
                           cells: [
-                            DataCell(Text(empName, style: const TextStyle(fontWeight: FontWeight.bold))),
+                            DataCell(Text(empName,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold))),
                             DataCell(Text(checkInStr)),
                             DataCell(Text(checkOutStr)),
                             DataCell(_buildStatusChip(log.status)),
                             DataCell(_buildViolations(log)),
                             DataCell(
                               IconButton(
-                                icon: const Icon(Icons.remove_red_eye, color: AppColors.primary, size: 20),
+                                icon: const Icon(Icons.remove_red_eye,
+                                    color: AppColors.primary, size: 20),
                                 onPressed: () {
-                                  context.push('/app/attendance/detail', extra: log);
+                                  context.push('/app/attendance/detail',
+                                      extra: log);
                                 },
                               ),
                             ),
@@ -147,8 +172,12 @@ class _DailyAttendanceTableScreenState extends State<DailyAttendanceTableScreen>
         label = 'Tepat Waktu';
         break;
       case 'late':
-        color = AppColors.errorCrimson;
+        color = AppColors.warningAmber;
         label = 'Terlambat';
+        break;
+      case 'absent':
+        color = AppColors.errorCrimson;
+        label = 'Alpha / Tidak Masuk';
         break;
       case 'flagged':
         color = AppColors.warningAmber;
@@ -164,7 +193,9 @@ class _DailyAttendanceTableScreenState extends State<DailyAttendanceTableScreen>
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8.r),
       ),
-      child: Text(label, style: TextStyle(color: color, fontSize: 12.sp, fontWeight: FontWeight.bold)),
+      child: Text(label,
+          style: TextStyle(
+              color: color, fontSize: 12.sp, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -181,7 +212,7 @@ class _DailyAttendanceTableScreenState extends State<DailyAttendanceTableScreen>
         violations.add('Pulang Lebih Awal');
       }
     }
-    
+
     if (violations.isEmpty) {
       return const Text('-');
     }
@@ -189,14 +220,19 @@ class _DailyAttendanceTableScreenState extends State<DailyAttendanceTableScreen>
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: violations.map((v) => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.warning, color: AppColors.errorCrimson, size: 14),
-          SizedBox(width: 4.w),
-          Text(v, style: TextStyle(color: AppColors.errorCrimson, fontSize: 11.sp)),
-        ],
-      )).toList(),
+      children: violations
+          .map((v) => Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.warning,
+                      color: AppColors.errorCrimson, size: 14),
+                  SizedBox(width: 4.w),
+                  Text(v,
+                      style: TextStyle(
+                          color: AppColors.errorCrimson, fontSize: 11.sp)),
+                ],
+              ))
+          .toList(),
     );
   }
 }

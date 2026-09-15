@@ -2,12 +2,14 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'dart:io';
+
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
   bool _isInitialized = false;
 
   Future<void> init() async {
@@ -15,9 +17,12 @@ class NotificationService {
 
     tz.initializeTimeZones();
 
-    const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const DarwinInitializationSettings initializationSettingsDarwin = DarwinInitializationSettings();
-    const InitializationSettings initializationSettings = InitializationSettings(
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const DarwinInitializationSettings initializationSettingsDarwin =
+        DarwinInitializationSettings();
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsDarwin,
     );
@@ -32,9 +37,10 @@ class NotificationService {
     // Request permissions for newer Android versions
     if (Platform.isAndroid) {
       final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-          _flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
-      
+          _flutterLocalNotificationsPlugin
+              .resolvePlatformSpecificImplementation<
+                  AndroidFlutterLocalNotificationsPlugin>();
+
       await androidImplementation?.requestNotificationsPermission();
       await androidImplementation?.requestExactAlarmsPermission();
     }
@@ -47,6 +53,7 @@ class NotificationService {
     required String title,
     required String body,
     required DateTime scheduledDate,
+    bool repeatDaily = false,
   }) async {
     if (!_isInitialized) await init();
 
@@ -57,7 +64,7 @@ class NotificationService {
 
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'task_reminders', 
+      'task_reminders',
       'Task Reminders',
       channelDescription: 'Notifications for task reminders',
       importance: Importance.max,
@@ -69,7 +76,8 @@ class NotificationService {
 
     const NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
-      iOS: DarwinNotificationDetails(presentSound: true, presentAlert: true, presentBadge: true),
+      iOS: DarwinNotificationDetails(
+          presentSound: true, presentAlert: true, presentBadge: true),
     );
 
     await _flutterLocalNotificationsPlugin.zonedSchedule(
@@ -79,9 +87,9 @@ class NotificationService {
       tz.TZDateTime.from(scheduledDate, tz.local),
       platformChannelSpecifics,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-      // Pengingat satu kali tidak boleh berulang setiap hari.
-      matchDateTimeComponents: null,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: repeatDaily ? DateTimeComponents.time : null,
     );
   }
 

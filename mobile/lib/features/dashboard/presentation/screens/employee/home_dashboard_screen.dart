@@ -94,28 +94,31 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildGreeting(),
-                      SizedBox(height: 24.h),
                       ViewEntrance(child: _buildHeroCard(context)),
                       SizedBox(height: 24.h),
                       ViewEntrance(
                         delay: const Duration(milliseconds: 90),
-                        child: _buildWorkScheduleSection(context),
-                      ),
-                      SizedBox(height: 32.h),
-                      ViewEntrance(
-                        delay: const Duration(milliseconds: 150),
-                        child: _buildFeaturesGrid(context),
-                      ),
-                      SizedBox(height: 32.h),
-                      ViewEntrance(
-                        delay: const Duration(milliseconds: 210),
                         child: _buildPromoSection(),
                       ),
-                      SizedBox(height: 32.h),
+                      SizedBox(height: 24.h),
                       ViewEntrance(
-                        delay: const Duration(milliseconds: 270),
-                        child: _buildTasksSection(context),
+                        delay: const Duration(milliseconds: 140),
+                        child: _buildTodayAttendanceSection(context),
+                      ),
+                      SizedBox(height: 24.h),
+                      ViewEntrance(
+                        delay: const Duration(milliseconds: 190),
+                        child: _buildWorkScheduleSection(context),
+                      ),
+                      SizedBox(height: 24.h),
+                      ViewEntrance(
+                        delay: const Duration(milliseconds: 240),
+                        child: _buildMonthlyStatsSection(),
+                      ),
+                      SizedBox(height: 24.h),
+                      ViewEntrance(
+                        delay: const Duration(milliseconds: 290),
+                        child: _buildFeaturesGrid(context),
                       ),
                       SizedBox(height: 40.h),
                     ],
@@ -425,120 +428,258 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     return AppColors.onSurfaceVariant;
   }
 
-  Widget _buildGreeting() {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        final userName = state is AuthAuthenticated
-            ? state.user.name.split(' ').first
-            : 'Karyawan';
-        return Row(
+  Widget _buildHeroCard(BuildContext context) {
+    return BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
+      final user = state is AuthAuthenticated ? state.user : null;
+      final employee = user?.employee;
+      return BrandPanel(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.account_circle_outlined, size: 28.sp),
-            SizedBox(width: 8.w),
-            Text(
-              'Hi, $userName!',
-              style: TextStyle(
-                fontSize: 20.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.onSurface,
+            Container(
+              width: 54.w,
+              height: 54.w,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .16),
+                borderRadius: BorderRadius.circular(18.r),
+              ),
+              child: const Icon(Icons.person_rounded, color: Colors.white),
+            ),
+            SizedBox(width: 14.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(employee?.fullName ?? user?.name ?? 'Karyawan',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.w800)),
+                  SizedBox(height: 5.h),
+                  Text(
+                    '${employee?.position ?? 'Posisi belum diatur'} • ${employee?.department ?? 'Unit belum diatur'}',
+                    style: TextStyle(
+                        color: Colors.white.withValues(alpha: .86),
+                        fontSize: 12.sp),
+                  ),
+                  SizedBox(height: 10.h),
+                  GestureDetector(
+                    onTap: () => context.push('/app/profile'),
+                    child: Text('Lihat profil lengkap  →',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w700)),
+                  ),
+                ],
               ),
             ),
           ],
-        );
-      },
+        ),
+      );
+    });
+  }
+
+  Widget _buildTodayAttendanceSection(BuildContext context) {
+    final shifts = _todayInfo?['shifts'] as List? ?? const [];
+    final attendance = shifts
+        .map((shift) => shift['attendance'])
+        .whereType<Map>()
+        .cast<Map<dynamic, dynamic>>()
+        .firstOrNull;
+    final status = attendance?['status']?.toString() ?? 'not_started';
+    final checkIn = _formatAttendanceTime(attendance?['check_in_time'], status);
+    final checkOut =
+        _formatAttendanceTime(attendance?['check_out_time'], status);
+    final duration = _workDuration(attendance);
+    final statusColor = _attendanceColor(attendance?.cast<String, dynamic>(),
+        shifts.firstOrNull?['time_status']);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle('Pencatatan Absensi Hari Ini',
+            'Status dan durasi kerja diperbarui dari data absensi.'),
+        SizedBox(height: 14.h),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          childAspectRatio: 1.65,
+          mainAxisSpacing: 12.h,
+          crossAxisSpacing: 12.w,
+          children: [
+            _summaryTile('Status', _statusLabel(status), Icons.verified_rounded,
+                statusColor),
+            _summaryTile('Durasi kerja', duration, Icons.timelapse_rounded,
+                AppColors.infoCerulean),
+            _summaryTile(
+                'Jam masuk', checkIn, Icons.login_rounded, AppColors.primary),
+            _summaryTile('Jam keluar', checkOut, Icons.logout_rounded,
+                AppColors.errorCrimson),
+          ],
+        ),
+        SizedBox(height: 12.h),
+        Row(
+          children: [
+            Expanded(
+              child: _buildAttendanceButton(
+                context,
+                title: 'Absen Masuk',
+                icon: Icons.login,
+                color: _canCheckIn() ? AppColors.successEmerald : Colors.grey,
+                onTap: _canCheckIn()
+                    ? () => context
+                        .push('/app/attendance/check-in')
+                        .then((_) => _loadTodayInfo())
+                    : null,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: _buildAttendanceButton(
+                context,
+                title: 'Absen Keluar',
+                icon: Icons.logout,
+                color: _canCheckOut() ? AppColors.errorCrimson : Colors.grey,
+                onTap: _canCheckOut()
+                    ? () => context
+                        .push('/app/attendance/check-out')
+                        .then((_) => _loadTodayInfo())
+                    : null,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  Widget _buildHeroCard(BuildContext context) {
-    return BrandPanel(
-      child: Column(
+  Widget _buildMonthlyStatsSection() {
+    final stats = _todayInfo?['monthly_stats'] as Map? ?? const {};
+    final present = (stats['present_days'] as num?)?.toInt() ??
+        ((stats['on_time'] as num? ?? 0).toInt() +
+            (stats['grace_period'] as num? ?? 0).toInt() +
+            (stats['late'] as num? ?? 0).toInt());
+    final daysInMonth = stats['days_in_month'] ?? '—';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle(
+            'Statistik Kehadiran ${stats['month_label'] ?? 'Bulan Ini'}',
+            'Dihitung ulang dari nol setiap awal bulan. Bulan ini memiliki $daysInMonth hari kalender.'),
+        SizedBox(height: 14.h),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          childAspectRatio: 1.55,
+          mainAxisSpacing: 12.h,
+          crossAxisSpacing: 12.w,
+          children: [
+            _summaryTile('Kehadiran bulan ini', '$present dari $daysInMonth hari',
+                Icons.calendar_month_rounded, AppColors.primary),
+            _summaryTile('Tepat waktu', '${stats['on_time'] ?? 0} hari',
+                Icons.check_circle_rounded, AppColors.successEmerald),
+            _summaryTile('Terlambat', '${stats['late'] ?? 0} hari',
+                Icons.schedule_rounded, AppColors.warningAmber),
+            _summaryTile('Alpha', '${stats['absent'] ?? 0} hari',
+                Icons.cancel_rounded, AppColors.errorCrimson),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _sectionTitle(String title, String subtitle) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Kehadiran Hari Ini',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16.sp,
-            ),
-          ),
-          if (_todayInfo != null) ...[
-            SizedBox(height: 8.h),
-            Text(
-              _getTodayStatusText(),
+          Text(title,
               style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.9), fontSize: 13.sp),
-            ),
-          ],
-          SizedBox(height: 16.h),
-          Row(
-            children: [
-              Expanded(
-                child: _buildAttendanceButton(
-                  context,
-                  title: 'Absen Masuk',
-                  icon: Icons.login,
-                  color: _canCheckIn() ? AppColors.successEmerald : Colors.grey,
-                  onTap: _canCheckIn()
-                      ? () => context
-                          .push('/app/attendance/check-in')
-                          .then((_) => _loadTodayInfo())
-                      : null,
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: _buildAttendanceButton(
-                  context,
-                  title: 'Absen Keluar',
-                  icon: Icons.logout,
-                  color: _canCheckOut() ? AppColors.error : Colors.grey,
-                  onTap: _canCheckOut()
-                      ? () => context
-                          .push('/app/attendance/check-out')
-                          .then((_) => _loadTodayInfo())
-                      : null,
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: _buildAttendanceButton(
-                  context,
-                  title: 'Lembur',
-                  icon: Icons.more_time,
-                  color: AppColors.primary,
-                  onTap: () => context.push('/app/overtime/new'),
-                ),
-              ),
-            ],
-          ),
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.onSurface)),
+          SizedBox(height: 3.h),
+          Text(subtitle,
+              style: TextStyle(
+                  fontSize: 11.sp, color: AppColors.onSurfaceVariant)),
         ],
-      ),
-    );
+      );
+
+  Widget _summaryTile(String label, String value, IconData icon, Color color) =>
+      Container(
+        padding: EdgeInsets.all(14.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18.r),
+          border: Border.all(color: AppColors.outlineVariant),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Icon(icon, color: color, size: 22.sp),
+            Text(value,
+                style: TextStyle(
+                    color: AppColors.onSurface,
+                    fontSize: 17.sp,
+                    fontWeight: FontWeight.w800)),
+            Text(label,
+                style: TextStyle(
+                    color: AppColors.onSurfaceVariant, fontSize: 10.sp)),
+          ],
+        ),
+      );
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'on_time':
+      case 'present':
+        return 'Tepat waktu';
+      case 'late':
+        return 'Terlambat';
+      case 'absent':
+        return 'Alpha';
+      default:
+        return 'Belum absen';
+    }
   }
 
-  String _getTodayStatusText() {
-    final shifts = _todayInfo?['shifts'] as List? ?? [];
-    if (shifts.isEmpty) return 'Tidak ada jadwal shift hari ini.';
-    final attendance = shifts.first['attendance'] as Map?;
-    if (attendance == null) return 'Belum absen masuk.';
-    if (attendance['check_out_time'] == null) {
-      return 'Sudah masuk pkl ${DateFormat('HH:mm').format(DateTime.parse(attendance['check_in_time']).toLocal())}';
-    }
-    return 'Absensi selesai hari ini.';
+  String _formatAttendanceTime(dynamic value, String status) {
+    if (value == null || status == 'absent') return '--:--';
+    return DateFormat('HH:mm')
+        .format(DateTime.parse(value.toString()).toLocal());
+  }
+
+  String _workDuration(Map<dynamic, dynamic>? attendance) {
+    if (attendance == null || attendance['status'] == 'absent') return '0j 0m';
+    final startValue = attendance['check_in_time'];
+    if (startValue == null) return '0j 0m';
+    final start = DateTime.parse(startValue.toString()).toLocal();
+    final endValue = attendance['check_out_time'];
+    final end = endValue == null
+        ? DateTime.now()
+        : DateTime.parse(endValue.toString()).toLocal();
+    final minutes = end.difference(start).inMinutes.clamp(0, 24 * 60);
+    return '${minutes ~/ 60}j ${minutes % 60}m';
   }
 
   bool _canCheckIn() {
     if (_todayInfo == null) return false;
     final shifts = _todayInfo!['shifts'] as List? ?? [];
-    return shifts.any((s) => s['attendance'] == null);
+    return shifts
+        .any((s) => s['attendance'] == null && s['time_status'] != 'ended');
   }
 
   bool _canCheckOut() {
     if (_todayInfo == null) return false;
     final shifts = _todayInfo!['shifts'] as List? ?? [];
     return shifts.any((s) =>
-        s['attendance'] != null && s['attendance']['check_out_time'] == null);
+        s['attendance'] != null &&
+        s['attendance']['status'] != 'absent' &&
+        s['time_status'] == 'ended' &&
+        s['attendance']['check_out_time'] == null);
   }
 
   Widget _buildAttendanceButton(BuildContext context,
@@ -580,7 +721,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Fitur pilihan kamu',
+              'Akses Cepat',
               style: TextStyle(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
@@ -640,6 +781,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 label: 'Jadwal',
                 color: AppColors.tertiaryContainer,
                 route: '/app/schedule/shifts'),
+            _buildFeatureItem(context,
+                icon: Icons.track_changes_rounded,
+                label: 'Habit',
+                color: AppColors.secondaryContainer,
+                route: '/app/habits'),
             GestureDetector(
               onTap: () => context.push('/app/all-features'),
               child: SizedBox(
@@ -734,7 +880,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Info buat kamu',
+              'Pengumuman Terbaru',
               style: TextStyle(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
@@ -758,7 +904,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           builder: (context, state) {
             if (state is CompanyLoaded && state.announcements.isNotEmpty) {
               return Column(
-                children: state.announcements.take(5).map((announcement) {
+                children: state.announcements.take(3).map((announcement) {
                   return Padding(
                     padding: EdgeInsets.only(bottom: 12.h),
                     child: _buildPromoCard(
@@ -843,6 +989,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         ));
   }
 
+  // Kept for the dedicated task feature; intentionally omitted from dashboard.
+  // ignore: unused_element
   Widget _buildTasksSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

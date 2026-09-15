@@ -65,6 +65,65 @@ class ApiFeatureSmokeTest extends TestCase
         $this->deleteJson("/api/tasks/{$taskId}")->assertOk();
     }
 
+    public function test_employee_can_create_habit_and_enable_reminder(): void
+    {
+        [$user] = $this->employeeAccount();
+        Sanctum::actingAs($user);
+
+        $habitId = $this->postJson('/api/tasks', [
+            'title' => 'Olahraga pagi',
+            'is_habit' => true,
+            'recurrence_rule' => 'daily',
+            'reminder_time' => '07:00',
+            'reminder_enabled' => true,
+        ])->assertCreated()
+            ->assertJsonPath('data.is_habit', true)
+            ->assertJsonPath('data.reminder_enabled', true)
+            ->json('data.id');
+
+        $this->getJson('/api/tasks?type=habit')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $habitId);
+
+        $this->putJson("/api/tasks/{$habitId}", [
+            'reminder_enabled' => false,
+        ])->assertOk()->assertJsonPath('data.reminder_enabled', false);
+    }
+
+    public function test_monthly_statistics_use_the_current_calendar_month(): void
+    {
+        [$user] = $this->employeeAccount();
+        Sanctum::actingAs($user);
+
+        $this->getJson('/api/attendance/today-info')
+            ->assertOk()
+            ->assertJsonPath('monthly_stats.present_days', 0)
+            ->assertJsonPath('monthly_stats.days_in_month', now(config('app.business_timezone'))->daysInMonth)
+            ->assertJsonPath('monthly_stats.month_label', now(config('app.business_timezone'))->locale('id')->translatedFormat('F Y'));
+    }
+
+    public function test_employee_can_only_create_and_read_attendance_adjustments(): void
+    {
+        [$user] = $this->employeeAccount();
+        Sanctum::actingAs($user);
+
+        $id = $this->postJson('/api/attendance/adjustment', [
+            'date' => today()->subDay()->toDateString(),
+            'check_in' => '08:00',
+            'check_out' => '17:00',
+            'reason' => 'Lupa melakukan check-out.',
+        ])->assertOk()->json('data.id');
+
+        $this->getJson('/api/attendance/adjustment')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $id);
+
+        $this->putJson("/api/attendance/adjustment/{$id}", ['reason' => 'Diubah'])
+            ->assertNotFound();
+        $this->deleteJson("/api/attendance/adjustment/{$id}")
+            ->assertNotFound();
+    }
+
     public function test_all_admin_read_features_return_successful_responses(): void
     {
         [$admin] = $this->employeeAccount(true);
@@ -79,7 +138,7 @@ class ApiFeatureSmokeTest extends TestCase
             '/api/admin/shift-assignments',
             '/api/admin/leave-types',
             '/api/admin/attendance',
-            '/api/admin/attendance-flags',
+            '/api/admin/attendance-security-events',
             '/api/admin/devices/pending',
             '/api/admin/biometrics',
             '/api/approvals/pending',
@@ -88,6 +147,66 @@ class ApiFeatureSmokeTest extends TestCase
         foreach ($paths as $path) {
             $this->getJson($path)->assertOk("Admin feature failed: {$path}");
         }
+    }
+
+    public function test_admin_creates_only_initial_account_and_employee_completes_profile_without_number_collision(): void
+    {
+        [$admin] = $this->employeeAccount(true);
+        Sanctum::actingAs($admin);
+
+        $creationResponse = $this->postJson('/api/admin/employees', [
+            'email' => 'karyawan.baru@example.test',
+            'password' => 'rahasia123',
+        ]);
+        $this->assertSame(201, $creationResponse->status(), $creationResponse->getContent());
+        $employeeId = $creationResponse
+            ->assertJsonPath('data.department', null)
+            ->assertJsonPath('data.position', null)
+            ->json('data.id');
+
+        $employee = Employee::findOrFail($employeeId);
+        $generatedNumber = $employee->employee_number;
+        $this->assertNotEmpty($generatedNumber);
+
+        Sanctum::actingAs($employee->user);
+        $completionResponse = $this->postJson('/api/employee/complete-profile', [
+            'full_name' => 'Karyawan Baru Lengkap',
+            'email' => 'karyawan.baru@example.test',
+            'phone' => '081234567890',
+            'nik' => '3201010101010001',
+            'gender' => 'male',
+            'address' => 'Jakarta',
+            'employment_status' => 'permanent',
+        ]);
+        $this->assertSame(201, $completionResponse->status(), $completionResponse->getContent());
+
+        $this->assertSame($generatedNumber, $employee->fresh()->employee_number);
+        $this->assertSame('Jakarta', $employee->fresh()->address);
+    }
+
+    public function test_admin_can_manage_daily_tasks_used_by_web_and_mobile(): void
+    {
+        [$admin] = $this->employeeAccount(true);
+        [, $employee] = $this->employeeAccount();
+        Sanctum::actingAs($admin);
+
+        $taskId = $this->postJson('/api/admin/tasks', [
+            'employee_id' => $employee->id,
+            'title' => 'Laporan harian',
+            'task_date' => today()->toDateString(),
+            'is_habit' => false,
+            'reminder_time' => '16:00',
+            'reminder_enabled' => true,
+        ])->assertCreated()->json('data.id');
+
+        $this->getJson('/api/admin/tasks')->assertOk()
+            ->assertJsonPath('data.0.id', $taskId);
+        $this->putJson("/api/admin/tasks/{$taskId}", [
+            'title' => 'Laporan harian diperbarui',
+            'is_habit' => false,
+        ])->assertOk()->assertJsonPath('data.title', 'Laporan harian diperbarui');
+        $this->deleteJson("/api/admin/tasks/{$taskId}")->assertOk();
+        $this->assertDatabaseMissing('personal_tasks', ['id' => $taskId]);
     }
 
     private function employeeAccount(bool $admin = false): array

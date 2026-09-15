@@ -6,7 +6,8 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../schedule/bloc/task_cubit.dart';
 
 class HabitFormScreen extends StatefulWidget {
-  const HabitFormScreen({super.key});
+  final bool isHabit;
+  const HabitFormScreen({super.key, this.isHabit = true});
   @override
   State<HabitFormScreen> createState() => _HabitFormScreenState();
 }
@@ -24,11 +25,27 @@ class _HabitFormScreenState extends State<HabitFormScreen> {
   void _submit() {
     if (_formKey.currentState?.validate() ?? false) {
       final formattedTime = '${_reminderTime.hour.toString().padLeft(2, '0')}:${_reminderTime.minute.toString().padLeft(2, '0')}:00';
-      context.read<TaskCubit>().createTask(
-        title: _nameController.text,
-        recurrenceRule: _frequency,
-        reminderTime: formattedTime,
-      );
+      if (widget.isHabit) {
+        final recurrence = {
+              'Setiap Hari': 'daily',
+              'Hari Kerja': 'weekdays',
+              'Akhir Pekan': 'weekly',
+              'Kustom': 'weekly',
+            }[_frequency] ??
+            'daily';
+        context.read<TaskCubit>().createTask(
+              title: _nameController.text,
+              recurrenceRule: recurrence,
+              reminderTime: formattedTime,
+            );
+      } else {
+        context.read<TaskCubit>().addTask(
+              _nameController.text,
+              null,
+              DateTime.now().toIso8601String().split('T').first,
+              formattedTime.substring(0, 5),
+            );
+      }
     }
   }
 
@@ -38,7 +55,7 @@ class _HabitFormScreenState extends State<HabitFormScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(backgroundColor: AppColors.surface, elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.onSurface), onPressed: () => context.pop()),
-        title: Text('Tambah Habit', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)), centerTitle: true),
+        title: Text(widget.isHabit ? 'Tambah Habit' : 'Tambah Daily Task', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)), centerTitle: true),
       body: BlocConsumer<TaskCubit, TaskState>(
         listener: (context, state) {
           if (state is TaskActionSuccess) {
@@ -58,14 +75,14 @@ class _HabitFormScreenState extends State<HabitFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch, 
                   children: [
-                    _label('NAMA HABIT'),
+                    _label(widget.isHabit ? 'NAMA HABIT' : 'NAMA DAILY TASK'),
                     SizedBox(height: 8.h),
                     TextFormField(
                       controller: _nameController, 
-                      decoration: _deco('e.g. Olahraga Pagi'),
+                      decoration: _deco(widget.isHabit ? 'Contoh: Olahraga pagi' : 'Contoh: Kirim laporan harian'),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Nama habit wajib diisi';
+                          return widget.isHabit ? 'Nama habit wajib diisi' : 'Nama tugas wajib diisi';
                         }
                         return null;
                       },
@@ -73,6 +90,7 @@ class _HabitFormScreenState extends State<HabitFormScreen> {
                     ),
                     SizedBox(height: 24.h),
 
+                    if (widget.isHabit) ...[
                     _label('FREKUENSI'),
                     SizedBox(height: 8.h),
                     DropdownButtonFormField<String>(
@@ -82,6 +100,7 @@ class _HabitFormScreenState extends State<HabitFormScreen> {
                       decoration: _deco('Pilih frekuensi'),
                     ),
                     SizedBox(height: 24.h),
+                    ],
 
                     _label('WAKTU PENGINGAT'),
                     SizedBox(height: 8.h),
@@ -151,7 +170,7 @@ class _HabitFormScreenState extends State<HabitFormScreen> {
             SizedBox(height: 24.h),
             Icon(Icons.error_outline, color: AppColors.error, size: 56.w),
             SizedBox(height: 16.h),
-            Text('Gagal Menyimpan Habit', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+            Text(widget.isHabit ? 'Gagal Menyimpan Habit' : 'Gagal Menyimpan Daily Task', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.onSurface)),
             SizedBox(height: 8.h),
             Text(message, textAlign: TextAlign.center, style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
             SizedBox(height: 32.h),

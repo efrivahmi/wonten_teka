@@ -9,7 +9,8 @@ import '../../../../schedule/bloc/task_cubit.dart';
 import '../../../../../core/models/task_device_models.dart';
 
 class HabitTrackerScreen extends StatefulWidget {
-  const HabitTrackerScreen({super.key});
+  final bool isHabit;
+  const HabitTrackerScreen({super.key, this.isHabit = true});
 
   @override
   State<HabitTrackerScreen> createState() => _HabitTrackerScreenState();
@@ -20,7 +21,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TaskCubit>().loadTasks();
+      context.read<TaskCubit>().loadTasks(habitsOnly: widget.isHabit);
     });
   }
 
@@ -32,7 +33,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         backgroundColor: AppColors.surface,
         elevation: 0,
         title: Text(
-          'Tugas Pribadi',
+          widget.isHabit ? 'Habit Tracker' : 'Daily Task',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 color: AppColors.primary,
                 fontWeight: FontWeight.bold,
@@ -41,7 +42,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/app/habits/new'),
+        onPressed: () => context.push(widget.isHabit ? '/app/habits/new' : '/app/tasks/new'),
         backgroundColor: AppColors.primaryContainer,
         foregroundColor: AppColors.onPrimary,
         child: const Icon(Icons.add),
@@ -162,7 +163,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
 
           return RefreshIndicator(
             onRefresh: () async {
-              await context.read<TaskCubit>().loadTasks();
+              await context.read<TaskCubit>().loadTasks(habitsOnly: widget.isHabit);
             },
             color: AppColors.primary,
             child: SingleChildScrollView(
@@ -193,7 +194,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                           ),
                         ),
                         SizedBox(height: 8.h),
-                        Text('$completedCount dari $totalCount tugas selesai',
+                        Text('$completedCount dari $totalCount ${widget.isHabit ? 'habit' : 'tugas'} selesai',
                             style: TextStyle(
                                 color: AppColors.onSurfaceVariant,
                                 fontSize: 12.sp)),
@@ -202,7 +203,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                   ),
                   SizedBox(height: 24.h),
 
-                  Text('Tugas Saya',
+                  Text(widget.isHabit ? 'Habit Saya' : 'Tugas Hari Ini',
                       style: Theme.of(context)
                           .textTheme
                           .titleSmall
@@ -228,7 +229,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                                       .withValues(alpha: 0.5)),
                             ),
                             SizedBox(height: 16.h),
-                            Text('Belum ada tugas',
+                            Text(widget.isHabit ? 'Belum ada habit' : 'Belum ada daily task',
                                 style: Theme.of(context)
                                     .textTheme
                                     .titleMedium
@@ -293,16 +294,20 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                                                       .onSurfaceVariant,
                                                   fontSize: 12.sp)),
                                           SizedBox(width: 12.w),
-                                          Icon(Icons.schedule,
+                                          Icon(
+                                              h.reminderEnabled
+                                                  ? Icons.alarm_on
+                                                  : Icons.alarm_off,
                                               size: 14.w,
-                                              color:
-                                                  AppColors.onSurfaceVariant),
+                                              color: h.reminderEnabled
+                                                  ? AppColors.primary
+                                                  : AppColors.onSurfaceVariant),
                                           SizedBox(width: 4.w),
                                           Text(
-                                              h.reminderTime != null
-                                                  ? h.reminderTime!
-                                                      .substring(0, 5)
-                                                  : '-',
+                                              h.reminderEnabled &&
+                                                      h.reminderTime != null
+                                                  ? 'Alarm ${h.reminderTime!.substring(0, 5)}'
+                                                  : 'Alarm nonaktif',
                                               style: TextStyle(
                                                   color: AppColors
                                                       .onSurfaceVariant,
@@ -317,9 +322,19 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                                   onChanged: h.isCompletedToday
                                       ? null
                                       : (_) {
-                                          context
-                                              .read<TaskCubit>()
-                                              .completeTask(h.id);
+                                          if (widget.isHabit) {
+                                            context
+                                                .read<TaskCubit>()
+                                                .completeTask(h.id);
+                                          } else {
+                                            context.read<TaskCubit>().toggleTask(
+                                                h.id,
+                                                !h.isActive,
+                                                DateTime.now()
+                                                    .toIso8601String()
+                                                    .split('T')
+                                                    .first);
+                                          }
                                         },
                                   activeColor: AppColors.successEmerald,
                                   shape: RoundedRectangleBorder(

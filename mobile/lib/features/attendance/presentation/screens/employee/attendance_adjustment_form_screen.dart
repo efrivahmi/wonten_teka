@@ -74,7 +74,7 @@ class _AttendanceAdjustmentFormScreenState
 
   @override
   Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(title: const Text('Koreksi kehadiran')),
+      appBar: AppBar(title: const Text('Pengajuan lupa absensi')),
       body: Form(
           key: _key,
           child: ListView(padding: const EdgeInsets.all(20), children: [
@@ -85,7 +85,7 @@ class _AttendanceAdjustmentFormScreenState
                     ?.copyWith(fontWeight: FontWeight.w800)),
             const SizedBox(height: 6),
             const Text(
-                'Ajukan waktu masuk dan keluar yang benar untuk ditinjau atasan.'),
+                'Tambahkan waktu masuk dan keluar yang seharusnya. Setelah dikirim, pengajuan tidak dapat diedit atau dihapus.'),
             const SizedBox(height: 24),
             TextFormField(
                 controller: _date,

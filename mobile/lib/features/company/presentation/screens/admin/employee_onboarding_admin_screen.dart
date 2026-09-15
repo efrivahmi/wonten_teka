@@ -16,48 +16,14 @@ class EmployeeOnboardingAdminScreen extends StatefulWidget {
 class _EmployeeOnboardingAdminScreenState
     extends State<EmployeeOnboardingAdminScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _employeeNumberController = TextEditingController();
-
-  String _selectedDepartment = 'Engineering';
-  String _selectedPosition = 'Staff';
-  String _selectedRole = 'employee';
   bool _isSubmitting = false;
-
-  final _departments = [
-    'Engineering',
-    'Human Resources',
-    'Marketing',
-    'Sales',
-    'Finance',
-    'Management',
-    'Operations'
-  ];
-  final _positions = [
-    'Staff',
-    'Senior Staff',
-    'Lead',
-    'Manager',
-    'Director',
-    'VP',
-    'CEO',
-    'CTO'
-  ];
-  final _roles = [
-    {'value': 'employee', 'label': 'Karyawan'},
-    {'value': 'admin', 'label': 'Administrator'},
-  ];
 
   @override
   void dispose() {
-    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _phoneController.dispose();
-    _employeeNumberController.dispose();
     super.dispose();
   }
 
@@ -69,21 +35,15 @@ class _EmployeeOnboardingAdminScreenState
     try {
       final api = context.read<ApiClient>();
       await api.post('/admin/employees', data: {
-        'name': _nameController.text.trim(),
         'email': _emailController.text.trim(),
         'password': _passwordController.text,
-        'phone': _phoneController.text.trim(),
-        'employee_number': _employeeNumberController.text.trim(),
-        'department': _selectedDepartment,
-        'position': _selectedPosition,
-        'role': _selectedRole,
       });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text('Karyawan ${_nameController.text} berhasil ditambahkan!'),
+            content: const Text(
+                'Akun karyawan berhasil dibuat. Profil dilengkapi saat login pertama.'),
             backgroundColor: AppColors.successEmerald,
           ),
         );
@@ -131,13 +91,16 @@ class _EmployeeOnboardingAdminScreenState
             children: [
               // Info Section
               const _SectionLabel(label: 'Informasi Akun'),
-              SizedBox(height: 8.h),
-              _buildTextField(
-                controller: _nameController,
-                label: 'Nama Lengkap',
-                icon: Icons.person,
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'Nama wajib diisi' : null,
+              Container(
+                margin: EdgeInsets.only(bottom: 14.h),
+                padding: EdgeInsets.all(14.w),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: const Text(
+                  'Cukup isi email dan password. Nama serta nomor karyawan dibuat sementara secara otomatis, lalu profil lengkap diisi karyawan saat login pertama.',
+                ),
               ),
               SizedBox(height: 12.h),
               _buildTextField(
@@ -165,73 +128,6 @@ class _EmployeeOnboardingAdminScreenState
               ),
               SizedBox(height: 24.h),
 
-              // Employee Info
-              const _SectionLabel(label: 'Informasi Karyawan'),
-              SizedBox(height: 8.h),
-              _buildTextField(
-                controller: _employeeNumberController,
-                label: 'Nomor Karyawan (NIP)',
-                icon: Icons.badge,
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'NIP wajib diisi' : null,
-              ),
-              SizedBox(height: 12.h),
-              _buildTextField(
-                controller: _phoneController,
-                label: 'No. Telepon',
-                icon: Icons.phone,
-                keyboardType: TextInputType.phone,
-              ),
-              SizedBox(height: 12.h),
-              _buildDropdown(
-                label: 'Department',
-                icon: Icons.business,
-                value: _selectedDepartment,
-                items: _departments,
-                onChanged: (v) => setState(() => _selectedDepartment = v!),
-              ),
-              SizedBox(height: 12.h),
-              _buildDropdown(
-                label: 'Posisi',
-                icon: Icons.work,
-                value: _selectedPosition,
-                items: _positions,
-                onChanged: (v) => setState(() => _selectedPosition = v!),
-              ),
-              SizedBox(height: 24.h),
-
-              // Role
-              const _SectionLabel(label: 'Hak Akses'),
-              SizedBox(height: 8.h),
-              Container(
-                padding: EdgeInsets.all(12.w),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(12.r),
-                  border: Border.all(
-                      color: AppColors.outlineVariant.withValues(alpha: 0.5)),
-                ),
-                child: Column(
-                  children: _roles.map((role) {
-                    return RadioListTile<String>(
-                      value: role['value']!,
-                      // ignore: deprecated_member_use
-                      groupValue: _selectedRole,
-                      // ignore: deprecated_member_use
-                      onChanged: (v) => setState(() => _selectedRole = v!),
-                      title: Text(
-                        role['label']!,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                      ),
-                      activeColor: AppColors.primary,
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                    );
-                  }).toList(),
-                ),
-              ),
               SizedBox(height: 32.h),
 
               // Submit Button

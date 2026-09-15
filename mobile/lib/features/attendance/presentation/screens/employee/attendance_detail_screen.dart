@@ -97,7 +97,10 @@ class AttendanceDetailScreen extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.5)),
                       SizedBox(height: 4.h),
-                      Text(DateFormat('HH:mm').format(log.checkInAt),
+                      Text(
+                          log.status == 'absent'
+                              ? '--:--'
+                              : DateFormat('HH:mm').format(log.checkInAt),
                           style: Theme.of(context)
                               .textTheme
                               .headlineSmall

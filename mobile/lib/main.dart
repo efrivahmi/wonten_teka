@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router.dart';
+import 'core/widgets/brand_panel.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/api/api_client.dart';
@@ -34,14 +35,14 @@ import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize locale data for date formatting (prevents LocaleDataException)
   await initializeDateFormatting('id_ID', null);
-  
+
   final secureStorage = SecureStorage();
-  
+
   late final AuthBloc authBloc;
-  
+
   final apiClient = ApiClient(
     storage: secureStorage,
     onUnauthorized: () {
@@ -89,20 +90,39 @@ class WontenTekaApp extends StatelessWidget {
         RepositoryProvider(create: (_) => CompanyRepository(api: apiClient)),
         RepositoryProvider(create: (_) => TaskRepository(api: apiClient)),
         RepositoryProvider(create: (_) => DeviceRepository(api: apiClient)),
-        RepositoryProvider(create: (_) => DeviceAdminRepository(api: apiClient)),
+        RepositoryProvider(
+            create: (_) => DeviceAdminRepository(api: apiClient)),
       ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider.value(value: authBloc),
-          BlocProvider(create: (context) => AttendanceCubit(repository: context.read<AttendanceRepository>())),
-          BlocProvider(create: (context) => AttendanceHistoryCubit(repository: context.read<AttendanceRepository>())),
-          BlocProvider(create: (context) => LeaveCubit(repository: context.read<LeaveRepository>())),
-          BlocProvider(create: (context) => ApprovalCubit(repository: context.read<ApprovalRepository>())),
-          BlocProvider(create: (context) => ClaimCubit(repository: context.read<ClaimRepository>())),
-          BlocProvider(create: (context) => PayslipCubit(repository: context.read<PayslipRepository>())),
-          BlocProvider(create: (context) => ShiftCubit(repository: context.read<ShiftRepository>())),
-          BlocProvider(create: (context) => CompanyCubit(repository: context.read<CompanyRepository>())),
-          BlocProvider(create: (context) => TaskCubit(repository: context.read<TaskRepository>())),
+          BlocProvider(
+              create: (context) => AttendanceCubit(
+                  repository: context.read<AttendanceRepository>())),
+          BlocProvider(
+              create: (context) => AttendanceHistoryCubit(
+                  repository: context.read<AttendanceRepository>())),
+          BlocProvider(
+              create: (context) =>
+                  LeaveCubit(repository: context.read<LeaveRepository>())),
+          BlocProvider(
+              create: (context) => ApprovalCubit(
+                  repository: context.read<ApprovalRepository>())),
+          BlocProvider(
+              create: (context) =>
+                  ClaimCubit(repository: context.read<ClaimRepository>())),
+          BlocProvider(
+              create: (context) =>
+                  PayslipCubit(repository: context.read<PayslipRepository>())),
+          BlocProvider(
+              create: (context) =>
+                  ShiftCubit(repository: context.read<ShiftRepository>())),
+          BlocProvider(
+              create: (context) =>
+                  CompanyCubit(repository: context.read<CompanyRepository>())),
+          BlocProvider(
+              create: (context) =>
+                  TaskCubit(repository: context.read<TaskRepository>())),
         ],
         child: BlocListener<AuthBloc, AuthState>(
           listener: (context, state) async {
@@ -127,22 +147,22 @@ class WontenTekaApp extends StatelessWidget {
                   fingerprint = identity.fingerprint;
                   await storage.saveDeviceFingerprint(fingerprint);
                 }
-                
+
                 if (fingerprint.isEmpty) {
-                   appRouter.go('/device-binding');
-                   return;
+                  appRouter.go('/device-binding');
+                  return;
                 }
-                
+
                 try {
                   final device = await deviceRepo.getStatus(fingerprint);
                   final status = device.status;
-                  
+
                   if (status == 'pending_approval') {
-                     appRouter.go('/device-pending');
-                     return;
+                    appRouter.go('/device-pending');
+                    return;
                   } else if (status != 'active') {
-                     appRouter.go('/device-binding');
-                     return;
+                    appRouter.go('/device-binding');
+                    return;
                   }
                 } catch (e) {
                   // e.g. 404 if device not found
@@ -152,13 +172,15 @@ class WontenTekaApp extends StatelessWidget {
 
                 // 1. Force Profile Completion Check
                 final hasEmployeeProfile = state.user.employee != null;
-                if (!hasEmployeeProfile || !state.user.employee!.isProfileCompleted) {
+                if (!hasEmployeeProfile ||
+                    !state.user.employee!.isProfileCompleted) {
                   appRouter.go('/complete-profile');
                   return;
                 }
 
                 // 2. Force Face Enrollment Check
-                final isFaceEnrolled = state.user.employee?.faceEnrolled ?? false;
+                final isFaceEnrolled =
+                    state.user.employee?.faceEnrolled ?? false;
                 if (!isFaceEnrolled) {
                   appRouter.go('/face-enrollment');
                   return;
@@ -188,6 +210,8 @@ class WontenTekaApp extends StatelessWidget {
                 debugShowCheckedModeBanner: false,
                 theme: AppTheme.lightTheme,
                 routerConfig: appRouter,
+                builder: (context, child) => BrandPageBackground(
+                    child: child ?? const SizedBox.shrink()),
               );
             },
           ),

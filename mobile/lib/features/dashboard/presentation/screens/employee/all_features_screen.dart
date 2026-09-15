@@ -157,10 +157,10 @@ class AllFeaturesScreen extends StatelessWidget {
                             route: '/admin/devices'),
                       if (isAdmin)
                         _FeatureItem(
-                            icon: Icons.flag,
-                            label: 'Attendance Flags',
+                            icon: Icons.gps_off,
+                            label: 'Deteksi Fake GPS',
                             color: AppColors.error,
-                            route: '/admin/attendance-flags'),
+                            route: '/admin/attendance-security-events'),
                     ],
                   ),
                 ],
@@ -190,6 +190,11 @@ class AllFeaturesScreen extends StatelessWidget {
                           label: 'Leave Types',
                           color: AppColors.secondaryContainer,
                           route: '/admin/leave-types'),
+                      _FeatureItem(
+                          icon: Icons.edit_note,
+                          label: 'Task, Habit & Pengumuman',
+                          color: AppColors.primaryContainer,
+                          route: '/admin/content'),
                       _FeatureItem(
                           icon: Icons.analytics,
                           label: 'Analytics',

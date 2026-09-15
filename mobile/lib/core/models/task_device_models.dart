@@ -8,6 +8,8 @@ class PersonalTaskModel extends Equatable {
   final DateTime? taskDate;
   final String recurrenceRule;
   final String? reminderTime;
+  final bool isHabit;
+  final bool reminderEnabled;
   final int streakCount;
   final int longestStreak;
   final bool isActive;
@@ -21,6 +23,8 @@ class PersonalTaskModel extends Equatable {
     this.taskDate,
     this.recurrenceRule = 'daily',
     this.reminderTime,
+    this.isHabit = false,
+    this.reminderEnabled = false,
     this.streakCount = 0,
     this.longestStreak = 0,
     this.isActive = true,
@@ -41,9 +45,13 @@ class PersonalTaskModel extends Equatable {
       employeeId: json['employee_id'] as int,
       title: json['title'] as String,
       description: json['description'] as String?,
-      taskDate: json['task_date'] != null ? DateTime.parse(json['task_date'] as String) : null,
+      taskDate: json['task_date'] != null
+          ? DateTime.parse(json['task_date'] as String)
+          : null,
       recurrenceRule: json['recurrence_rule'] as String? ?? 'daily',
       reminderTime: json['reminder_time'] as String?,
+      isHabit: json['is_habit'] as bool? ?? false,
+      reminderEnabled: json['reminder_enabled'] as bool? ?? false,
       streakCount: json['streak_count'] as int? ?? 0,
       longestStreak: json['longest_streak'] as int? ?? 0,
       isActive: json['is_active'] as bool? ?? true,
@@ -58,6 +66,8 @@ class PersonalTaskModel extends Equatable {
         'description': description,
         'recurrence_rule': recurrenceRule,
         'reminder_time': reminderTime,
+        'is_habit': isHabit,
+        'reminder_enabled': reminderEnabled,
       };
 
   @override

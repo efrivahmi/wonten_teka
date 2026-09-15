@@ -13,6 +13,7 @@ abstract class TaskState extends Equatable {
 }
 
 class TaskInitial extends TaskState {}
+
 class TaskLoading extends TaskState {}
 
 class TaskLoaded extends TaskState {
@@ -62,7 +63,9 @@ class TaskCubit extends Cubit<TaskState> {
 
   Future<void> toggleTask(int id, bool currentStatus, String dateStr) async {
     try {
-      await _repo.toggleTaskCompletion(id, !currentStatus);
+      // currentStatus represents "sudah selesai". The database stores the
+      // inverse as is_active, so false completes and true reopens the task.
+      await _repo.toggleTaskCompletion(id, currentStatus);
       await loadTasksByDate(dateStr); // Reload tasks
     } catch (e) {
       // Ignore errors for now
@@ -79,7 +82,8 @@ class TaskCubit extends Cubit<TaskState> {
     }
   }
 
-  Future<void> addTask(String title, String? description, String taskDate, String? reminderTime) async {
+  Future<void> addTask(String title, String? description, String taskDate,
+      String? reminderTime) async {
     try {
       final task = await _repo.create(
         title: title,
@@ -87,7 +91,7 @@ class TaskCubit extends Cubit<TaskState> {
         taskDate: taskDate,
         reminderTime: reminderTime,
       );
-      
+
       if (reminderTime != null) {
         final timeParts = reminderTime.split(':');
         final dateParts = taskDate.split('-');
@@ -98,7 +102,7 @@ class TaskCubit extends Cubit<TaskState> {
           int.parse(timeParts[0]),
           int.parse(timeParts[1]),
         );
-        
+
         await NotificationService().scheduleAlarm(
           id: task.id,
           title: 'Pengingat Tugas: $title',
@@ -106,7 +110,7 @@ class TaskCubit extends Cubit<TaskState> {
           scheduledDate: scheduledDate,
         );
       }
-      
+      emit(const TaskActionSuccess('Daily task berhasil ditambahkan'));
       await loadTasksByDate(taskDate);
     } catch (e) {
       if (state is TaskLoaded) {
@@ -120,18 +124,58 @@ class TaskCubit extends Cubit<TaskState> {
   }
 
   // Compatibility methods for schedule_habit feature
-  Future<void> loadTasks() async {
+  Future<void> loadTasks({bool habitsOnly = true}) async {
     final todayStr = DateTime.now().toIso8601String().split('T').first;
-    await loadTasksByDate(todayStr);
+    emit(TaskLoading());
+    try {
+      final tasks = await _repo.getTasksByDate(todayStr, habitsOnly: habitsOnly);
+      emit(TaskLoaded(tasks, todayStr));
+    } catch (e) {
+      emit(TaskError(e is ApiException
+          ? e.message
+          : habitsOnly
+              ? 'Gagal memuat habit.'
+              : 'Gagal memuat daily task.'));
+    }
   }
 
-  Future<void> createTask({required String title, required String recurrenceRule, required String reminderTime}) async {
+  Future<void> createTask(
+      {required String title,
+      required String recurrenceRule,
+      required String reminderTime}) async {
     final todayStr = DateTime.now().toIso8601String().split('T').first;
-    final timeStr = reminderTime.length > 5 ? reminderTime.substring(0, 5) : reminderTime;
+    final timeStr =
+        reminderTime.length > 5 ? reminderTime.substring(0, 5) : reminderTime;
     try {
-      await addTask(title, recurrenceRule, todayStr, timeStr);
+      final task = await _repo.create(
+        title: title,
+        description: null,
+        taskDate: todayStr,
+        reminderTime: timeStr,
+        isHabit: true,
+        recurrenceRule: recurrenceRule,
+        reminderEnabled: true,
+      );
+      final parts = timeStr.split(':');
+      var scheduled = DateTime.now().copyWith(
+        hour: int.parse(parts[0]),
+        minute: int.parse(parts[1]),
+        second: 0,
+        millisecond: 0,
+        microsecond: 0,
+      );
+      if (!scheduled.isAfter(DateTime.now())) {
+        scheduled = scheduled.add(const Duration(days: 1));
+      }
+      await NotificationService().scheduleAlarm(
+        id: task.id,
+        title: 'Pengingat Habit: $title',
+        body: 'Waktunya menjaga rutinitas Anda.',
+        scheduledDate: scheduled,
+        repeatDaily: recurrenceRule == 'daily',
+      );
       emit(const TaskActionSuccess('Habit berhasil ditambahkan'));
-      await loadTasksByDate(todayStr);
+      await loadTasks();
     } catch (e) {
       emit(TaskError('Gagal menambahkan habit: $e'));
     }

@@ -78,6 +78,7 @@ const EmployeeLayout = () => {
         calendar: { name: 'Kalender', href: '/employee/calendar', icon: CalendarDays },
         announcements: { name: 'Pengumuman', href: '/employee/announcements', icon: Bell },
         tasks: { name: 'Tugas Pribadi', href: '/employee/tasks', icon: ClipboardList },
+        habits: { name: 'Habit Tracker', href: '/employee/habits', icon: CalendarCheck },
         adjustments: { name: 'Ajukan Koreksi Absensi', href: '/employee/attendance-adjustments', icon: SlidersHorizontal },
         business_trips: { name: 'Perjalanan Dinas', href: '/employee/business-trips', icon: Plane },
         directory: { name: 'Direktori Karyawan', href: '/employee/directory', icon: User },
@@ -95,9 +96,9 @@ const EmployeeLayout = () => {
         { name: 'Dashboard', href: '/employee/dashboard', icon: LayoutDashboard },
         { name: 'Presensi', icon: CalendarCheck, children: items(['attendance', 'schedule', 'business_trips']) },
         { name: 'Pengajuan', icon: Briefcase, children: items(['leave', 'overtime', 'claims', 'adjustments']) },
-        { name: 'Informasi & Aktivitas', icon: Bell, children: items(['calendar', 'tasks', 'notifications']) },
+        { name: 'Informasi & Aktivitas', icon: Bell, children: items(['calendar', 'announcements', 'directory', 'tasks', 'habits', 'notifications']) },
         { name: 'Keuangan', icon: FileText, children: items(['payroll']) },
-        { name: 'Profil Saya', href: '/employee/profile', icon: User },
+        configuredItem('profile') ? { name: configuredItem('profile').name, href: '/employee/profile', icon: User } : null,
         {
             name: 'Biometrik',
             icon: User,
@@ -106,7 +107,7 @@ const EmployeeLayout = () => {
                 { name: 'Rekam Ulang Wajah', href: '/employee/face-enrollment', icon: CalendarCheck },
             ].filter(Boolean),
         },
-    ].filter(item => !item.children || item.children.length > 0);
+    ].filter(item => item && (!item.children || item.children.length > 0));
 
     const toggleMenu = (name) => setOpenMenus(previous => ({ ...previous, [name]: !previous[name] }));
 

@@ -77,6 +77,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/enroll-face', [AttendanceController::class, 'enrollFace']);
         Route::post('/check-in', [AttendanceController::class, 'checkIn'])->middleware('active.device');
         Route::post('/check-out', [AttendanceController::class, 'checkOut'])->middleware('active.device');
+        Route::post('/security-events/mock-location', [AttendanceController::class, 'reportMockLocation'])->middleware('active.device');
         Route::get('/history', [AttendanceController::class, 'history']);
 
         // New attendance form routes
@@ -141,7 +142,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/employees', [EmployeeController::class, 'store']);
         Route::put('/employees/{id}', [EmployeeController::class, 'update']);
         Route::delete('/employees/{id}', [EmployeeController::class, 'destroy']);
+        Route::get('/tasks', [\App\Http\Controllers\Api\AdminTaskController::class, 'index']);
+        Route::post('/tasks', [\App\Http\Controllers\Api\AdminTaskController::class, 'store']);
+        Route::put('/tasks/{task}', [\App\Http\Controllers\Api\AdminTaskController::class, 'update']);
+        Route::delete('/tasks/{task}', [\App\Http\Controllers\Api\AdminTaskController::class, 'destroy']);
+        Route::get('/announcements', [CompanyController::class, 'adminAnnouncements']);
         Route::post('/announcements', [CompanyController::class, 'storeAnnouncement']);
+        Route::put('/announcements/{announcement}', [CompanyController::class, 'updateAnnouncement']);
+        Route::delete('/announcements/{announcement}', [CompanyController::class, 'destroyAnnouncement']);
         
         // Events
         Route::get('/events', [\App\Http\Controllers\Api\EventController::class, 'index']);
@@ -170,12 +178,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/leave-types/{id}', [\App\Http\Controllers\Api\AdminLeaveTypeController::class, 'update']);
         Route::delete('/leave-types/{id}', [\App\Http\Controllers\Api\AdminLeaveTypeController::class, 'destroy']);
         
-        // Attendance Flags & Admin CRUD
+        // Attendance security events are read-only evidence, not an approval queue.
         Route::get('/attendance', [\App\Http\Controllers\Api\AttendanceAdminController::class, 'index']);
         Route::put('/attendance/{id}', [\App\Http\Controllers\Api\AttendanceAdminController::class, 'update']);
         Route::delete('/attendance/{id}', [\App\Http\Controllers\Api\AttendanceAdminController::class, 'destroy']);
-        Route::get('/attendance-flags', [\App\Http\Controllers\Api\AttendanceAdminController::class, 'flags']);
-        Route::post('/attendance-flags/{id}/resolve', [\App\Http\Controllers\Api\AttendanceAdminController::class, 'resolveFlag']);
+        Route::get('/attendance-security-events', [\App\Http\Controllers\Api\AttendanceAdminController::class, 'securityEvents']);
         
         // Device Approvals
         Route::get('/devices/pending', [DeviceAdminController::class, 'getPendingDevices']);

@@ -6,11 +6,17 @@ class TaskRepository {
 
   TaskRepository({required ApiClient api}) : _api = api;
 
-  Future<List<PersonalTaskModel>> getTasksByDate(String dateStr) async {
-    final response = await _api.get('/tasks', queryParameters: {'date': dateStr});
+  Future<List<PersonalTaskModel>> getTasksByDate(String dateStr,
+      {bool habitsOnly = false}) async {
+    final response = await _api.get('/tasks', queryParameters: {
+      'date': dateStr,
+      if (habitsOnly) 'type': 'habit',
+    });
     final data = response.data as Map<String, dynamic>;
     final List<dynamic> list = data['data'];
-    return list.map((e) => PersonalTaskModel.fromJson(e as Map<String, dynamic>)).toList();
+    return list
+        .map((e) => PersonalTaskModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<PersonalTaskModel> create({
@@ -18,12 +24,18 @@ class TaskRepository {
     String? description,
     required String taskDate,
     String? reminderTime,
+    bool isHabit = false,
+    String? recurrenceRule,
+    bool reminderEnabled = false,
   }) async {
     final response = await _api.post('/tasks', data: {
       'title': title,
       'description': description,
       'task_date': taskDate,
       'reminder_time': reminderTime,
+      'is_habit': isHabit,
+      'recurrence_rule': recurrenceRule,
+      'reminder_enabled': reminderEnabled,
     });
     final data = response.data as Map<String, dynamic>;
     return PersonalTaskModel.fromJson(data['data'] as Map<String, dynamic>);

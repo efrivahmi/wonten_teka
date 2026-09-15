@@ -87,58 +87,62 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                     return Padding(
                       padding: EdgeInsets.symmetric(vertical: 16.h),
                       child: const Center(
-                        child: CircularProgressIndicator(color: AppColors.primary),
+                        child:
+                            CircularProgressIndicator(color: AppColors.primary),
                       ),
                     );
                   }
-                  
+
                   final log = state.logs[index];
                   return Padding(
                     padding: EdgeInsets.only(bottom: 12.h),
                     child: InkWell(
-                      onTap: () => context.push('/app/attendance/detail', extra: log),
+                      onTap: () =>
+                          context.push('/app/attendance/detail', extra: log),
                       borderRadius: BorderRadius.circular(16.r),
                       child: InfoCard(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  DateFormat('EEEE, d MMM yyyy', 'id_ID')
-                                      .format(log.checkInAt),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
-                                      ?.copyWith(
-                                        color: AppColors.onSurface,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                ),
-                                SizedBox(height: 8.h),
-                                Row(
-                                  children: [
-                                    _TimeChip(
-                                        label: 'Masuk',
-                                        time: DateFormat('HH:mm')
-                                            .format(log.checkInAt)),
-                                    SizedBox(width: 16.w),
-                                    _TimeChip(
-                                        label: 'Keluar',
-                                        time: log.checkOutAt != null
-                                            ? DateFormat('HH:mm')
-                                                .format(log.checkOutAt!)
-                                            : '--:--'),
-                                  ],
-                                ),
-                              ],
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    DateFormat('EEEE, d MMM yyyy', 'id_ID')
+                                        .format(log.checkInAt),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          color: AppColors.onSurface,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                  ),
+                                  SizedBox(height: 8.h),
+                                  Row(
+                                    children: [
+                                      _TimeChip(
+                                          label: 'Masuk',
+                                          time: log.status == 'absent'
+                                              ? '--:--'
+                                              : DateFormat('HH:mm')
+                                                  .format(log.checkInAt)),
+                                      SizedBox(width: 16.w),
+                                      _TimeChip(
+                                          label: 'Keluar',
+                                          time: log.checkOutAt != null
+                                              ? DateFormat('HH:mm')
+                                                  .format(log.checkOutAt!)
+                                              : '--:--'),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          _buildStatusBadge(log.status),
-                        ],
+                            _buildStatusBadge(log.status),
+                          ],
+                        ),
                       ),
-                     ),
                     ),
                   );
                 },
@@ -238,4 +242,3 @@ class _TimeChip extends StatelessWidget {
     );
   }
 }
-

@@ -120,8 +120,11 @@ class MainSidebarDrawer extends StatelessWidget {
                             children: [
                               _buildListTile(context, 'Laporan Absensi',
                                   Icons.history, '/admin/reports'),
-                              _buildListTile(context, 'Tinjauan Flag Absen',
-                                  Icons.flag, '/admin/attendance-flags'),
+                              _buildListTile(
+                                  context,
+                                  'Deteksi Fake GPS',
+                                  Icons.gps_off,
+                                  '/admin/attendance-security-events'),
                             ],
                           ),
                           _buildListTile(context, 'Pengumuman / Event',
@@ -171,9 +174,18 @@ class MainSidebarDrawer extends StatelessWidget {
                         if (menu.contains('calendar'))
                           _buildListTile(context, 'Kalender Perusahaan',
                               Icons.calendar_month, '/app/calendar'),
+                        if (menu.contains('announcements'))
+                          _buildListTile(context, 'Pengumuman',
+                              Icons.campaign, '/app/announcements'),
+                        if (menu.contains('directory'))
+                          _buildListTile(context, 'Direktori Karyawan',
+                              Icons.people_alt, '/app/directory'),
                         if (menu.contains('tasks'))
-                          _buildListTile(context, 'Tugas Pribadi',
+                          _buildListTile(context, 'Daily Task',
                               Icons.task_alt, '/app/tasks'),
+                        if (menu.contains('habits'))
+                          _buildListTile(context, 'Habit Tracker',
+                              Icons.track_changes, '/app/habits'),
                         _buildListTile(
                             context,
                             'Data Wajah Saya',
