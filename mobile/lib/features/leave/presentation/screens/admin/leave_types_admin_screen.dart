@@ -25,15 +25,18 @@ class _LeaveTypesAdminScreenState extends State<LeaveTypesAdminScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Hapus Tipe Cuti'),
-        content: Text('Apakah Anda yakin ingin menghapus tipe cuti "${type.name}"?'),
+        content:
+            Text('Apakah Anda yakin ingin menghapus tipe cuti "${type.name}"?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               context.read<LeaveCubit>().deleteLeaveType(type.id);
             },
-            child: const Text('Hapus', style: TextStyle(color: AppColors.errorCrimson)),
+            child: const Text('Hapus',
+                style: TextStyle(color: AppColors.errorCrimson)),
           ),
         ],
       ),
@@ -64,7 +67,9 @@ class _LeaveTypesAdminScreenState extends State<LeaveTypesAdminScreen> {
       body: BlocConsumer<LeaveCubit, LeaveState>(
         listener: (context, state) {
           if (state is LeaveError) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message), backgroundColor: AppColors.errorCrimson));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.errorCrimson));
           }
         },
         builder: (context, state) {
@@ -74,7 +79,8 @@ class _LeaveTypesAdminScreenState extends State<LeaveTypesAdminScreen> {
           if (state is LeaveLoaded) {
             if (state.types.isEmpty) {
               return const Center(
-                child: Text('Belum ada tipe cuti. Silakan tambah.', style: TextStyle(color: AppColors.onSurfaceVariant)),
+                child: Text('Belum ada tipe cuti. Silakan tambah.',
+                    style: TextStyle(color: AppColors.onSurfaceVariant)),
               );
             }
             return ListView.separated(
@@ -107,17 +113,25 @@ class _LeaveTypesAdminScreenState extends State<LeaveTypesAdminScreen> {
                 children: [
                   Text(
                     type.name,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp, color: AppColors.onSurface),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.sp,
+                        color: AppColors.onSurface),
                   ),
                   SizedBox(height: 4.h),
                   Text(
-                    '${type.quotaPerYear ?? 0} Hari${type.isPaid ? ' • Dibayar' : ' • Tidak Dibayar'}',
-                    style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13.sp),
+                    '${type.quotaPerMonth ?? 0} hari/bulan${type.isPaid ? ' • Dibayar' : ' • Tidak Dibayar'}',
+                    style: TextStyle(
+                        color: AppColors.onSurfaceVariant, fontSize: 13.sp),
                   ),
                   if (!type.isActive)
                     Padding(
                       padding: EdgeInsets.only(top: 4.h),
-                      child: Text('Tidak Aktif', style: TextStyle(color: AppColors.errorCrimson, fontSize: 12.sp, fontWeight: FontWeight.bold)),
+                      child: Text('Tidak Aktif',
+                          style: TextStyle(
+                              color: AppColors.errorCrimson,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.bold)),
                     )
                 ],
               ),

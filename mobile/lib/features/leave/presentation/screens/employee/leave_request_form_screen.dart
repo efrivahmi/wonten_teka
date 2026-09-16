@@ -26,7 +26,8 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
 
   Future<void> _pickFile() async {
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+      final XFile? image = await _picker.pickImage(
+          source: ImageSource.gallery, imageQuality: 70);
       if (image != null) {
         setState(() {
           _attachment = File(image.path);
@@ -34,7 +35,8 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal memilih gambar: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Gagal memilih gambar: $e')));
       }
     }
   }
@@ -72,12 +74,27 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
         _dateRange != null &&
         _selectedTypeId != null) {
       final currentState = context.read<LeaveCubit>().state;
-      final requestedDays = _dateRange!.end.difference(_dateRange!.start).inDays + 1;
+      final requestedDays =
+          _dateRange!.end.difference(_dateRange!.start).inDays + 1;
+      if (_dateRange!.start.year != _dateRange!.end.year ||
+          _dateRange!.start.month != _dateRange!.end.month) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              'Pengajuan tidak boleh melewati pergantian bulan. Buat pengajuan terpisah untuk setiap bulan.'),
+          backgroundColor: AppColors.error,
+        ));
+        return;
+      }
       if (currentState is LeaveLoaded) {
-        final matching = currentState.balances.where((item) => item.leaveTypeId == _selectedTypeId);
-        if (matching.isNotEmpty && requestedDays > matching.first.remainingDays) {
+        final matching = currentState.balances.where((item) =>
+            item.leaveTypeId == _selectedTypeId &&
+            item.year == _dateRange!.start.year &&
+            item.month == _dateRange!.start.month);
+        if (matching.isNotEmpty &&
+            requestedDays > matching.first.remainingDays) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Pengajuan $requestedDays hari melebihi sisa kuota ${matching.first.remainingDays} hari.'),
+            content: Text(
+                'Pengajuan $requestedDays hari melebihi sisa kuota ${matching.first.remainingDays} hari.'),
             backgroundColor: AppColors.error,
           ));
           return;
@@ -178,19 +195,34 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 40.w, height: 4.h, decoration: BoxDecoration(color: AppColors.outlineVariant, borderRadius: BorderRadius.circular(2.r))),
+            Container(
+                width: 40.w,
+                height: 4.h,
+                decoration: BoxDecoration(
+                    color: AppColors.outlineVariant,
+                    borderRadius: BorderRadius.circular(2.r))),
             SizedBox(height: 24.h),
             Icon(Icons.error_outline, color: AppColors.error, size: 56.w),
             SizedBox(height: 16.h),
-            Text('Pengajuan Gagal', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+            Text('Pengajuan Gagal',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold, color: AppColors.onSurface)),
             SizedBox(height: 8.h),
-            Text(message, textAlign: TextAlign.center, style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
+            Text(message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
             SizedBox(height: 32.h),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
                 onPressed: () => Navigator.pop(ctx),
-                style: FilledButton.styleFrom(backgroundColor: AppColors.error, foregroundColor: AppColors.onError, padding: EdgeInsets.symmetric(vertical: 16.h), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r))),
+                style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                    foregroundColor: AppColors.onError,
+                    padding: EdgeInsets.symmetric(vertical: 16.h),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16.r))),
                 child: const Text('Tutup & Coba Lagi'),
               ),
             ),
@@ -217,12 +249,12 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
               ),
             ),
           ),
-          
           SafeArea(
             child: Column(
               children: [
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                   child: Row(
                     children: [
                       IconButton(
@@ -232,7 +264,10 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
                       Expanded(
                         child: Text(
                           'Pengajuan Cuti',
-                          style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20.sp,
+                              fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -240,7 +275,6 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
                     ],
                   ),
                 ),
-                
                 Expanded(
                   child: BlocConsumer<LeaveCubit, LeaveState>(
                     listener: (context, state) {
@@ -258,7 +292,7 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
                         types = state.types;
                         balances = state.balances;
                       }
-                      
+
                       return SingleChildScrollView(
                         padding: EdgeInsets.all(24.w),
                         child: Container(
@@ -266,57 +300,98 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(24.r),
-                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 10))],
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10))
+                            ],
                           ),
                           child: Form(
                             key: _formKey,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Jenis Cuti', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                                Text('Jenis Cuti',
+                                    style: TextStyle(
+                                        color: AppColors.onSurface,
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.bold)),
                                 SizedBox(height: 8.h),
                                 DropdownButtonFormField<int>(
-                                  initialValue: types.any((type) => type.id == _selectedTypeId) ? _selectedTypeId : null,
+                                  initialValue: types.any(
+                                          (type) => type.id == _selectedTypeId)
+                                      ? _selectedTypeId
+                                      : null,
                                   decoration: InputDecoration(
                                     filled: true,
                                     fillColor: Colors.grey[50],
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide.none),
-                                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide(color: Colors.grey[200]!)),
-                                    contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                                    border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(16.r),
+                                        borderSide: BorderSide.none),
+                                    enabledBorder: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(16.r),
+                                        borderSide: BorderSide(
+                                            color: Colors.grey[200]!)),
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 16.w, vertical: 16.h),
                                   ),
                                   hint: const Text('Pilih Jenis Cuti'),
                                   items: types.map((t) {
-                                    final matches = balances.where((b) => b.leaveTypeId == t.id);
-                                    final remaining = matches.isEmpty ? t.quotaPerYear ?? 0 : matches.first.remainingDays;
-                                    return DropdownMenuItem(value: t.id, child: Text('${t.name} · sisa $remaining hari'));
+                                    final matches = balances
+                                        .where((b) => b.leaveTypeId == t.id);
+                                    final remaining = matches.isEmpty
+                                        ? t.quotaPerMonth ?? 0
+                                        : matches.first.remainingDays;
+                                    return DropdownMenuItem(
+                                        value: t.id,
+                                        child: Text(
+                                            '${t.name} · sisa $remaining hari'));
                                   }).toList(),
-                                  onChanged: isLoading ? null : (v) => setState(() => _selectedTypeId = v),
-                                  validator: (v) => v == null ? 'Pilih jenis cuti' : null,
+                                  onChanged: isLoading
+                                      ? null
+                                      : (v) =>
+                                          setState(() => _selectedTypeId = v),
+                                  validator: (v) =>
+                                      v == null ? 'Pilih jenis cuti' : null,
                                 ),
                                 SizedBox(height: 24.h),
-                                
-                                Text('Rentang Tanggal', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                                Text('Rentang Tanggal',
+                                    style: TextStyle(
+                                        color: AppColors.onSurface,
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.bold)),
                                 SizedBox(height: 8.h),
                                 InkWell(
                                   onTap: isLoading ? null : _selectDateRange,
                                   borderRadius: BorderRadius.circular(16.r),
                                   child: Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 16.w, vertical: 16.h),
                                     decoration: BoxDecoration(
                                       color: Colors.grey[50],
                                       borderRadius: BorderRadius.circular(16.r),
-                                      border: Border.all(color: Colors.grey[200]!),
+                                      border:
+                                          Border.all(color: Colors.grey[200]!),
                                     ),
                                     child: Row(
                                       children: [
-                                        Icon(Icons.calendar_month, color: AppColors.primary, size: 20.w),
+                                        Icon(Icons.calendar_month,
+                                            color: AppColors.primary,
+                                            size: 20.w),
                                         SizedBox(width: 12.w),
                                         Expanded(
                                           child: Text(
                                             _dateRange == null
                                                 ? 'Pilih tanggal mulai & akhir'
                                                 : '${DateFormat('dd MMM').format(_dateRange!.start)} - ${DateFormat('dd MMM yyyy').format(_dateRange!.end)}',
-                                            style: TextStyle(color: _dateRange == null ? Colors.grey[600] : Colors.black87, fontSize: 14.sp),
+                                            style: TextStyle(
+                                                color: _dateRange == null
+                                                    ? Colors.grey[600]
+                                                    : Colors.black87,
+                                                fontSize: 14.sp),
                                           ),
                                         ),
                                       ],
@@ -324,8 +399,11 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
                                   ),
                                 ),
                                 SizedBox(height: 24.h),
-                                
-                                Text('Alasan Cuti', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                                Text('Alasan Cuti',
+                                    style: TextStyle(
+                                        color: AppColors.onSurface,
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.bold)),
                                 SizedBox(height: 8.h),
                                 TextFormField(
                                   controller: _reasonController,
@@ -335,37 +413,60 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
                                     hintText: 'Jelaskan alasan cuti Anda',
                                     filled: true,
                                     fillColor: Colors.grey[50],
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide.none),
-                                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide(color: Colors.grey[200]!)),
-                                    contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                                    border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(16.r),
+                                        borderSide: BorderSide.none),
+                                    enabledBorder: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(16.r),
+                                        borderSide: BorderSide(
+                                            color: Colors.grey[200]!)),
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 16.w, vertical: 16.h),
                                   ),
-                                  validator: (v) => v?.isEmpty ?? true ? 'Wajib diisi' : null,
+                                  validator: (v) =>
+                                      v?.isEmpty ?? true ? 'Wajib diisi' : null,
                                 ),
                                 SizedBox(height: 24.h),
-                                
-                                Text('Lampiran Bukti (Opsional / Sakit)', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                                Text('Lampiran Bukti (Opsional / Sakit)',
+                                    style: TextStyle(
+                                        color: AppColors.onSurface,
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.bold)),
                                 SizedBox(height: 8.h),
                                 InkWell(
                                   onTap: isLoading ? null : _pickFile,
                                   borderRadius: BorderRadius.circular(16.r),
                                   child: Container(
                                     width: double.infinity,
-                                    padding: EdgeInsets.symmetric(vertical: 24.h),
+                                    padding:
+                                        EdgeInsets.symmetric(vertical: 24.h),
                                     decoration: BoxDecoration(
                                       color: Colors.grey[50],
                                       borderRadius: BorderRadius.circular(16.r),
-                                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), style: BorderStyle.solid),
+                                      border: Border.all(
+                                          color: AppColors.primary
+                                              .withValues(alpha: 0.3),
+                                          style: BorderStyle.solid),
                                     ),
                                     child: Column(
                                       children: [
-                                        Icon(Icons.cloud_upload_outlined, size: 32.w, color: AppColors.primary),
+                                        Icon(Icons.cloud_upload_outlined,
+                                            size: 32.w,
+                                            color: AppColors.primary),
                                         SizedBox(height: 8.h),
-                                        Text(_attachment == null ? 'Upload Foto Surat Keterangan' : 'File dipilih: ${_attachment!.path.split('/').last.split('\\').last}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                                        Text(
+                                            _attachment == null
+                                                ? 'Upload Foto Surat Keterangan'
+                                                : 'File dipilih: ${_attachment!.path.split('/').last.split('\\').last}',
+                                            style: const TextStyle(
+                                                color: AppColors.primary,
+                                                fontWeight: FontWeight.bold)),
                                       ],
                                     ),
                                   ),
                                 ),
-                                
                                 SizedBox(height: 32.h),
                                 SizedBox(
                                   width: double.infinity,
@@ -375,12 +476,23 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.primary,
                                       foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(16.r)),
                                       elevation: 0,
                                     ),
                                     child: isLoading
-                                        ? SizedBox(width: 24.w, height: 24.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                        : Text('Kirim Pengajuan', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+                                        ? SizedBox(
+                                            width: 24.w,
+                                            height: 24.w,
+                                            child:
+                                                const CircularProgressIndicator(
+                                                    color: Colors.white,
+                                                    strokeWidth: 2))
+                                        : Text('Kirim Pengajuan',
+                                            style: TextStyle(
+                                                fontSize: 16.sp,
+                                                fontWeight: FontWeight.bold)),
                                   ),
                                 ),
                               ],
@@ -399,4 +511,3 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
     );
   }
 }
-

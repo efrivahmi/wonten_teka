@@ -6,7 +6,7 @@ class LeaveTypeModel extends Equatable {
 
   final String name;
   final String? code;
-  final int? quotaPerYear;
+  final int? quotaPerMonth;
   final bool isPaid;
   final bool requiresAttachment;
   final bool isCarryOverAllowed;
@@ -15,10 +15,9 @@ class LeaveTypeModel extends Equatable {
 
   const LeaveTypeModel({
     required this.id,
-
     required this.name,
     this.code,
-    this.quotaPerYear,
+    this.quotaPerMonth,
     this.isPaid = true,
     this.requiresAttachment = false,
     this.isCarryOverAllowed = false,
@@ -29,10 +28,10 @@ class LeaveTypeModel extends Equatable {
   factory LeaveTypeModel.fromJson(Map<String, dynamic> json) {
     return LeaveTypeModel(
       id: json['id'] as int,
-
       name: json['name'] as String,
       code: json['code'] as String?,
-      quotaPerYear: json['quota_per_year'] as int?,
+      quotaPerMonth:
+          json['quota_per_month'] as int? ?? json['quota_per_year'] as int?,
       isPaid: json['is_paid'] as bool? ?? true,
       requiresAttachment: json['requires_attachment'] as bool? ?? false,
       isCarryOverAllowed: json['is_carry_over_allowed'] as bool? ?? false,
@@ -54,6 +53,8 @@ class LeaveBalanceModel extends Equatable {
   final int usedDays;
   final int carriedOverDays;
   final int remainingDays;
+  final int year;
+  final int month;
   final LeaveTypeModel? leaveType;
 
   const LeaveBalanceModel({
@@ -64,6 +65,8 @@ class LeaveBalanceModel extends Equatable {
     required this.usedDays,
     this.carriedOverDays = 0,
     required this.remainingDays,
+    required this.year,
+    required this.month,
     this.leaveType,
   });
 
@@ -78,6 +81,8 @@ class LeaveBalanceModel extends Equatable {
       usedDays: json['used_days'] as int? ?? 0,
       carriedOverDays: json['carried_over_days'] as int? ?? 0,
       remainingDays: json['remaining_days'] as int? ?? 0,
+      year: json['year'] as int? ?? DateTime.now().year,
+      month: json['month'] as int? ?? DateTime.now().month,
       leaveType: json['leave_type'] != null
           ? LeaveTypeModel.fromJson(json['leave_type'] as Map<String, dynamic>)
           : null,
@@ -85,7 +90,8 @@ class LeaveBalanceModel extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, employeeId, leaveTypeId, entitledDays, usedDays];
+  List<Object?> get props =>
+      [id, employeeId, leaveTypeId, entitledDays, usedDays, year, month];
 }
 
 /// Maps the Laravel LeaveRequest model.
@@ -105,7 +111,6 @@ class LeaveRequestModel extends Equatable {
 
   const LeaveRequestModel({
     required this.id,
-
     required this.employeeId,
     required this.leaveTypeId,
     required this.startDate,
@@ -125,7 +130,6 @@ class LeaveRequestModel extends Equatable {
   factory LeaveRequestModel.fromJson(Map<String, dynamic> json) {
     return LeaveRequestModel(
       id: json['id'] as int,
-
       employeeId: json['employee_id'] as int,
       leaveTypeId: json['leave_type_id'] as int,
       startDate: DateTime.parse(json['start_date'] as String),
@@ -137,7 +141,9 @@ class LeaveRequestModel extends Equatable {
       leaveType: json['leave_type'] != null
           ? LeaveTypeModel.fromJson(json['leave_type'] as Map<String, dynamic>)
           : null,
-      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at']) : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'])
+          : null,
     );
   }
 

@@ -33,7 +33,7 @@ class LeaveDetailScreen extends StatelessWidget {
                   Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Cuti Tahunan',
+                        Text('Cuti',
                             style: Theme.of(context)
                                 .textTheme
                                 .titleMedium
@@ -127,4 +127,3 @@ class _ApprovalStep extends StatelessWidget {
         ])),
       ])));
 }
-

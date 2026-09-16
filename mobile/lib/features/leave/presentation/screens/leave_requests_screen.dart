@@ -66,51 +66,93 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      children: List.generate(2, (index) => Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.only(right: index == 0 ? 8.w : 0),
-                          child: InfoCard(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(height: 12.h, width: 60.w, color: AppColors.surfaceContainerHigh),
-                                SizedBox(height: 12.h),
-                                Container(height: 32.h, width: 80.w, color: AppColors.surfaceContainerHigh),
-                                SizedBox(height: 8.h),
-                                Container(height: 12.h, width: 100.w, color: AppColors.surfaceContainerHigh),
-                              ],
-                            ),
-                          ),
-                        ),
-                      )),
+                      children: List.generate(
+                          2,
+                          (index) => Expanded(
+                                child: Padding(
+                                  padding: EdgeInsets.only(
+                                      right: index == 0 ? 8.w : 0),
+                                  child: InfoCard(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                            height: 12.h,
+                                            width: 60.w,
+                                            color:
+                                                AppColors.surfaceContainerHigh),
+                                        SizedBox(height: 12.h),
+                                        Container(
+                                            height: 32.h,
+                                            width: 80.w,
+                                            color:
+                                                AppColors.surfaceContainerHigh),
+                                        SizedBox(height: 8.h),
+                                        Container(
+                                            height: 12.h,
+                                            width: 100.w,
+                                            color:
+                                                AppColors.surfaceContainerHigh),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              )),
                     ),
                     SizedBox(height: 24.h),
-                    Container(height: 16.h, width: 150.w, color: AppColors.surfaceContainerHigh),
+                    Container(
+                        height: 16.h,
+                        width: 150.w,
+                        color: AppColors.surfaceContainerHigh),
                     SizedBox(height: 12.h),
-                    ...List.generate(4, (index) => Padding(
-                      padding: EdgeInsets.only(bottom: 12.h),
-                      child: InfoCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Container(height: 16.h, width: 100.w, color: AppColors.surfaceContainerHigh),
-                                Container(height: 24.h, width: 60.w, decoration: BoxDecoration(color: AppColors.surfaceContainerHigh, borderRadius: BorderRadius.circular(12.r))),
-                              ],
-                            ),
-                            SizedBox(height: 12.h),
-                            Container(height: 12.h, width: double.infinity, color: AppColors.surfaceContainerHigh),
-                            SizedBox(height: 4.h),
-                            Container(height: 12.h, width: 200.w, color: AppColors.surfaceContainerHigh),
-                          ],
-                        ),
-                      ),
-                    )),
+                    ...List.generate(
+                        4,
+                        (index) => Padding(
+                              padding: EdgeInsets.only(bottom: 12.h),
+                              child: InfoCard(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Container(
+                                            height: 16.h,
+                                            width: 100.w,
+                                            color:
+                                                AppColors.surfaceContainerHigh),
+                                        Container(
+                                            height: 24.h,
+                                            width: 60.w,
+                                            decoration: BoxDecoration(
+                                                color: AppColors
+                                                    .surfaceContainerHigh,
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        12.r))),
+                                      ],
+                                    ),
+                                    SizedBox(height: 12.h),
+                                    Container(
+                                        height: 12.h,
+                                        width: double.infinity,
+                                        color: AppColors.surfaceContainerHigh),
+                                    SizedBox(height: 4.h),
+                                    Container(
+                                        height: 12.h,
+                                        width: 200.w,
+                                        color: AppColors.surfaceContainerHigh),
+                                  ],
+                                ),
+                              ),
+                            )),
                   ],
                 ),
-              ).animate(onPlay: (c) => c.repeat()).shimmer(duration: 1200.ms, color: AppColors.surface.withValues(alpha: 0.5));
+              ).animate(onPlay: (c) => c.repeat()).shimmer(
+                  duration: 1200.ms,
+                  color: AppColors.surface.withValues(alpha: 0.5));
             } else if (state is LeaveError) {
               return ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -122,11 +164,16 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.wifi_off, size: 64.w, color: AppColors.error.withValues(alpha: 0.7)),
+                          Icon(Icons.wifi_off,
+                              size: 64.w,
+                              color: AppColors.error.withValues(alpha: 0.7)),
                           SizedBox(height: 16.h),
                           Text(
                             'Gagal Memuat Data',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
                                   color: AppColors.error,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -135,11 +182,14 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                           Text(
                             state.message,
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14.sp),
+                            style: TextStyle(
+                                color: AppColors.onSurfaceVariant,
+                                fontSize: 14.sp),
                           ),
                           SizedBox(height: 24.h),
                           ElevatedButton.icon(
-                            onPressed: () => context.read<LeaveCubit>().loadAll(),
+                            onPressed: () =>
+                                context.read<LeaveCubit>().loadAll(),
                             icon: const Icon(Icons.refresh),
                             label: const Text('Coba Lagi'),
                             style: ElevatedButton.styleFrom(
@@ -168,7 +218,8 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                             child: Padding(
                               padding: EdgeInsets.only(right: 8.w),
                               child: _LeaveBalanceCard(
-                                label: balance.leaveType?.name ?? 'Cuti',
+                                label:
+                                    '${balance.leaveType?.name ?? 'Cuti'} bulan ini',
                                 used: balance.usedDays,
                                 total: balance.entitledDays,
                                 color: AppColors.infoCerulean,
@@ -179,7 +230,7 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                       ),
                       SizedBox(height: 24.h),
                     ],
-  
+
                     // History Header
                     Text(
                       'Riwayat Pengajuan',
@@ -189,7 +240,7 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                           ),
                     ),
                     SizedBox(height: 12.h),
-  
+
                     // Request List
                     if (state.history.isEmpty)
                       Center(

@@ -28,8 +28,9 @@ class _LeaveTypeFormScreenState extends State<LeaveTypeFormScreen> {
     super.initState();
     _nameController = TextEditingController(text: widget.leaveType?.name ?? '');
     _codeController = TextEditingController(text: widget.leaveType?.code ?? '');
-    _daysController = TextEditingController(text: widget.leaveType?.quotaPerYear?.toString() ?? '');
-    
+    _daysController = TextEditingController(
+        text: widget.leaveType?.quotaPerMonth?.toString() ?? '');
+
     if (widget.leaveType != null) {
       _isPaid = widget.leaveType!.isPaid;
       _isActive = widget.leaveType!.isActive;
@@ -42,7 +43,7 @@ class _LeaveTypeFormScreenState extends State<LeaveTypeFormScreen> {
       final data = {
         'name': _nameController.text,
         'code': _codeController.text,
-        'quota_per_year': int.tryParse(_daysController.text),
+        'quota_per_month': int.tryParse(_daysController.text),
         'is_paid': _isPaid,
         'is_active': _isActive,
         'requires_attachment': _requiresAttachment,
@@ -52,15 +53,21 @@ class _LeaveTypeFormScreenState extends State<LeaveTypeFormScreen> {
         if (widget.leaveType == null) {
           await context.read<LeaveCubit>().createLeaveType(data);
         } else {
-          await context.read<LeaveCubit>().updateLeaveType(widget.leaveType!.id, data);
+          await context
+              .read<LeaveCubit>()
+              .updateLeaveType(widget.leaveType!.id, data);
         }
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Berhasil disimpan'), backgroundColor: AppColors.successEmerald));
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Berhasil disimpan'),
+              backgroundColor: AppColors.successEmerald));
           context.pop();
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: $e'), backgroundColor: AppColors.errorCrimson));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Gagal: $e'),
+              backgroundColor: AppColors.errorCrimson));
         }
       }
     }
@@ -70,7 +77,8 @@ class _LeaveTypeFormScreenState extends State<LeaveTypeFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.leaveType == null ? 'Tambah Tipe Cuti' : 'Edit Tipe Cuti'),
+        title: Text(
+            widget.leaveType == null ? 'Tambah Tipe Cuti' : 'Edit Tipe Cuti'),
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.primary,
         elevation: 0,
@@ -84,23 +92,35 @@ class _LeaveTypeFormScreenState extends State<LeaveTypeFormScreen> {
             children: [
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nama Tipe Cuti', border: OutlineInputBorder()),
-                validator: (val) => val == null || val.isEmpty ? 'Wajib diisi' : null,
+                decoration: const InputDecoration(
+                    labelText: 'Nama Tipe Cuti', border: OutlineInputBorder()),
+                validator: (val) =>
+                    val == null || val.isEmpty ? 'Wajib diisi' : null,
               ),
               SizedBox(height: 16.h),
               TextFormField(
                 controller: _codeController,
-                decoration: const InputDecoration(labelText: 'Kode Cuti (Contoh: CUTI_THN)', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                    labelText: 'Kode Cuti (Contoh: CUTI_THN)',
+                    border: OutlineInputBorder()),
               ),
               SizedBox(height: 16.h),
               TextFormField(
                 controller: _daysController,
-                decoration: const InputDecoration(labelText: 'Kuota yang diberikan (hari per tahun)', helperText: 'Karyawan tidak dapat mengajukan melebihi sisa kuota ini.', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                    labelText: 'Kuota cuti per bulan',
+                    helperText:
+                        'Kuota dihitung ulang otomatis setiap awal bulan.',
+                    border: OutlineInputBorder()),
                 keyboardType: TextInputType.number,
                 validator: (val) {
                   final days = int.tryParse(val ?? '');
-                  if (days == null) return 'Masukkan jumlah hari';
-                  if (days < 0 || days > 366) return 'Jumlah hari harus 0 sampai 366';
+                  if (days == null) {
+                    return 'Masukkan jumlah hari';
+                  }
+                  if (days < 0 || days > 31) {
+                    return 'Jumlah hari harus 0 sampai 31';
+                  }
                   return null;
                 },
               ),
@@ -126,7 +146,9 @@ class _LeaveTypeFormScreenState extends State<LeaveTypeFormScreen> {
                 height: 48.h,
                 child: ElevatedButton(
                   onPressed: _submit,
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white),
                   child: const Text('Simpan Tipe Cuti'),
                 ),
               )

@@ -62,7 +62,7 @@ class ApprovalDetailScreen extends StatelessWidget {
                       // Request Details
                       InfoCard(
                           child: Column(children: [
-                        const _Row(label: 'Jenis', value: 'Cuti Tahunan'),
+                        const _Row(label: 'Jenis', value: 'Cuti'),
                         Divider(
                             height: 20.h,
                             color: AppColors.outlineVariant
@@ -189,4 +189,3 @@ class _Row extends StatelessWidget {
                 fontSize: 14.sp)),
       ]);
 }
-
