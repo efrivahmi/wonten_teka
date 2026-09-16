@@ -174,15 +174,9 @@ class MainSidebarDrawer extends StatelessWidget {
                         if (menu.contains('calendar'))
                           _buildListTile(context, 'Kalender Perusahaan',
                               Icons.calendar_month, '/app/calendar'),
-                        if (menu.contains('announcements'))
-                          _buildListTile(context, 'Pengumuman',
-                              Icons.campaign, '/app/announcements'),
-                        if (menu.contains('directory'))
-                          _buildListTile(context, 'Direktori Karyawan',
-                              Icons.people_alt, '/app/directory'),
                         if (menu.contains('tasks'))
-                          _buildListTile(context, 'Daily Task',
-                              Icons.task_alt, '/app/tasks'),
+                          _buildListTile(context, 'Daily Task', Icons.task_alt,
+                              '/app/tasks'),
                         if (menu.contains('habits'))
                           _buildListTile(context, 'Habit Tracker',
                               Icons.track_changes, '/app/habits'),
@@ -234,7 +228,7 @@ class MainSidebarDrawer extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Image.asset('assets/images/e-absensi-logo-generated.png',
+            Image.asset('assets/images/lemdiklat-logo.png',
                 width: 38.w, height: 38.w),
             SizedBox(width: 10.w),
             Expanded(

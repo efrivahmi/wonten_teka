@@ -18,6 +18,7 @@ class _EmployeeOnboardingAdminScreenState
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  String _selectedRole = 'employee';
   bool _isSubmitting = false;
 
   @override
@@ -37,12 +38,13 @@ class _EmployeeOnboardingAdminScreenState
       await api.post('/admin/employees', data: {
         'email': _emailController.text.trim(),
         'password': _passwordController.text,
+        'role': _selectedRole,
       });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text(
+          const SnackBar(
+            content: Text(
                 'Akun karyawan berhasil dibuat. Profil dilengkapi saat login pertama.'),
             backgroundColor: AppColors.successEmerald,
           ),
@@ -126,6 +128,19 @@ class _EmployeeOnboardingAdminScreenState
                   return null;
                 },
               ),
+              SizedBox(height: 12.h),
+              _buildDropdown(
+                label: 'Hak Akses',
+                icon: Icons.admin_panel_settings_outlined,
+                value: _selectedRole,
+                items: const {
+                  'employee': 'Karyawan',
+                  'admin': 'Admin',
+                },
+                onChanged: (value) {
+                  if (value != null) setState(() => _selectedRole = value);
+                },
+              ),
               SizedBox(height: 24.h),
 
               SizedBox(height: 32.h),
@@ -207,14 +222,17 @@ class _EmployeeOnboardingAdminScreenState
     required String label,
     required IconData icon,
     required String value,
-    required List<String> items,
+    required Map<String, String> items,
     required ValueChanged<String?> onChanged,
   }) {
     return DropdownButtonFormField<String>(
       initialValue: value,
       onChanged: onChanged,
-      items: items
-          .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+      items: items.entries
+          .map((item) => DropdownMenuItem(
+                value: item.key,
+                child: Text(item.value),
+              ))
           .toList(),
       decoration: InputDecoration(
         labelText: label,
@@ -229,6 +247,10 @@ class _EmployeeOnboardingAdminScreenState
           borderRadius: BorderRadius.circular(12.r),
           borderSide: BorderSide(
               color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
       ),
     );
@@ -249,4 +271,3 @@ class _SectionLabel extends StatelessWidget {
     );
   }
 }
-

@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
 import '../../../../company/bloc/company_cubit.dart';
+import '../../../../../core/widgets/app_brand_title.dart';
+import '../../../../../core/widgets/brand_panel.dart';
 
 class CompanyCalendarScreen extends StatefulWidget {
   const CompanyCalendarScreen({super.key});
@@ -59,15 +61,11 @@ class _CompanyCalendarScreenState extends State<CompanyCalendarScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: AppColors.surfaceContainerLow,
+        backgroundColor: Colors.transparent,
         appBar: AppBar(
-            backgroundColor: AppColors.surface,
             elevation: 0,
-            title: Text('Kalender',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppColors.primary, fontWeight: FontWeight.bold)),
-            centerTitle: true),
-        body:
+            title: const AppBrandTitle(section: 'Kalender perusahaan')),
+        body: BrandPageBackground(child:
             BlocBuilder<CompanyCubit, CompanyState>(builder: (context, state) {
           final isLoaded = state is CompanyLoaded;
           final events = isLoaded ? state.calendarEvents : [];
@@ -337,8 +335,8 @@ class _CompanyCalendarScreenState extends State<CompanyCalendarScreen> {
                               padding: EdgeInsets.only(bottom: 12.h),
                               child: InfoCard(
                                 borderLeftColor: color,
-                                onTap:
-                                    () => context.push('/app/calendar/event', extra: e),
+                                onTap: () => context.push('/app/calendar/event',
+                                    extra: e),
                                 child: Row(children: [
                                   Expanded(
                                       child: Column(
@@ -373,7 +371,7 @@ class _CompanyCalendarScreenState extends State<CompanyCalendarScreen> {
                         }),
                     ]
                   ]));
-        }));
+        })));
   }
 
   Widget _buildLegend(Color color, String text) {

@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Employee;
 use App\Models\User;
+use App\Models\LeaveType;
+use App\Models\AttendanceLog;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Spatie\Permission\Models\Role;
@@ -98,6 +101,8 @@ class ApiFeatureSmokeTest extends TestCase
         $this->getJson('/api/attendance/today-info')
             ->assertOk()
             ->assertJsonPath('monthly_stats.present_days', 0)
+            ->assertJsonPath('has_double_shift', false)
+            ->assertJsonCount(0, 'overtime_today')
             ->assertJsonPath('monthly_stats.days_in_month', now(config('app.business_timezone'))->daysInMonth)
             ->assertJsonPath('monthly_stats.month_label', now(config('app.business_timezone'))->locale('id')->translatedFormat('F Y'));
     }
@@ -167,6 +172,7 @@ class ApiFeatureSmokeTest extends TestCase
         $employee = Employee::findOrFail($employeeId);
         $generatedNumber = $employee->employee_number;
         $this->assertNotEmpty($generatedNumber);
+        $this->assertTrue($employee->user->hasRole('employee'));
 
         Sanctum::actingAs($employee->user);
         $completionResponse = $this->postJson('/api/employee/complete-profile', [
@@ -179,9 +185,11 @@ class ApiFeatureSmokeTest extends TestCase
             'employment_status' => 'permanent',
         ]);
         $this->assertSame(201, $completionResponse->status(), $completionResponse->getContent());
+        $completionResponse->assertJsonPath('user.name', 'Karyawan Baru Lengkap');
 
         $this->assertSame($generatedNumber, $employee->fresh()->employee_number);
         $this->assertSame('Jakarta', $employee->fresh()->address);
+        $this->assertSame('Karyawan Baru Lengkap', $employee->user->fresh()->name);
     }
 
     public function test_admin_can_manage_daily_tasks_used_by_web_and_mobile(): void
@@ -207,6 +215,78 @@ class ApiFeatureSmokeTest extends TestCase
         ])->assertOk()->assertJsonPath('data.title', 'Laporan harian diperbarui');
         $this->deleteJson("/api/admin/tasks/{$taskId}")->assertOk();
         $this->assertDatabaseMissing('personal_tasks', ['id' => $taskId]);
+    }
+
+    public function test_admin_attendance_draft_filters_selected_employee_and_period(): void
+    {
+        [$admin] = $this->employeeAccount(true);
+        [, $selected] = $this->employeeAccount();
+        [, $other] = $this->employeeAccount();
+        $inPeriod = Carbon::parse('2026-09-15 08:00', config('app.business_timezone'))->utc();
+        $outsidePeriod = Carbon::parse('2026-08-15 08:00', config('app.business_timezone'))->utc();
+
+        AttendanceLog::create(['employee_id' => $selected->id, 'check_in_at' => $inPeriod, 'status' => 'on_time']);
+        AttendanceLog::create(['employee_id' => $other->id, 'check_in_at' => $inPeriod, 'status' => 'late']);
+        AttendanceLog::create(['employee_id' => $selected->id, 'check_in_at' => $outsidePeriod, 'status' => 'on_time']);
+
+        Sanctum::actingAs($admin);
+        $this->getJson("/api/admin/attendance?employee_ids={$selected->id}&month=9&year=2026&per_page=500")
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.employee_id', $selected->id);
+    }
+
+    public function test_deleted_employee_email_can_be_used_for_a_new_account(): void
+    {
+        [$admin] = $this->employeeAccount(true);
+        Sanctum::actingAs($admin);
+        $email = 'dipakai.ulang@example.test';
+
+        $firstId = $this->postJson('/api/admin/employees', [
+            'email' => $email, 'password' => 'rahasia123',
+        ])->assertCreated()->json('data.id');
+        $this->deleteJson("/api/admin/employees/{$firstId}")->assertOk();
+        $this->postJson('/api/admin/employees', [
+            'email' => $email, 'password' => 'rahasia456',
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('users', ['email' => $email, 'deleted_at' => null]);
+    }
+
+    public function test_leave_balance_uses_admin_quota_and_rejects_excess_request(): void
+    {
+        [$user] = $this->employeeAccount();
+        $type = LeaveType::create([
+            'name' => 'Cuti Tahunan', 'code' => 'CTH', 'quota_per_year' => 1,
+            'is_paid' => true, 'is_active' => true,
+        ]);
+        Sanctum::actingAs($user);
+
+        $this->getJson('/api/leave/balances')->assertOk()
+            ->assertJsonPath('0.leave_type_id', $type->id)
+            ->assertJsonPath('0.entitled_days', 1)
+            ->assertJsonPath('0.remaining_days', 1);
+
+        $this->postJson('/api/leave/request', [
+            'leave_type_id' => $type->id,
+            'start_date' => today()->addDay()->toDateString(),
+            'end_date' => today()->addDays(2)->toDateString(),
+            'reason' => 'Keperluan keluarga',
+        ])->assertUnprocessable()->assertJsonValidationErrors('end_date');
+    }
+
+    public function test_admin_can_set_and_change_leave_quota(): void
+    {
+        [$admin] = $this->employeeAccount(true);
+        Sanctum::actingAs($admin);
+
+        $typeId = $this->postJson('/api/admin/leave-types', [
+            'name' => 'Cuti Khusus', 'code' => 'CKH', 'quota_per_year' => 5,
+            'is_paid' => true, 'is_active' => true, 'requires_attachment' => false,
+        ])->assertCreated()->assertJsonPath('data.quota_per_year', 5)->json('data.id');
+
+        $this->putJson("/api/admin/leave-types/{$typeId}", ['quota_per_year' => 7])
+            ->assertOk()->assertJsonPath('data.quota_per_year', 7);
     }
 
     private function employeeAccount(bool $admin = false): array

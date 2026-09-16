@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/widgets/brand_panel.dart';
+import '../../../../../core/widgets/app_brand_title.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/api/api_client.dart';
@@ -39,7 +40,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 expandedHeight: 260.h,
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                title: Text(innerScrolled ? 'e-Absensi Lemdiklat' : ''),
+                title: innerScrolled
+                    ? const AppBrandTitle(section: 'Panel admin', inverse: true)
+                    : null,
                 actions: [
                   IconButton(
                       icon: const Icon(Icons.notifications_none),

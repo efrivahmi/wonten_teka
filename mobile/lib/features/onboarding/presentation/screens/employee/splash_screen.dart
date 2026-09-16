@@ -69,7 +69,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     )
                   ]),
               child: Image.asset(
-                'assets/images/e-absensi-logo-generated.png',
+                'assets/images/lemdiklat-logo.png',
                 width: 92.w,
                 height: 92.w,
                 fit: BoxFit.contain,

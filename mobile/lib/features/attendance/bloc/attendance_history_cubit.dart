@@ -49,7 +49,8 @@ class AttendanceHistoryCubit extends Cubit<AttendanceHistoryState> {
       : _repo = repository,
         super(AttendanceHistoryInitial());
 
-  Future<void> loadHistory({bool isRefresh = false}) async {
+  Future<void> loadHistory(
+      {bool isRefresh = false, int? month, int? year}) async {
     int page = 1;
     List<AttendanceLogModel> currentLogs = [];
 
@@ -64,12 +65,13 @@ class AttendanceHistoryCubit extends Cubit<AttendanceHistoryState> {
       emit(const AttendanceHistoryLoading(isFirstFetch: true));
     } else {
       // Background loading for pagination, not full screen loading
-      emit(const AttendanceHistoryLoading(isFirstFetch: false)); 
+      emit(const AttendanceHistoryLoading(isFirstFetch: false));
     }
 
     try {
-      final result = await _repo.getHistory(page: page);
-      
+      final result =
+          await _repo.getHistory(page: page, month: month, year: year);
+
       final newLogs = result.data;
       final mergedLogs = isRefresh ? newLogs : [...currentLogs, ...newLogs];
 

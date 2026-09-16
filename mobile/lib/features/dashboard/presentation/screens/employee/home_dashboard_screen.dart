@@ -11,6 +11,7 @@ import '../../../../schedule/bloc/task_cubit.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/widgets/brand_panel.dart';
 import '../../../../../core/repositories/attendance_repository.dart';
+import '../../../../../core/widgets/app_brand_title.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
   const HomeDashboardScreen({super.key});
@@ -81,7 +82,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             slivers: [
               SliverAppBar(
                   pinned: true,
-                  title: const Text('e-Absensi Lemdiklat'),
+                  title: const AppBrandTitle(section: 'Ruang kerja karyawan'),
                   actions: [
                     IconButton(
                         tooltip: 'Notifikasi',
@@ -105,6 +106,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                         delay: const Duration(milliseconds: 140),
                         child: _buildTodayAttendanceSection(context),
                       ),
+                      if (_hasAdditionalSchedule) ...[
+                        SizedBox(height: 24.h),
+                        ViewEntrance(
+                          delay: const Duration(milliseconds: 170),
+                          child: _buildAdditionalScheduleSection(),
+                        ),
+                      ],
                       SizedBox(height: 24.h),
                       ViewEntrance(
                         delay: const Duration(milliseconds: 190),
@@ -130,6 +138,110 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         ),
       ),
     );
+  }
+
+  bool get _hasAdditionalSchedule {
+    final shifts = _todayInfo?['shifts'] as List? ?? const [];
+    final overtime = _todayInfo?['overtime_today'] as List? ?? const [];
+    return (_todayInfo?['has_double_shift'] == true || shifts.length > 1) ||
+        overtime.isNotEmpty;
+  }
+
+  Widget _buildAdditionalScheduleSection() {
+    final shifts = (_todayInfo?['shifts'] as List? ?? const [])
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+    final overtime = (_todayInfo?['overtime_today'] as List? ?? const [])
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+    final hasDoubleShift =
+        _todayInfo?['has_double_shift'] == true || shifts.length > 1;
+
+    Widget notice({
+      required Color color,
+      required IconData icon,
+      required String eyebrow,
+      required String title,
+      required String detail,
+    }) =>
+        Container(
+          width: double.infinity,
+          margin: EdgeInsets.only(bottom: 10.h),
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: .09),
+            borderRadius: BorderRadius.circular(20.r),
+            border: Border.all(color: color.withValues(alpha: .25)),
+          ),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(
+              width: 44.w,
+              height: 44.w,
+              decoration: BoxDecoration(
+                  color: color, borderRadius: BorderRadius.circular(14.r)),
+              child: Icon(icon, color: Colors.white),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(eyebrow,
+                        style: TextStyle(
+                            color: color,
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.1)),
+                    SizedBox(height: 3.h),
+                    Text(title,
+                        style: TextStyle(
+                            color: AppColors.onSurface,
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w800)),
+                    SizedBox(height: 5.h),
+                    Text(detail,
+                        style: TextStyle(
+                            color: AppColors.onSurfaceVariant,
+                            fontSize: 11.sp)),
+                  ]),
+            ),
+          ]),
+        );
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Jadwal Tambahan Hari Ini',
+          style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w800,
+              color: AppColors.onSurface)),
+      SizedBox(height: 4.h),
+      Text('Penugasan khusus dari admin sebelum Anda melakukan absensi.',
+          style: TextStyle(fontSize: 11.sp, color: AppColors.onSurfaceVariant)),
+      SizedBox(height: 14.h),
+      if (hasDoubleShift)
+        notice(
+          color: Colors.deepPurple,
+          icon: Icons.layers_rounded,
+          eyebrow: 'SHIFT GANDA',
+          title: '${shifts.length} shift hari ini',
+          detail: shifts
+              .map((shift) =>
+                  '${shift['name']} ${shift['start_time']}–${shift['end_time']}')
+              .join(' • '),
+        ),
+      for (final item in overtime)
+        notice(
+          color: Colors.deepOrange,
+          icon: Icons.more_time_rounded,
+          eyebrow: 'LEMBUR DISETUJUI',
+          title:
+              '${item['start_time']?.toString().substring(0, 5) ?? '--:--'}–${item['end_time']?.toString().substring(0, 5) ?? '--:--'}',
+          detail:
+              '${item['overtime_type'] ?? 'Lembur'}${item['reason'] == null || item['reason'].toString().isEmpty ? '' : ' • ${item['reason']}'}',
+        ),
+    ]);
   }
 
   Widget _buildWorkScheduleSection(BuildContext context) {
@@ -578,8 +690,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           mainAxisSpacing: 12.h,
           crossAxisSpacing: 12.w,
           children: [
-            _summaryTile('Kehadiran bulan ini', '$present dari $daysInMonth hari',
-                Icons.calendar_month_rounded, AppColors.primary),
+            _summaryTile(
+                'Kehadiran bulan ini',
+                '$present dari $daysInMonth hari',
+                Icons.calendar_month_rounded,
+                AppColors.primary),
             _summaryTile('Tepat waktu', '${stats['on_time'] ?? 0} hari',
                 Icons.check_circle_rounded, AppColors.successEmerald),
             _summaryTile('Terlambat', '${stats['late'] ?? 0} hari',
@@ -887,16 +1002,6 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 color: AppColors.onSurface,
               ),
             ),
-            TextButton(
-              onPressed: () => context.push('/app/announcements'),
-              child: const Text(
-                'Lihat Semua',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
           ],
         ),
         SizedBox(height: 16.h),
@@ -915,8 +1020,6 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                           ? AppColors.errorContainer
                           : AppColors.primaryFixedDim,
                       icon: Icons.campaign,
-                      onTap: () => context.push('/app/announcements/detail',
-                          extra: announcement),
                     ),
                   );
                 }).toList(),

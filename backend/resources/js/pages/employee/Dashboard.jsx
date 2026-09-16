@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
     Bell, Briefcase, CalendarCheck, CalendarDays, CheckCircle2, Clock,
-    FileText, Loader2, LogIn, LogOut, Plane, User, XCircle,
+    FileText, Layers3, Loader2, LogIn, LogOut, Plane, Timer, User, XCircle,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api';
@@ -87,6 +87,8 @@ export default function EmployeeDashboard() {
     }, []);
 
     const shifts = todayInfo?.shifts || [];
+    const hasDoubleShift = todayInfo?.has_double_shift ?? shifts.length > 1;
+    const overtimeToday = todayInfo?.overtime_today || [];
     const currentAttendance = useMemo(
         () => shifts.map(shift => shift.attendance).find(Boolean) || null,
         [shifts],
@@ -127,7 +129,7 @@ export default function EmployeeDashboard() {
                 <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
                     <div>
                         <p className="teka-kicker text-stone-400">Ruang kerja karyawan</p>
-                        <h1 className="teka-display mt-5 text-4xl sm:text-6xl"><span className="teka-accent">{user.name || 'Karyawan'}</span></h1>
+                        <h1 className="teka-display mt-5 text-4xl sm:text-6xl"><span className="teka-accent">{employee.full_name || user.name || 'Karyawan'}</span></h1>
                         <p className="mt-4 max-w-xl text-sm text-stone-300">Pantau kehadiran, shift, dan informasi kerja Anda dari satu halaman.</p>
                     </div>
                     <div className="rounded-2xl border border-white/10 bg-white/10 p-4 text-white backdrop-blur-sm md:min-w-72">
@@ -143,15 +145,15 @@ export default function EmployeeDashboard() {
 
             {/* 1. Latest announcements */}
             <section>
-                <SectionHeading title="Pengumuman Terbaru" subtitle="Informasi terbaru yang perlu Anda ketahui." action={<Link to="/employee/announcements" className="text-sm font-bold text-emerald-700">Lihat semua</Link>} />
+                <SectionHeading title="Pengumuman Terbaru" subtitle="Informasi terbaru yang perlu Anda ketahui." />
                 {announcements.length ? (
                     <div className="mt-4 grid gap-4 md:grid-cols-3">
                         {announcements.slice(0, 3).map(item => (
-                            <Link key={item.id} to="/employee/announcements" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300">
+                            <article key={item.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                                 <div className="flex items-start justify-between gap-3"><span className="rounded-lg bg-emerald-50 p-2 text-emerald-700"><Bell className="h-5 w-5" /></span><span className="text-xs text-slate-400">{item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID') : ''}</span></div>
                                 <h3 className="mt-4 font-bold text-slate-900">{item.title}</h3>
                                 <p className="mt-2 line-clamp-2 text-sm text-slate-500">{item.body || item.content || 'Buka untuk melihat detail pengumuman.'}</p>
-                            </Link>
+                            </article>
                         ))}
                     </div>
                 ) : <EmptyCard text="Belum ada pengumuman terbaru." />}
@@ -167,6 +169,24 @@ export default function EmployeeDashboard() {
                     <SummaryCard label="Durasi kerja" value={durationText(currentAttendance, now)} icon={Clock} tone="blue" />
                 </div>
             </section>
+
+            {(hasDoubleShift || overtimeToday.length > 0) && (
+                <section>
+                    <SectionHeading title="Jadwal Tambahan Hari Ini" subtitle="Penugasan khusus dari admin yang perlu Anda perhatikan sebelum melakukan absensi." />
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                        {hasDoubleShift && (
+                            <article className="rounded-2xl border border-violet-200 bg-violet-50 p-5 text-violet-900">
+                                <div className="flex items-start gap-4"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-violet-600 text-white"><Layers3 className="h-6 w-6" /></span><div><p className="text-xs font-black uppercase tracking-widest text-violet-600">Shift ganda</p><h3 className="mt-1 text-lg font-black">{shifts.length} shift hari ini</h3><p className="mt-2 text-sm text-violet-700">{shifts.map(shift => `${shift.name} ${shift.start_time}–${shift.end_time}`).join(' • ')}</p></div></div>
+                            </article>
+                        )}
+                        {overtimeToday.map(item => (
+                            <article key={item.id} className="rounded-2xl border border-orange-200 bg-orange-50 p-5 text-orange-900">
+                                <div className="flex items-start gap-4"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-orange-500 text-white"><Timer className="h-6 w-6" /></span><div><p className="text-xs font-black uppercase tracking-widest text-orange-600">Lembur disetujui</p><h3 className="mt-1 text-lg font-black">{String(item.start_time).slice(0, 5)}–{String(item.end_time).slice(0, 5)}</h3><p className="mt-2 text-sm text-orange-700">{item.overtime_type || 'Lembur'}{item.reason ? ` • ${item.reason}` : ''}</p></div></div>
+                            </article>
+                        ))}
+                    </div>
+                </section>
+            )}
 
             {/* 3. Today's shifts */}
             <section>

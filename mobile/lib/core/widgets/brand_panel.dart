@@ -38,7 +38,7 @@ class BrandPageBackground extends StatelessWidget {
           ),
         ),
         child: CustomPaint(
-          painter: _BrandPageLines(),
+          painter: const _BrandPageLines(),
           child: child,
         ),
       );

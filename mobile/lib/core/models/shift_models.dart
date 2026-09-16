@@ -34,6 +34,7 @@ class ShiftAssignmentModel extends Equatable {
 class ShiftTemplateModel extends Equatable {
   final int id;
   final String name;
+  final String? category;
   final String? startTime;
   final String? endTime;
   final int? gracePeriodMinutes;
@@ -43,6 +44,7 @@ class ShiftTemplateModel extends Equatable {
   const ShiftTemplateModel({
     required this.id,
     required this.name,
+    this.category,
     this.startTime,
     this.endTime,
     this.gracePeriodMinutes,
@@ -54,6 +56,7 @@ class ShiftTemplateModel extends Equatable {
     return ShiftTemplateModel(
       id: json['id'] as int,
       name: json['name'] as String,
+      category: json['category'] as String?,
       startTime: json['start_time'] as String?,
       endTime: json['end_time'] as String?,
       gracePeriodMinutes: json['grace_period_minutes'] as int?,
@@ -63,5 +66,5 @@ class ShiftTemplateModel extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, name, startTime, endTime];
+  List<Object?> get props => [id, name, category, startTime, endTime];
 }

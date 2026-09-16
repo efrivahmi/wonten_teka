@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Role;
 
 class EmployeeController extends Controller
 {
@@ -174,11 +176,20 @@ class EmployeeController extends Controller
 
             $employee->save();
 
+            // The account is initially named from the email only as a
+            // placeholder. Once onboarding is completed, the employee's full
+            // name becomes the canonical display name everywhere.
+            $user->update([
+                'name' => $validated['full_name'],
+                'email' => $validated['email'],
+            ]);
+
             DB::commit();
 
             return response()->json([
                 'message' => 'Profile completed successfully',
-                'data' => $employee
+                'data' => $employee,
+                'user' => $user->fresh()->load('employee', 'roles'),
             ], 201);
             
         } catch (\Exception $e) {
@@ -194,19 +205,24 @@ class EmployeeController extends Controller
         $user = $request->user();
 
         $validated = $request->validate([
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique('users', 'email')
-            ],
+            'email' => ['required', 'string', 'email', 'max:255'],
             'password' => 'required|string|min:6',
-            'role' => 'nullable|string'
+            'role' => ['nullable', 'string', Rule::in(['employee', 'admin'])],
         ]);
 
         try {
             DB::beginTransaction();
+
+            $emailOwner = User::withTrashed()->where('email', $validated['email'])->lockForUpdate()->first();
+            if ($emailOwner && !$emailOwner->trashed()) {
+                throw ValidationException::withMessages(['email' => 'Email sudah digunakan oleh akun yang masih aktif.']);
+            }
+            if ($emailOwner) {
+                $archivedEmail = sprintf('deleted+%d+%s@archive.invalid', $emailOwner->id, now()->format('YmdHis'));
+                Employee::withTrashed()->where('user_id', $emailOwner->id)->update(['email' => $archivedEmail]);
+                $emailOwner->email = $archivedEmail;
+                $emailOwner->save();
+            }
 
             $initialName = collect(preg_split('/[._-]+/', strstr($validated['email'], '@', true)))
                 ->filter()
@@ -223,13 +239,7 @@ class EmployeeController extends Controller
             ]);
 
             $role = $validated['role'] ?? 'employee';
-            if (!empty($role)) {
-                try {
-                    $newUser->assignRole($role);
-                } catch (\Exception $e) {
-                    // Ignore if role doesn't exist
-                }
-            }
+            $newUser->assignRole(Role::findOrCreate($role, 'web'));
 
             $employee = Employee::create([
                 
@@ -253,6 +263,9 @@ class EmployeeController extends Controller
                 'data' => $employee
             ], 201);
             
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -369,10 +382,14 @@ class EmployeeController extends Controller
                 $appUser = User::find($employee->user_id);
                 if ($appUser) {
                     $appUser->is_active = false;
+                    $appUser->email = sprintf('deleted+%d+%s@archive.invalid', $appUser->id, now()->format('YmdHis'));
                     $appUser->save();
                     $appUser->delete();
                 }
             }
+
+            $employee->email = sprintf('deleted-employee+%d+%s@archive.invalid', $employee->id, now()->format('YmdHis'));
+            $employee->save();
 
             DB::commit();
 

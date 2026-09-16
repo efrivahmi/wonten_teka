@@ -7,17 +7,39 @@ import 'package:camera/camera.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 
+class FaceDetectionMetrics {
+  final bool detected;
+  final bool positioned;
+  final bool lightingOkay;
+  final int qualityPercent;
+  final double yaw;
+  final double pitch;
+  final double roll;
+
+  const FaceDetectionMetrics({
+    required this.detected,
+    required this.positioned,
+    required this.lightingOkay,
+    required this.qualityPercent,
+    required this.yaw,
+    required this.pitch,
+    required this.roll,
+  });
+}
+
 class CameraPreviewWidget extends StatefulWidget {
   final Function(bool isFaceDetected, bool isProperlyPositioned, double angleY,
       bool isTooDark) onFaceValidationChanged;
   final Function(XFile? file)? onPhotoCaptured;
   final Function(List<double> embedding)? onFaceEmbeddingGenerated;
+  final ValueChanged<FaceDetectionMetrics>? onDetectionMetricsChanged;
 
   const CameraPreviewWidget({
     super.key,
     required this.onFaceValidationChanged,
     this.onPhotoCaptured,
     this.onFaceEmbeddingGenerated,
+    this.onDetectionMetricsChanged,
   });
 
   @override
@@ -44,6 +66,16 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
   int _cameraGeneration = 0;
   bool _brightnessBoosted = false;
   DateTime _lastBrightnessChange = DateTime.fromMillisecondsSinceEpoch(0);
+  Rect? _normalizedFaceBox;
+  FaceDetectionMetrics _metrics = const FaceDetectionMetrics(
+    detected: false,
+    positioned: false,
+    lightingOkay: false,
+    qualityPercent: 0,
+    yaw: 0,
+    pitch: 0,
+    roll: 0,
+  );
 
   @override
   void initState() {
@@ -178,10 +210,24 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
         final imageArea = image.width * image.height;
 
         bool isProper = false;
-        double angleY = face.headEulerAngleY ?? 0.0;
+        final angleY = face.headEulerAngleY ?? 0.0;
+        final angleX = face.headEulerAngleX ?? 0.0;
+        final angleZ = face.headEulerAngleZ ?? 0.0;
+        final rotated = imageRotation == InputImageRotation.rotation90deg ||
+            imageRotation == InputImageRotation.rotation270deg;
+        final displayWidth =
+            rotated ? image.height.toDouble() : image.width.toDouble();
+        final displayHeight =
+            rotated ? image.width.toDouble() : image.height.toDouble();
+        final centerX = face.boundingBox.center.dx / displayWidth;
+        final centerY = face.boundingBox.center.dy / displayHeight;
+        final centered =
+            (centerX - .5).abs() < .22 && (centerY - .5).abs() < .25;
+        final areaRatio = faceArea / (displayWidth * displayHeight);
+        final sizeOkay = areaRatio > .07 && areaRatio < .58;
 
         // Ensure the face takes up a reasonable percentage of the screen
-        if (faceArea / imageArea > 0.05) {
+        if (faceArea / imageArea > 0.05 && centered && sizeOkay) {
           isProper = true;
 
           if (widget.onFaceEmbeddingGenerated != null) {
@@ -192,14 +238,75 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
           }
         }
 
+        final landmarkCount =
+            face.landmarks.values.where((point) => point != null).length;
+        final sizeScore = (1 - ((areaRatio - .22).abs() / .22)).clamp(0.0, 1.0);
+        final centerScore =
+            (1 - (((centerX - .5).abs() + (centerY - .5).abs()) / .55))
+                .clamp(0.0, 1.0);
+        final poseScore = (1 -
+                ((angleY.abs() / 55) +
+                        (angleX.abs() / 40) +
+                        (angleZ.abs() / 35)) /
+                    3)
+            .clamp(0.0, 1.0);
+        final quality = ((.30 +
+                    .18 * sizeScore +
+                    .18 * centerScore +
+                    .14 * (landmarkCount / 5).clamp(0.0, 1.0) +
+                    .10 * (isTooDark ? 0 : 1) +
+                    .10 * poseScore) *
+                100)
+            .round()
+            .clamp(0, 100);
+        final raw = face.boundingBox;
+        final normalized = Rect.fromLTRB(
+          (1 - raw.right / displayWidth).clamp(0.0, 1.0),
+          (raw.top / displayHeight).clamp(0.0, 1.0),
+          (1 - raw.left / displayWidth).clamp(0.0, 1.0),
+          (raw.bottom / displayHeight).clamp(0.0, 1.0),
+        );
+        final metrics = FaceDetectionMetrics(
+          detected: true,
+          positioned: isProper,
+          lightingOkay: !isTooDark,
+          qualityPercent: quality,
+          yaw: angleY,
+          pitch: angleX,
+          roll: angleZ,
+        );
+        if (mounted) {
+          setState(() {
+            _normalizedFaceBox = normalized;
+            _metrics = metrics;
+          });
+        }
+        widget.onDetectionMetricsChanged?.call(metrics);
+
         widget.onFaceValidationChanged(true, isProper, angleY, isTooDark);
       } else {
+        const metrics = FaceDetectionMetrics(
+            detected: false,
+            positioned: false,
+            lightingOkay: true,
+            qualityPercent: 0,
+            yaw: 0,
+            pitch: 0,
+            roll: 0);
+        if (mounted) {
+          setState(() {
+            _normalizedFaceBox = null;
+            _metrics = metrics;
+          });
+        }
+        widget.onDetectionMetricsChanged?.call(metrics);
         widget.onFaceValidationChanged(faces.isNotEmpty, false, 0.0, isTooDark);
       }
       _updateBrightnessForLighting(isTooDark);
     } catch (e) {
       debugPrint('Face detection error: $e');
       if (!_isDisposed && mounted && generation == _cameraGeneration) {
+        setState(() => _normalizedFaceBox = null);
         widget.onFaceValidationChanged(false, false, 0.0, false);
       }
     } finally {
@@ -459,6 +566,61 @@ class CameraPreviewWidgetState extends State<CameraPreviewWidget>
       return const Center(child: CircularProgressIndicator());
     }
 
-    return CameraPreview(_cameraController!);
+    return Stack(fit: StackFit.expand, children: [
+      CameraPreview(_cameraController!),
+      if (_normalizedFaceBox != null)
+        CustomPaint(
+          painter: _FaceBoxPainter(
+            normalizedBox: _normalizedFaceBox!,
+            valid: _metrics.positioned && _metrics.lightingOkay,
+            qualityPercent: _metrics.qualityPercent,
+          ),
+        ),
+    ]);
   }
+}
+
+class _FaceBoxPainter extends CustomPainter {
+  final Rect normalizedBox;
+  final bool valid;
+  final int qualityPercent;
+  const _FaceBoxPainter(
+      {required this.normalizedBox,
+      required this.valid,
+      required this.qualityPercent});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTRB(
+        normalizedBox.left * size.width,
+        normalizedBox.top * size.height,
+        normalizedBox.right * size.width,
+        normalizedBox.bottom * size.height);
+    final color = valid ? const Color(0xFF22C55E) : const Color(0xFFF59E0B);
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5;
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(12)), paint);
+    final label = TextPainter(
+      text: TextSpan(
+          text: '$qualityPercent% • wajah terdeteksi',
+          style: const TextStyle(
+              color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    final labelRect = Rect.fromLTWH(rect.left,
+        (rect.top - 28).clamp(4.0, size.height - 26), label.width + 16, 24);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(labelRect, const Radius.circular(7)),
+        Paint()..color = color);
+    label.paint(canvas, Offset(labelRect.left + 8, labelRect.top + 5));
+  }
+
+  @override
+  bool shouldRepaint(covariant _FaceBoxPainter old) =>
+      old.normalizedBox != normalizedBox ||
+      old.valid != valid ||
+      old.qualityPercent != qualityPercent;
 }

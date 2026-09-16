@@ -270,7 +270,7 @@ class _ShiftScheduleScreenState extends State<ShiftScheduleScreen> {
                                 ),
 
                                 SizedBox(height: 32.h),
-                                Text('Shift Mendatang',
+                                Text('Shift Aktif & Mendatang',
                                     style: TextStyle(
                                         color: AppColors.onSurface,
                                         fontSize: 18.sp,
@@ -314,6 +314,10 @@ class _ShiftScheduleScreenState extends State<ShiftScheduleScreen> {
                                         assignment.shiftTemplate?.startTime);
                                     final endTime = formatShiftTime(
                                         assignment.shiftTemplate?.endTime);
+                                    final isToday = DateUtils.isSameDay(
+                                        assignment.date, DateTime.now());
+                                    final grace = assignment.shiftTemplate
+                                            ?.gracePeriodMinutes ?? 0;
 
                                     return Container(
                                       margin: EdgeInsets.only(bottom: 16.h),
@@ -356,6 +360,14 @@ class _ShiftScheduleScreenState extends State<ShiftScheduleScreen> {
                                                   style: TextStyle(
                                                       color: Colors.grey[600],
                                                       fontSize: 14.sp)),
+                                              if (!isOff) ...[
+                                                SizedBox(height: 4.h),
+                                                Text(
+                                                    'Toleransi terlambat $grace menit',
+                                                    style: TextStyle(
+                                                        color: Colors.grey[500],
+                                                        fontSize: 11.sp)),
+                                              ],
                                             ],
                                           ),
                                           Container(
@@ -368,7 +380,10 @@ class _ShiftScheduleScreenState extends State<ShiftScheduleScreen> {
                                                 borderRadius:
                                                     BorderRadius.circular(
                                                         12.r)),
-                                            child: Text(shiftName,
+                                            child: Text(
+                                                isToday
+                                                    ? 'AKTIF · $shiftName'
+                                                    : shiftName,
                                                 style: TextStyle(
                                                     color: color,
                                                     fontWeight: FontWeight.bold,

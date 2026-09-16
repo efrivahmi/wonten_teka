@@ -84,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(16.r)),
                                 child: Image.asset(
-                                    'assets/images/e-absensi-logo-generated.png',
+                                    'assets/images/lemdiklat-logo.png',
                                     height: 48.h,
                                     fit: BoxFit.contain),
                               ),

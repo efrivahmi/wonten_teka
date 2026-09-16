@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -34,8 +36,18 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
   bool _isTooDark = false;
   double _currentAngleY = 0.0;
   int? _firstSideSign;
+  FaceDetectionMetrics _detectionMetrics = const FaceDetectionMetrics(
+    detected: false,
+    positioned: false,
+    lightingOkay: false,
+    qualityPercent: 0,
+    yaw: 0,
+    pitch: 0,
+    roll: 0,
+  );
 
   final List<List<double>> _capturedEmbeddings = [];
+  final List<XFile> _capturedSamples = [];
   List<double> _latestEmbedding = [];
   final GlobalKey<CameraPreviewWidgetState> _cameraKey =
       GlobalKey<CameraPreviewWidgetState>();
@@ -85,6 +97,15 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
     _latestEmbedding = embedding;
   }
 
+  void _handleDetectionMetrics(FaceDetectionMetrics metrics) {
+    if (mounted) setState(() => _detectionMetrics = metrics);
+  }
+
+  void _handleSampleCaptured(XFile? file) {
+    if (!mounted || file == null) return;
+    setState(() => _capturedSamples.add(file));
+  }
+
   void _runScanLoop() async {
     while (_isScanning) {
       if (!mounted) return;
@@ -102,6 +123,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
           }
 
           _capturedEmbeddings.add(List.from(_latestEmbedding));
+          await _cameraKey.currentState?.takePhoto();
           if (_currentStep == 1) {
             _firstSideSign = _currentAngleY.sign.toInt();
           }
@@ -350,6 +372,9 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                                 key: _cameraKey,
                                 onFaceValidationChanged: _handleFaceValidation,
                                 onFaceEmbeddingGenerated: _handleFaceEmbedding,
+                                onPhotoCaptured: _handleSampleCaptured,
+                                onDetectionMetricsChanged:
+                                    _handleDetectionMetrics,
                               )
                             : const ColoredBox(
                                 color: AppColors.surfaceContainerLow,
@@ -468,6 +493,71 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
 
               SizedBox(height: 24.h),
 
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                child: Column(children: [
+                  Row(children: [
+                    Text('Kualitas deteksi',
+                        style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.onSurfaceVariant)),
+                    const Spacer(),
+                    Text('${_detectionMetrics.qualityPercent}%',
+                        style: TextStyle(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w800,
+                            color: _isFaceProper && !_isTooDark
+                                ? AppColors.primary
+                                : AppColors.warningAmber)),
+                  ]),
+                  SizedBox(height: 8.h),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(99),
+                    child: LinearProgressIndicator(
+                      value: _detectionMetrics.qualityPercent / 100,
+                      minHeight: 8.h,
+                      backgroundColor: AppColors.surfaceContainerHigh,
+                      color: _isFaceProper && !_isTooDark
+                          ? AppColors.successEmerald
+                          : AppColors.warningAmber,
+                    ),
+                  ),
+                  SizedBox(height: 12.h),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 7.w,
+                    runSpacing: 7.h,
+                    children: [
+                      _QualityChip(
+                          label: 'Wajah',
+                          valid: _detectionMetrics.detected,
+                          icon: Icons.face_retouching_natural),
+                      _QualityChip(
+                          label: 'Cahaya',
+                          valid: _detectionMetrics.lightingOkay,
+                          icon: Icons.light_mode_outlined),
+                      _QualityChip(
+                          label: 'Posisi',
+                          valid: _detectionMetrics.positioned,
+                          icon: Icons.center_focus_strong),
+                      _QualityChip(
+                          label: 'Pose',
+                          valid: _isFaceProper,
+                          icon: Icons.threesixty_rounded),
+                    ],
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    'Yaw ${_detectionMetrics.yaw.toStringAsFixed(0)}°  •  Pitch ${_detectionMetrics.pitch.toStringAsFixed(0)}°  •  Roll ${_detectionMetrics.roll.toStringAsFixed(0)}°',
+                    style: TextStyle(
+                        fontSize: 10.sp, color: AppColors.onSurfaceVariant),
+                  ),
+                ]),
+              ),
+
+              SizedBox(height: 18.h),
+
               Text(
                 helperText,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -482,6 +572,58 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                   .animate(target: (_isFaceProper && !_isTooDark) ? 1 : 0)
                   .fade()
                   .scale(),
+
+              SizedBox(height: 12.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(3, (index) {
+                  final available = index < _capturedSamples.length;
+                  return Container(
+                    width: 54.w,
+                    height: 68.h,
+                    margin: EdgeInsets.symmetric(horizontal: 5.w),
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(10.r),
+                      border: Border.all(
+                          color: available
+                              ? AppColors.primary
+                              : AppColors.outlineVariant,
+                          width: 2),
+                    ),
+                    child: available
+                        ? Stack(fit: StackFit.expand, children: [
+                            Image.file(File(_capturedSamples[index].path),
+                                fit: BoxFit.cover),
+                            Align(
+                                alignment: Alignment.bottomCenter,
+                                child: Container(
+                                    width: double.infinity,
+                                    color: Colors.black54,
+                                    padding:
+                                        EdgeInsets.symmetric(vertical: 2.h),
+                                    child: Text(_stepTitles[index],
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 7.sp,
+                                            fontWeight: FontWeight.bold)))),
+                          ])
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                                Icon(Icons.face_retouching_natural,
+                                    size: 20.w,
+                                    color: AppColors.onSurfaceVariant),
+                                Text('#${index + 1}',
+                                    style: TextStyle(
+                                        fontSize: 9.sp,
+                                        color: AppColors.onSurfaceVariant))
+                              ]),
+                  );
+                }),
+              ),
 
               const Spacer(),
 
@@ -523,6 +665,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                                   _currentStep = 0;
                                   _scanProgress = 0.0;
                                   _capturedEmbeddings.clear();
+                                  _capturedSamples.clear();
                                   _latestEmbedding = [];
                                   _firstSideSign = null;
                                   _isFaceProper = false;
@@ -559,4 +702,43 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
       ),
     );
   }
+}
+
+class _QualityChip extends StatelessWidget {
+  final String label;
+  final bool valid;
+  final IconData icon;
+  const _QualityChip(
+      {required this.label, required this.valid, required this.icon});
+
+  @override
+  Widget build(BuildContext context) => AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 7.h),
+        decoration: BoxDecoration(
+          color: valid
+              ? AppColors.successEmerald.withValues(alpha: .10)
+              : AppColors.surfaceContainer,
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(
+              color: valid
+                  ? AppColors.successEmerald.withValues(alpha: .35)
+                  : AppColors.outlineVariant),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(valid ? Icons.check_circle_rounded : icon,
+              size: 14.w,
+              color: valid
+                  ? AppColors.successEmerald
+                  : AppColors.onSurfaceVariant),
+          SizedBox(width: 5.w),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 10.sp,
+                  fontWeight: FontWeight.w700,
+                  color: valid
+                      ? AppColors.successEmerald
+                      : AppColors.onSurfaceVariant)),
+        ]),
+      );
 }

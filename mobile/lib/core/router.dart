@@ -54,8 +54,6 @@ import '../features/payroll/presentation/screens/employee/payslip_list_screen.da
 import '../features/payroll/presentation/screens/employee/payslip_detail_screen.dart';
 import '../features/calendar/presentation/screens/employee/company_calendar_screen.dart';
 import '../features/calendar/presentation/screens/employee/event_detail_screen.dart';
-import '../features/calendar/presentation/screens/employee/announcements_screen.dart';
-import '../features/calendar/presentation/screens/employee/announcement_detail_screen.dart';
 
 // Profile, Settings, Notifications, Directory, Face Update
 import '../features/profile/presentation/screens/employee/user_profile_screen.dart';
@@ -63,7 +61,6 @@ import '../features/profile/presentation/screens/employee/edit_profile_screen.da
 import '../features/profile/presentation/screens/employee/settings_screen.dart';
 import '../features/profile/presentation/screens/employee/help_support_screen.dart';
 import '../features/notifications/presentation/screens/employee/notifications_screen.dart';
-import '../features/profile/presentation/screens/employee/company_directory_screen.dart';
 import '../features/profile/presentation/screens/employee/face_update_screen.dart';
 
 // Overtime
@@ -220,16 +217,6 @@ final appRouter = GoRouter(
               ? const CompanyCalendarScreen()
               : EventDetailScreen(event: event);
         }),
-    GoRoute(
-        path: '/app/announcements',
-        builder: (_, __) => const AnnouncementsScreen()),
-    GoRoute(
-        path: '/app/announcements/detail',
-        builder: (_, state) {
-          final announcement = state.extra as AnnouncementModel?;
-          if (announcement == null) return const AnnouncementsScreen();
-          return AnnouncementDetailScreen(announcement: announcement);
-        }),
 
     GoRoute(
         path: '/app/notifications',
@@ -242,9 +229,6 @@ final appRouter = GoRouter(
     GoRoute(
         path: '/app/profile/face-update',
         builder: (_, __) => const FaceUpdateScreen()),
-    GoRoute(
-        path: '/app/directory',
-        builder: (_, __) => const CompanyDirectoryScreen()),
 
     // Overtime
     GoRoute(

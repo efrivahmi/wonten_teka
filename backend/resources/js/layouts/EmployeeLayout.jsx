@@ -29,10 +29,15 @@ const EmployeeLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user') || '{}'));
 
     useEffect(() => {
         api.get('/app-config').then(response => setMenuConfig(response.data.data?.employee_menu || [])).catch(() => setMenuConfig([]));
+        api.get('/me').then(response => {
+            const freshUser = response.data.user || {};
+            localStorage.setItem('user', JSON.stringify(freshUser));
+            setUser(freshUser);
+        }).catch(() => {});
     }, []);
 
     // Bounce-out mechanism if device is revoked/rejected while logged in
@@ -76,12 +81,10 @@ const EmployeeLayout = () => {
         claims: { name: 'Klaim/Reimburse', href: '/employee/claims', icon: FileText },
         payroll: { name: 'Slip Gaji', href: '/employee/payslip', icon: FileText },
         calendar: { name: 'Kalender', href: '/employee/calendar', icon: CalendarDays },
-        announcements: { name: 'Pengumuman', href: '/employee/announcements', icon: Bell },
         tasks: { name: 'Tugas Pribadi', href: '/employee/tasks', icon: ClipboardList },
         habits: { name: 'Habit Tracker', href: '/employee/habits', icon: CalendarCheck },
         adjustments: { name: 'Ajukan Koreksi Absensi', href: '/employee/attendance-adjustments', icon: SlidersHorizontal },
         business_trips: { name: 'Perjalanan Dinas', href: '/employee/business-trips', icon: Plane },
-        directory: { name: 'Direktori Karyawan', href: '/employee/directory', icon: User },
         notifications: { name: 'Notifikasi', href: '/employee/notifications', icon: Bell },
         biometric: { name: 'Data Wajah Saya', href: '/employee/face-profile', icon: User },
     };
@@ -96,7 +99,7 @@ const EmployeeLayout = () => {
         { name: 'Dashboard', href: '/employee/dashboard', icon: LayoutDashboard },
         { name: 'Presensi', icon: CalendarCheck, children: items(['attendance', 'schedule', 'business_trips']) },
         { name: 'Pengajuan', icon: Briefcase, children: items(['leave', 'overtime', 'claims', 'adjustments']) },
-        { name: 'Informasi & Aktivitas', icon: Bell, children: items(['calendar', 'announcements', 'directory', 'tasks', 'habits', 'notifications']) },
+        { name: 'Informasi & Aktivitas', icon: Bell, children: items(['calendar', 'tasks', 'habits', 'notifications']) },
         { name: 'Keuangan', icon: FileText, children: items(['payroll']) },
         configuredItem('profile') ? { name: configuredItem('profile').name, href: '/employee/profile', icon: User } : null,
         {
@@ -185,7 +188,7 @@ const EmployeeLayout = () => {
                         <div className="relative">
                             <button onClick={() => setProfileOpen(value => !value)} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-left hover:border-emerald-300">
                                 <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-100 text-emerald-700"><User className="h-4 w-4" /></span>
-                                <span className="hidden sm:block max-w-40"><span className="block truncate text-sm font-semibold text-slate-800">{user.name || 'Karyawan'}</span><span className="block truncate text-[11px] text-slate-500">Profil saya</span></span>
+                                <span className="hidden sm:block max-w-40"><span className="block truncate text-sm font-semibold text-slate-800">{user.employee?.full_name || user.name || 'Karyawan'}</span><span className="block truncate text-[11px] text-slate-500">Profil saya</span></span>
                                 <ChevronDown className="h-4 w-4 text-slate-400" />
                             </button>
                             {profileOpen && <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">

@@ -95,9 +95,14 @@ class _LeaveTypeFormScreenState extends State<LeaveTypeFormScreen> {
               SizedBox(height: 16.h),
               TextFormField(
                 controller: _daysController,
-                decoration: const InputDecoration(labelText: 'Jatah Hari (per tahun)', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Kuota yang diberikan (hari per tahun)', helperText: 'Karyawan tidak dapat mengajukan melebihi sisa kuota ini.', border: OutlineInputBorder()),
                 keyboardType: TextInputType.number,
-                validator: (val) => val == null || val.isEmpty ? 'Wajib diisi' : null,
+                validator: (val) {
+                  final days = int.tryParse(val ?? '');
+                  if (days == null) return 'Masukkan jumlah hari';
+                  if (days < 0 || days > 366) return 'Jumlah hari harus 0 sampai 366';
+                  return null;
+                },
               ),
               SizedBox(height: 16.h),
               SwitchListTile(

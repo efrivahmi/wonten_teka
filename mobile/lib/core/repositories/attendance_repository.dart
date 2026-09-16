@@ -129,9 +129,12 @@ class AttendanceRepository {
   }
 
   Future<PaginatedResponse<AttendanceLogModel>> getHistory(
-      {int page = 1}) async {
+      {int page = 1, int? month, int? year}) async {
+    final query = <String, dynamic>{'page': page};
+    if (month != null) query['month'] = month;
+    if (year != null) query['year'] = year;
     final response =
-        await _api.get('/attendance/history', queryParameters: {'page': page});
+        await _api.get('/attendance/history', queryParameters: query);
     return PaginatedResponse.fromJson(
       response.data as Map<String, dynamic>,
       AttendanceLogModel.fromJson,

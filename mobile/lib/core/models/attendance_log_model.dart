@@ -16,6 +16,9 @@ class AttendanceLogModel extends Equatable {
   final Map<String, dynamic>? flags;
   final String status; // 'present', 'flagged', 'late'
   final String? employeeName;
+  final bool hasDoubleShift;
+  final int shiftCount;
+  final List<Map<String, dynamic>> overtime;
 
   const AttendanceLogModel({
     required this.id,
@@ -32,6 +35,9 @@ class AttendanceLogModel extends Equatable {
     this.flags,
     this.status = 'present',
     this.employeeName,
+    this.hasDoubleShift = false,
+    this.shiftCount = 1,
+    this.overtime = const [],
   });
 
   bool get isFlagged => status == 'flagged';
@@ -66,11 +72,17 @@ class AttendanceLogModel extends Equatable {
       employeeName: (json['employee'] != null && json['employee']['full_name'] != null) 
           ? json['employee']['full_name'] 
           : null,
+      hasDoubleShift: json['has_double_shift'] == true,
+      shiftCount: int.tryParse(json['shift_count']?.toString() ?? '') ?? 1,
+      overtime: (json['overtime'] as List? ?? const [])
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList(),
     );
   }
 
   @override
-  List<Object?> get props => [id, employeeId, checkInAt, checkOutAt, status];
+  List<Object?> get props => [id, employeeId, checkInAt, checkOutAt, status, hasDoubleShift, shiftCount, overtime];
 
   static DateTime _parseAndLocalize(String dateStr) {
     String normalized = dateStr.replaceFirst(' ', 'T');
@@ -84,4 +96,3 @@ class AttendanceLogModel extends Equatable {
     return DateTime.parse(normalized).toLocal();
   }
 }
-

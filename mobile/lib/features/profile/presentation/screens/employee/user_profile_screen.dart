@@ -193,15 +193,6 @@ class UserProfileScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 12.h),
                 _ProfileMenuItem(
-                  icon: Icons.people,
-                  iconBgColor: AppColors.secondaryFixed,
-                  iconColor: AppColors.secondary,
-                  title: 'Direktori Perusahaan',
-                  subtitle: 'Cari rekan kerja',
-                  onTap: () => context.push('/app/directory'),
-                ),
-                SizedBox(height: 12.h),
-                _ProfileMenuItem(
                   icon: Icons.settings,
                   iconBgColor: AppColors.surfaceContainerHigh,
                   iconColor: AppColors.onSurfaceVariant,

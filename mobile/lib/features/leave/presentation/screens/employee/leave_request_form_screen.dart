@@ -71,6 +71,18 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
     if (_formKey.currentState!.validate() &&
         _dateRange != null &&
         _selectedTypeId != null) {
+      final currentState = context.read<LeaveCubit>().state;
+      final requestedDays = _dateRange!.end.difference(_dateRange!.start).inDays + 1;
+      if (currentState is LeaveLoaded) {
+        final matching = currentState.balances.where((item) => item.leaveTypeId == _selectedTypeId);
+        if (matching.isNotEmpty && requestedDays > matching.first.remainingDays) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Pengajuan $requestedDays hari melebihi sisa kuota ${matching.first.remainingDays} hari.'),
+            backgroundColor: AppColors.error,
+          ));
+          return;
+        }
+      }
       final df = DateFormat('yyyy-MM-dd');
       context.read<LeaveCubit>().submitRequest(
             leaveTypeId: _selectedTypeId!,
@@ -241,7 +253,11 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
                     builder: (context, state) {
                       bool isLoading = state is LeaveLoading;
                       List<LeaveTypeModel> types = [];
-                      if (state is LeaveLoaded) types = state.types;
+                      List<LeaveBalanceModel> balances = [];
+                      if (state is LeaveLoaded) {
+                        types = state.types;
+                        balances = state.balances;
+                      }
                       
                       return SingleChildScrollView(
                         padding: EdgeInsets.all(24.w),
@@ -260,7 +276,7 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
                                 Text('Jenis Cuti', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
                                 SizedBox(height: 8.h),
                                 DropdownButtonFormField<int>(
-                                  initialValue: _selectedTypeId,
+                                  initialValue: types.any((type) => type.id == _selectedTypeId) ? _selectedTypeId : null,
                                   decoration: InputDecoration(
                                     filled: true,
                                     fillColor: Colors.grey[50],
@@ -269,7 +285,11 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
                                     contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
                                   ),
                                   hint: const Text('Pilih Jenis Cuti'),
-                                  items: types.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name))).toList(),
+                                  items: types.map((t) {
+                                    final matches = balances.where((b) => b.leaveTypeId == t.id);
+                                    final remaining = matches.isEmpty ? t.quotaPerYear ?? 0 : matches.first.remainingDays;
+                                    return DropdownMenuItem(value: t.id, child: Text('${t.name} · sisa $remaining hari'));
+                                  }).toList(),
                                   onChanged: isLoading ? null : (v) => setState(() => _selectedTypeId = v),
                                   validator: (v) => v == null ? 'Pilih jenis cuti' : null,
                                 ),
