@@ -23,7 +23,6 @@ class AttendanceLogModel extends Equatable {
   const AttendanceLogModel({
     required this.id,
     required this.employeeId,
-
     required this.checkInAt,
     this.checkOutAt,
     this.checkInGps,
@@ -53,25 +52,40 @@ class AttendanceLogModel extends Equatable {
       id: json['id'] as int,
       employeeId: json['employee_id'] as int,
 
-      checkInAt: _parseAndLocalize(json['check_in_at'] as String),
-      checkOutAt: json['check_out_at'] != null ? _parseAndLocalize(json['check_out_at'] as String) : null,
-      checkInGps: (json['check_in_latitude'] != null && json['check_in_longitude'] != null)
-          ? {'latitude': json['check_in_latitude'], 'longitude': json['check_in_longitude']}
+      // Catatan alpha dibuat tanpa jam masuk. Tetap gunakan tanggal catatan
+      // agar kalender/tabel admin dapat menampilkannya tanpa gagal parsing.
+      checkInAt: _parseAndLocalize(
+        (json['check_in_at'] ?? json['date'] ?? json['created_at']).toString(),
+      ),
+      checkOutAt: json['check_out_at'] != null
+          ? _parseAndLocalize(json['check_out_at'] as String)
           : null,
-      checkOutGps: (json['check_out_latitude'] != null && json['check_out_longitude'] != null)
-          ? {'latitude': json['check_out_latitude'], 'longitude': json['check_out_longitude']}
+      checkInGps: (json['check_in_latitude'] != null &&
+              json['check_in_longitude'] != null)
+          ? {
+              'latitude': json['check_in_latitude'],
+              'longitude': json['check_in_longitude']
+            }
           : null,
-      faceMatchScore: json['check_in_face_score'] != null 
-          ? double.tryParse(json['check_in_face_score'].toString()) 
+      checkOutGps: (json['check_out_latitude'] != null &&
+              json['check_out_longitude'] != null)
+          ? {
+              'latitude': json['check_out_latitude'],
+              'longitude': json['check_out_longitude']
+            }
+          : null,
+      faceMatchScore: json['check_in_face_score'] != null
+          ? double.tryParse(json['check_in_face_score'].toString())
           : null,
       checkInPhotoUrl: json['check_in_photo_url'] as String?,
       checkOutPhotoUrl: json['check_out_photo_url'] as String?,
       deviceId: json['device_id']?.toString(),
       flags: json['flags'] as Map<String, dynamic>?,
       status: json['status'] as String? ?? 'present',
-      employeeName: (json['employee'] != null && json['employee']['full_name'] != null) 
-          ? json['employee']['full_name'] 
-          : null,
+      employeeName:
+          (json['employee'] != null && json['employee']['full_name'] != null)
+              ? json['employee']['full_name']
+              : null,
       hasDoubleShift: json['has_double_shift'] == true,
       shiftCount: int.tryParse(json['shift_count']?.toString() ?? '') ?? 1,
       overtime: (json['overtime'] as List? ?? const [])
@@ -82,7 +96,16 @@ class AttendanceLogModel extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, employeeId, checkInAt, checkOutAt, status, hasDoubleShift, shiftCount, overtime];
+  List<Object?> get props => [
+        id,
+        employeeId,
+        checkInAt,
+        checkOutAt,
+        status,
+        hasDoubleShift,
+        shiftCount,
+        overtime
+      ];
 
   static DateTime _parseAndLocalize(String dateStr) {
     String normalized = dateStr.replaceFirst(' ', 'T');

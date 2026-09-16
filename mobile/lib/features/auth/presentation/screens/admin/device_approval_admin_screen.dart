@@ -160,7 +160,8 @@ class _DeviceApprovalAdminScreenState extends State<DeviceApprovalAdminScreen> {
     );
   }
 
-  Widget _buildList(List<Map<String, dynamic>> devices, {required bool isPending}) {
+  Widget _buildList(List<Map<String, dynamic>> devices,
+      {required bool isPending}) {
     if (devices.isEmpty) {
       return EmptyStateWidget(
         icon: Icons.verified_user_outlined,
@@ -184,7 +185,8 @@ class _DeviceApprovalAdminScreenState extends State<DeviceApprovalAdminScreen> {
     );
   }
 
-  Widget _buildDeviceCard(Map<String, dynamic> device, {required bool isPending}) {
+  Widget _buildDeviceCard(Map<String, dynamic> device,
+      {required bool isPending}) {
     final employee = device['employee'] ?? {};
     final name = (employee['full_name'] ??
             '${employee['first_name'] ?? ''} ${employee['last_name'] ?? ''}')
@@ -193,7 +195,7 @@ class _DeviceApprovalAdminScreenState extends State<DeviceApprovalAdminScreen> {
     final deviceName = device['device_name'] ?? 'Unknown Device';
     final deviceModel = device['device_model'] ?? '-';
     final deviceOs = device['os_version'] ?? '-';
-    
+
     // Format tanggal
     String dateStr = device['created_at'] ?? '';
     if (dateStr.length > 10) dateStr = dateStr.substring(0, 10);
@@ -263,8 +265,7 @@ class _DeviceApprovalAdminScreenState extends State<DeviceApprovalAdminScreen> {
                               color: AppColors.onSurfaceVariant)),
                       Text('Diajukan: $dateStr',
                           style: TextStyle(
-                              fontSize: 10.sp,
-                              color: AppColors.primary)),
+                              fontSize: 10.sp, color: AppColors.primary)),
                     ],
                   ),
                 ),
@@ -296,7 +297,8 @@ class _DeviceApprovalAdminScreenState extends State<DeviceApprovalAdminScreen> {
                     child: _reviewingDeviceId == device['id']
                         ? const SizedBox.square(
                             dimension: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
                           )
                         : const Text('Setujui'),
                   ),

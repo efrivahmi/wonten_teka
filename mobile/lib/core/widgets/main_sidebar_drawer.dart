@@ -95,29 +95,41 @@ class MainSidebarDrawer extends StatelessWidget {
                             children: [
                               _buildListTile(context, 'Karyawan',
                                   Icons.people_outline, '/admin/employees'),
-                              _buildListTile(context, 'Kategori Shift',
-                                  Icons.calendar_month, '/admin/shifts'),
                               _buildListTile(
                                   context,
-                                  'Jadwal Shift',
-                                  Icons.assignment_ind,
-                                  '/admin/shift-assignments'),
-                              _buildListTile(context, 'Tipe Cuti',
+                                  'Persetujuan',
+                                  Icons.fact_check_outlined,
+                                  '/admin/approvals'),
+                              _buildListTile(context, 'Klaim / Reimburse',
+                                  Icons.receipt_long_outlined, '/admin/claims'),
+                              _buildListTile(context, 'Jenis Cuti',
                                   Icons.flight_takeoff, '/admin/leave-types'),
-                              _buildListTile(
-                                  context,
-                                  'Konfigurasi Payroll',
-                                  Icons.settings_suggest,
-                                  '/admin/payroll-config'),
                             ],
                           ),
                           ExpansionTile(
-                            leading: const Icon(Icons.insert_chart,
-                                color: AppColors.infoCerulean),
-                            title: const Text('Laporan & Analitik',
+                            leading: const Icon(Icons.calendar_month,
+                                color: AppColors.primary),
+                            title: const Text('Presensi',
                                 style: TextStyle(fontWeight: FontWeight.w600)),
                             childrenPadding: EdgeInsets.only(left: 16.w),
                             children: [
+                              _buildListTile(context, 'Jadwal & Shift',
+                                  Icons.calendar_month, '/admin/schedule'),
+                              _buildListTile(
+                                  context,
+                                  'Penugasan Shift',
+                                  Icons.assignment_ind,
+                                  '/admin/shift-assignments'),
+                              _buildListTile(
+                                  context,
+                                  'Lokasi Absensi',
+                                  Icons.location_on_outlined,
+                                  '/admin/attendance-settings'),
+                              _buildListTile(
+                                  context,
+                                  'Kehadiran Harian',
+                                  Icons.today_outlined,
+                                  '/admin/attendance-daily'),
                               _buildListTile(context, 'Laporan Absensi',
                                   Icons.history, '/admin/reports'),
                               _buildListTile(
@@ -127,12 +139,62 @@ class MainSidebarDrawer extends StatelessWidget {
                                   '/admin/attendance-security-events'),
                             ],
                           ),
-                          _buildListTile(context, 'Pengumuman / Event',
-                              Icons.campaign, '/admin/events'),
+                          ExpansionTile(
+                            leading: const Icon(Icons.tune,
+                                color: AppColors.infoCerulean),
+                            title: const Text('Operasional',
+                                style: TextStyle(fontWeight: FontWeight.w600)),
+                            childrenPadding: EdgeInsets.only(left: 16.w),
+                            children: [
+                              _buildListTile(
+                                  context,
+                                  'Perangkat',
+                                  Icons.phonelink_lock_outlined,
+                                  '/admin/devices'),
+                              _buildListTile(context, 'Event', Icons.event,
+                                  '/admin/events'),
+                              _buildListTile(
+                                  context,
+                                  'Pengumuman',
+                                  Icons.campaign_outlined,
+                                  '/admin/announcements'),
+                              _buildListTile(context, 'Daily Task & Habit',
+                                  Icons.task_alt_outlined, '/admin/tasks'),
+                              _buildListTile(context, 'Payroll',
+                                  Icons.payments_outlined, '/admin/payroll'),
+                              _buildListTile(
+                                  context,
+                                  'Konfigurasi Payroll',
+                                  Icons.settings_suggest,
+                                  '/admin/payroll-config'),
+                              _buildListTile(
+                                  context,
+                                  'Biometrik Wajah',
+                                  Icons.face_retouching_natural,
+                                  '/admin/biometrics'),
+                              _buildListTile(
+                                  context,
+                                  'Analitik Departemen',
+                                  Icons.analytics_outlined,
+                                  '/admin/department-analytics'),
+                              _buildListTile(context, 'Pusat Ekspor',
+                                  Icons.download_outlined, '/admin/export'),
+                              _buildListTile(
+                                  context,
+                                  'Log Audit',
+                                  Icons.history_toggle_off,
+                                  '/admin/audit-logs'),
+                            ],
+                          ),
                           _buildListTile(context, 'Pengaturan Perusahaan',
                               Icons.business, '/admin/org-settings'),
                           _buildListTile(context, 'Pengaturan Sistem',
                               Icons.settings, '/admin/settings'),
+                          _buildListTile(
+                              context,
+                              'Profil Administrator',
+                              Icons.admin_panel_settings_outlined,
+                              '/admin/profile'),
                         ],
                         const Divider(),
                         Padding(
@@ -198,7 +260,6 @@ class MainSidebarDrawer extends StatelessWidget {
               _buildListTile(context, 'Keluar', Icons.logout, null,
                   color: AppColors.errorCrimson, onTap: () {
                 context.read<AuthBloc>().add(AuthLogoutRequested());
-                context.go('/login');
               }),
               SizedBox(height: MediaQuery.of(context).padding.bottom),
             ],

@@ -77,6 +77,7 @@ import '../features/company/presentation/screens/admin/employee_edit_admin_scree
 import '../features/attendance/presentation/screens/admin/attendance_report_admin_screen.dart';
 import '../features/attendance/presentation/screens/admin/attendance_flag_review_screen.dart';
 import '../features/attendance/presentation/screens/admin/daily_attendance_table_screen.dart';
+import '../features/attendance/presentation/screens/admin/admin_attendance_detail_screen.dart';
 
 import '../features/claims/presentation/screens/admin/claim_detail_admin_screen.dart';
 import '../features/payroll/presentation/screens/admin/payroll_configuration_screen.dart';
@@ -98,6 +99,8 @@ import '../features/company/presentation/screens/admin/admin_content_crud_screen
 import '../features/calendar/presentation/screens/admin/company_events_manager_screen.dart';
 import '../features/calendar/presentation/screens/admin/event_edit_admin_screen.dart';
 import '../features/auth/presentation/screens/admin/device_approval_admin_screen.dart';
+import '../features/company/presentation/screens/admin/geofence_settings_screen.dart';
+import '../features/company/presentation/screens/admin/admin_biometric_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -164,11 +167,14 @@ final appRouter = GoRouter(
         builder: (_, __) => const ShiftScheduleScreen()),
     GoRoute(
         path: '/app/habits', builder: (_, __) => const HabitTrackerScreen()),
-    GoRoute(path: '/app/tasks', builder: (_, __) => const HabitTrackerScreen(isHabit: false)),
+    GoRoute(
+        path: '/app/tasks',
+        builder: (_, __) => const HabitTrackerScreen(isHabit: false)),
     GoRoute(
         path: '/app/habits/new', builder: (_, __) => const HabitFormScreen()),
     GoRoute(
-        path: '/app/tasks/new', builder: (_, __) => const HabitFormScreen(isHabit: false)),
+        path: '/app/tasks/new',
+        builder: (_, __) => const HabitFormScreen(isHabit: false)),
     GoRoute(
         path: '/app/habits/detail',
         builder: (_, __) => const HabitDetailScreen()),
@@ -275,6 +281,14 @@ final appRouter = GoRouter(
         path: '/admin/attendance-daily',
         builder: (_, __) => const DailyAttendanceTableScreen()),
     GoRoute(
+        path: '/admin/attendance/detail',
+        builder: (_, state) {
+          final id = state.extra as int?;
+          return id == null
+              ? const DailyAttendanceTableScreen()
+              : AdminAttendanceDetailScreen(attendanceId: id);
+        }),
+    GoRoute(
         path: '/admin/attendance-security-events',
         builder: (_, __) => const AttendanceFlagReviewScreen()),
     GoRoute(
@@ -300,6 +314,9 @@ final appRouter = GoRouter(
         path: '/admin/shifts',
         builder: (_, __) =>
             const ShiftTemplatesScreen()), // Using this as entry point for shifts for now
+    GoRoute(
+        path: '/admin/schedule',
+        builder: (_, __) => const ShiftTemplatesScreen()),
     GoRoute(
         path: '/admin/shifts/form',
         builder: (_, state) {
@@ -335,8 +352,22 @@ final appRouter = GoRouter(
         path: '/admin/settings',
         builder: (_, __) => const AdminSettingsScreen()),
     GoRoute(
+        path: '/admin/attendance-settings',
+        builder: (_, __) => const GeofenceSettingsScreen()),
+    GoRoute(
         path: '/admin/content',
         builder: (_, __) => const AdminContentCrudScreen()),
+    GoRoute(
+        path: '/admin/tasks',
+        builder: (_, __) => const AdminContentCrudScreen()),
+    GoRoute(
+        path: '/admin/announcements',
+        builder: (_, __) => const AdminContentCrudScreen()),
+    GoRoute(
+        path: '/admin/biometrics',
+        builder: (_, __) => const AdminBiometricScreen()),
+    GoRoute(
+        path: '/admin/profile', builder: (_, __) => const UserProfileScreen()),
     GoRoute(
         path: '/admin/events',
         builder: (_, __) => const CompanyEventsManagerScreen()),

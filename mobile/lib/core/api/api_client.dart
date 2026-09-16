@@ -188,7 +188,15 @@ class _ErrorInterceptor extends Interceptor {
     switch (statusCode) {
       case 401:
         exception = const UnauthorizedException();
-        onUnauthorized?.call();
+        // Login/logout are authentication lifecycle requests. Triggering the
+        // global unauthorized callback for either endpoint can create an
+        // endless logout -> 401 -> logout loop on Android.
+        final path = err.requestOptions.path;
+        final isAuthLifecycleRequest =
+            path.endsWith('/login') || path.endsWith('/logout');
+        if (!isAuthLifecycleRequest) {
+          onUnauthorized?.call();
+        }
         break;
       case 403:
         exception = ForbiddenException(message: message);

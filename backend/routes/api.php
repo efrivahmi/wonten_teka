@@ -181,13 +181,16 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Attendance security events are read-only evidence, not an approval queue.
         Route::get('/attendance', [\App\Http\Controllers\Api\AttendanceAdminController::class, 'index']);
+        Route::get('/attendance/{id}', [\App\Http\Controllers\Api\AttendanceAdminController::class, 'show']);
         Route::put('/attendance/{id}', [\App\Http\Controllers\Api\AttendanceAdminController::class, 'update']);
         Route::delete('/attendance/{id}', [\App\Http\Controllers\Api\AttendanceAdminController::class, 'destroy']);
         Route::get('/attendance-security-events', [\App\Http\Controllers\Api\AttendanceAdminController::class, 'securityEvents']);
         
         // Device Approvals
         Route::get('/devices/pending', [DeviceAdminController::class, 'getPendingDevices']);
+        Route::get('/devices/active', [DeviceAdminController::class, 'getActiveDevices']);
         Route::post('/devices/{deviceId}/review', [DeviceAdminController::class, 'reviewDevice']);
+        Route::post('/devices/{deviceId}/revoke', [DeviceAdminController::class, 'revokeDevice']);
         Route::get('/biometrics', [AdminBiometricController::class, 'index']);
         Route::delete('/biometrics/{employee}/reset', [AdminBiometricController::class, 'reset']);
     });

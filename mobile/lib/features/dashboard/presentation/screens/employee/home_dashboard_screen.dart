@@ -522,16 +522,15 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
 
   String _attendanceLabel(Map<String, dynamic>? attendance, dynamic fallback) {
     if (attendance == null) return fallback?.toString() ?? 'Belum absen';
+    if (_isAbsentAttendance(attendance)) return 'Tidak hadir / Alpha';
     if (attendance['check_out_time'] != null) return 'Absensi selesai';
     if (attendance['check_in_time'] != null) return 'Sudah absen masuk';
-    final status = attendance['status']?.toString().toLowerCase();
-    if (status == 'absent' || status == 'alpha') return 'Tidak hadir / Alpha';
     return fallback?.toString() ?? 'Belum absen';
   }
 
   Color _attendanceColor(Map<String, dynamic>? attendance, dynamic timeStatus) {
+    if (_isAbsentAttendance(attendance)) return AppColors.errorCrimson;
     final status = attendance?['status']?.toString().toLowerCase();
-    if (status == 'absent' || status == 'alpha') return AppColors.errorCrimson;
     if (status == 'late' || status == 'terlambat') {
       return AppColors.warningAmber;
     }
@@ -599,7 +598,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         .whereType<Map>()
         .cast<Map<dynamic, dynamic>>()
         .firstOrNull;
-    final status = attendance?['status']?.toString() ?? 'not_started';
+    final status = _isAbsentAttendance(attendance)
+        ? 'absent'
+        : attendance?['status']?.toString() ?? 'not_started';
     final checkIn = _formatAttendanceTime(attendance?['check_in_time'], status);
     final checkOut =
         _formatAttendanceTime(attendance?['check_out_time'], status);
@@ -748,13 +749,14 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
       );
 
   String _statusLabel(String status) {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'on_time':
       case 'present':
         return 'Tepat waktu';
       case 'late':
         return 'Terlambat';
       case 'absent':
+      case 'alpha':
         return 'Alpha';
       default:
         return 'Belum absen';
@@ -762,13 +764,17 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   }
 
   String _formatAttendanceTime(dynamic value, String status) {
-    if (value == null || status == 'absent') return '--:--';
+    if (value == null ||
+        status.toLowerCase() == 'absent' ||
+        status.toLowerCase() == 'alpha') {
+      return '--:--';
+    }
     return DateFormat('HH:mm')
         .format(DateTime.parse(value.toString()).toLocal());
   }
 
   String _workDuration(Map<dynamic, dynamic>? attendance) {
-    if (attendance == null || attendance['status'] == 'absent') return '0j 0m';
+    if (attendance == null || _isAbsentAttendance(attendance)) return '0j 0m';
     final startValue = attendance['check_in_time'];
     if (startValue == null) return '0j 0m';
     final start = DateTime.parse(startValue.toString()).toLocal();
@@ -790,11 +796,25 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   bool _canCheckOut() {
     if (_todayInfo == null) return false;
     final shifts = _todayInfo!['shifts'] as List? ?? [];
-    return shifts.any((s) =>
-        s['attendance'] != null &&
-        s['attendance']['status'] != 'absent' &&
-        s['time_status'] == 'ended' &&
-        s['attendance']['check_out_time'] == null);
+    return shifts.any((shift) {
+      final rawAttendance = shift['attendance'];
+      if (rawAttendance is! Map) return false;
+      final attendance = Map<String, dynamic>.from(rawAttendance);
+      return !_isAbsentAttendance(attendance) &&
+          attendance['check_in_time'] != null &&
+          shift['time_status'] == 'ended' &&
+          attendance['check_out_time'] == null;
+    });
+  }
+
+  bool _isAbsentAttendance(Map<dynamic, dynamic>? attendance) {
+    if (attendance == null) return false;
+    final status = attendance['status']?.toString().toLowerCase();
+    return status == 'absent' ||
+        status == 'alpha' ||
+        attendance['is_auto_absent'] == true ||
+        (attendance['flags'] is Map &&
+            attendance['flags']['auto_absent'] == true);
   }
 
   Widget _buildAttendanceButton(BuildContext context,

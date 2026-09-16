@@ -273,7 +273,8 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
           }
         },
         child: SafeArea(
-          child: Column(
+          child: ListView(
+            padding: EdgeInsets.only(bottom: 20.h),
             children: [
               Padding(
                 padding: EdgeInsets.all(24.w),
@@ -319,7 +320,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                   ),
                 ),
 
-              const Spacer(),
+              SizedBox(height: 8.h),
 
               // Camera Area
               Center(
@@ -625,7 +626,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                 }),
               ),
 
-              const Spacer(),
+              SizedBox(height: 20.h),
 
               // Indicators for 3 steps
               Row(

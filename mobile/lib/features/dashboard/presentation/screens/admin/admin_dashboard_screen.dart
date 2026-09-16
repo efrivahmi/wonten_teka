@@ -427,6 +427,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             () => context.push('/admin/export')),
         _buildActionCard(context, 'Audit Logs', Icons.history,
             () => context.push('/admin/audit-logs')),
+        _buildActionCard(context, 'Perangkat', Icons.phonelink_lock,
+            () => context.push('/admin/devices')),
         _buildActionCard(context, 'Pengaturan Admin', Icons.manage_accounts,
             () => context.push('/admin/settings')),
       ],

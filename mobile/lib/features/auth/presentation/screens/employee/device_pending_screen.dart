@@ -40,6 +40,7 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
   }
 
   Future<void> _checkStatus({bool showSnackbar = true}) async {
+    if (!mounted) return;
     setState(() => _isChecking = true);
 
     try {
@@ -81,6 +82,14 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
         setState(() => _isChecking = false);
       }
     }
+  }
+
+  void _logout() {
+    // Stop the five-second approval poll before deleting the session token.
+    // Any in-flight status request is then harmless and cannot restart logout.
+    _timer?.cancel();
+    _timer = null;
+    context.read<AuthBloc>().add(AuthLogoutRequested());
   }
 
   @override
@@ -164,11 +173,7 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
                           width: double.infinity,
                           height: 52.h,
                           child: ElevatedButton.icon(
-                            onPressed: () {
-                              context
-                                  .read<AuthBloc>()
-                                  .add(AuthLogoutRequested());
-                            },
+                            onPressed: _logout,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.grey[100],
                               foregroundColor: Colors.black87,

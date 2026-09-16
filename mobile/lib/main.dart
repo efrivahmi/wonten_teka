@@ -46,7 +46,11 @@ void main() async {
   final apiClient = ApiClient(
     storage: secureStorage,
     onUnauthorized: () {
-      authBloc.add(AuthLogoutRequested());
+      // Ignore late 401 responses while a logout is already running or after
+      // the session has reached the login screen.
+      if (authBloc.state is AuthAuthenticated) {
+        authBloc.add(AuthLogoutRequested());
+      }
     },
   );
 
