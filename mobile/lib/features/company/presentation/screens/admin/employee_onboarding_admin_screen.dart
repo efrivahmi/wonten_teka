@@ -101,7 +101,7 @@ class _EmployeeOnboardingAdminScreenState
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: const Text(
-                  'Cukup isi email dan password. Nama serta nomor karyawan dibuat sementara secara otomatis, lalu profil lengkap diisi karyawan saat login pertama.',
+                  'Isi email, password, dan role. ID akun khusus dibuat otomatis sesuai role, lalu profil lengkap diisi pengguna saat login pertama.',
                 ),
               ),
               SizedBox(height: 12.h),
