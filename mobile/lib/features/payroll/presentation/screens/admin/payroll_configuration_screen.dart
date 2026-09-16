@@ -7,6 +7,13 @@ import '../../../../../core/widgets/info_card.dart';
 class PayrollConfigurationScreen extends StatelessWidget {
   const PayrollConfigurationScreen({super.key});
 
+  void _showComingSoon(BuildContext context) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Fitur sedang dikembangkan')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,54 +28,56 @@ class PayrollConfigurationScreen extends StatelessWidget {
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: AppColors.primary, fontWeight: FontWeight.bold))),
       floatingActionButton: FloatingActionButton(
-          onPressed: () {},
+          onPressed: () => _showComingSoon(context),
           backgroundColor: AppColors.primaryContainer,
           child: const Icon(Icons.save, color: AppColors.onPrimary)),
       body: SingleChildScrollView(
           padding: EdgeInsets.all(16.w),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const _Section(title: 'Komponen Pendapatan', children: [
-              _ConfigItem(label: 'Gaji Pokok', type: 'Tetap', isActive: true),
+            _Section(title: 'Komponen Pendapatan', children: [
+              _ConfigItem(label: 'Gaji Pokok', type: 'Tetap', isActive: true, onToggle: () => _showComingSoon(context)),
               _ConfigItem(
                   label: 'Tunjangan Makan',
                   type: 'Harian (Berdasarkan Kehadiran)',
-                  isActive: true),
+                  isActive: true, onToggle: () => _showComingSoon(context)),
               _ConfigItem(
                   label: 'Tunjangan Transport',
                   type: 'Harian (Berdasarkan Kehadiran)',
-                  isActive: true),
-              _ConfigItem(label: 'Lembur', type: 'Per Jam', isActive: true),
+                  isActive: true, onToggle: () => _showComingSoon(context)),
+              _ConfigItem(label: 'Lembur', type: 'Per Jam', isActive: true, onToggle: () => _showComingSoon(context)),
             ]),
             SizedBox(height: 24.h),
-            const _Section(title: 'Komponen Potongan', children: [
+            _Section(title: 'Komponen Potongan', children: [
               _ConfigItem(
                   label: 'PPh 21 (TER)',
                   type: 'Persentase Pajak',
-                  isActive: true),
-              _ConfigItem(label: 'BPJS Kesehatan', type: '1%', isActive: true),
+                  isActive: true, onToggle: () => _showComingSoon(context)),
+              _ConfigItem(label: 'BPJS Kesehatan', type: '1%', isActive: true, onToggle: () => _showComingSoon(context)),
               _ConfigItem(
                   label: 'BPJS Ketenagakerjaan (JHT)',
                   type: '2%',
-                  isActive: true),
+                  isActive: true, onToggle: () => _showComingSoon(context)),
               _ConfigItem(
                   label: 'Potongan Terlambat',
                   type: 'Per Menit/Jam',
-                  isActive: false),
+                  isActive: false, onToggle: () => _showComingSoon(context)),
             ]),
             SizedBox(height: 24.h),
-            const _Section(title: 'Jadwal Cut-off', children: [
+            _Section(title: 'Jadwal Cut-off', children: [
               ListTile(
                   title:
-                      Text('Periode Kehadiran', style: TextStyle(fontSize: 14)),
-                  subtitle: Text('Tanggal 21 - 20 bulan berikutnya',
+                      const Text('Periode Kehadiran', style: TextStyle(fontSize: 14)),
+                  subtitle: const Text('Tanggal 21 - 20 bulan berikutnya',
                       style: TextStyle(fontSize: 12)),
-                  trailing: Icon(Icons.edit)),
+                  trailing: const Icon(Icons.edit),
+                  onTap: () => _showComingSoon(context)),
               ListTile(
-                  title: Text('Tanggal Pembayaran',
+                  title: const Text('Tanggal Pembayaran',
                       style: TextStyle(fontSize: 14)),
-                  subtitle: Text('Tanggal 25', style: TextStyle(fontSize: 12)),
-                  trailing: Icon(Icons.edit)),
+                  subtitle: const Text('Tanggal 25', style: TextStyle(fontSize: 12)),
+                  trailing: const Icon(Icons.edit),
+                  onTap: () => _showComingSoon(context)),
             ]),
           ])),
     );
@@ -106,8 +115,9 @@ class _Section extends StatelessWidget {
 class _ConfigItem extends StatelessWidget {
   final String label, type;
   final bool isActive;
+  final VoidCallback onToggle;
   const _ConfigItem(
-      {required this.label, required this.type, required this.isActive});
+      {required this.label, required this.type, required this.isActive, required this.onToggle});
   @override
   Widget build(BuildContext context) => Padding(
       padding: EdgeInsets.symmetric(vertical: 12.h),
@@ -126,7 +136,7 @@ class _ConfigItem extends StatelessWidget {
         ])),
         Switch(
             value: isActive,
-            onChanged: (_) {},
+            onChanged: (_) => onToggle(),
             activeThumbColor: AppColors.primaryContainer),
       ]));
 }

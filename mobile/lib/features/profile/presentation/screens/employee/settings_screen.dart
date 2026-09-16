@@ -6,6 +6,14 @@ import '../../../../../core/widgets/info_card.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
+
+  void _showComingSoon(BuildContext context) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Fitur sedang dikembangkan')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -15,21 +23,21 @@ class SettingsScreen extends StatelessWidget {
         title: Text('Pengaturan', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)), centerTitle: true),
       body: SingleChildScrollView(padding: EdgeInsets.all(16.w), child: Column(children: [
         _Section(title: 'Akun', items: [
-          _SettingItem(icon: Icons.lock, title: 'Ubah Password', onTap: () {}),
-          _SettingItem(icon: Icons.fingerprint, title: 'Biometrik Login', trailing: Switch(value: true, onChanged: (_) {}, activeThumbColor: AppColors.primaryContainer)),
+          _SettingItem(icon: Icons.lock, title: 'Ubah Password', onTap: () => _showComingSoon(context)),
+          _SettingItem(icon: Icons.fingerprint, title: 'Biometrik Login', trailing: Switch(value: true, onChanged: (_) => _showComingSoon(context), activeThumbColor: AppColors.primaryContainer)),
           const _SettingItem(icon: Icons.language, title: 'Bahasa', subtitle: 'Indonesia'),
         ]),
         SizedBox(height: 16.h),
         _Section(title: 'Notifikasi', items: [
-          _SettingItem(icon: Icons.notifications, title: 'Push Notification', trailing: Switch(value: true, onChanged: (_) {}, activeThumbColor: AppColors.primaryContainer)),
-          _SettingItem(icon: Icons.alarm, title: 'Pengingat Check-in', trailing: Switch(value: true, onChanged: (_) {}, activeThumbColor: AppColors.primaryContainer)),
-          _SettingItem(icon: Icons.campaign, title: 'Pengumuman', trailing: Switch(value: true, onChanged: (_) {}, activeThumbColor: AppColors.primaryContainer)),
+          _SettingItem(icon: Icons.notifications, title: 'Push Notification', trailing: Switch(value: true, onChanged: (_) => _showComingSoon(context), activeThumbColor: AppColors.primaryContainer)),
+          _SettingItem(icon: Icons.alarm, title: 'Pengingat Check-in', trailing: Switch(value: true, onChanged: (_) => _showComingSoon(context), activeThumbColor: AppColors.primaryContainer)),
+          _SettingItem(icon: Icons.campaign, title: 'Pengumuman', trailing: Switch(value: true, onChanged: (_) => _showComingSoon(context), activeThumbColor: AppColors.primaryContainer)),
         ]),
         SizedBox(height: 16.h),
         _Section(title: 'Tentang', items: [
-          const _SettingItem(icon: Icons.info, title: 'Versi Aplikasi', subtitle: '1.0.0'),
-          _SettingItem(icon: Icons.description, title: 'Kebijakan Privasi', onTap: () {}),
-          _SettingItem(icon: Icons.gavel, title: 'Syarat & Ketentuan', onTap: () {}),
+          const _SettingItem(icon: Icons.info, title: 'Versi Aplikasi', subtitle: '1.0.2'),
+          _SettingItem(icon: Icons.description, title: 'Kebijakan Privasi', onTap: () => _showComingSoon(context)),
+          _SettingItem(icon: Icons.gavel, title: 'Syarat & Ketentuan', onTap: () => _showComingSoon(context)),
         ]),
       ])),
     );

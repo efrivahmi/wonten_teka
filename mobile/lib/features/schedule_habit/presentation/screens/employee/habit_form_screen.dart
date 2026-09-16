@@ -15,12 +15,13 @@ class HabitFormScreen extends StatefulWidget {
 class _HabitFormScreenState extends State<HabitFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _descController = TextEditingController();
   String _frequency = 'Setiap Hari';
   TimeOfDay _reminderTime = const TimeOfDay(hour: 7, minute: 0);
   final _frequencies = ['Setiap Hari', 'Hari Kerja', 'Akhir Pekan', 'Kustom'];
 
   @override
-  void dispose() { _nameController.dispose(); super.dispose(); }
+  void dispose() { _nameController.dispose(); _descController.dispose(); super.dispose(); }
 
   void _submit() {
     if (_formKey.currentState?.validate() ?? false) {
@@ -35,13 +36,14 @@ class _HabitFormScreenState extends State<HabitFormScreen> {
             'daily';
         context.read<TaskCubit>().createTask(
               title: _nameController.text,
+              description: _descController.text,
               recurrenceRule: recurrence,
               reminderTime: formattedTime,
             );
       } else {
         context.read<TaskCubit>().addTask(
               _nameController.text,
-              null,
+              _descController.text.isEmpty ? null : _descController.text,
               DateTime.now().toIso8601String().split('T').first,
               formattedTime.substring(0, 5),
             );
@@ -86,6 +88,16 @@ class _HabitFormScreenState extends State<HabitFormScreen> {
                         }
                         return null;
                       },
+                      enabled: !isLoading,
+                    ),
+                    SizedBox(height: 16.h),
+                    
+                    _label(widget.isHabit ? 'DESKRIPSI HABIT (Opsional)' : 'DESKRIPSI TUGAS (Opsional)'),
+                    SizedBox(height: 8.h),
+                    TextFormField(
+                      controller: _descController, 
+                      maxLines: 2,
+                      decoration: _deco('Keterangan tambahan'),
                       enabled: !isLoading,
                     ),
                     SizedBox(height: 24.h),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/repositories/device_admin_repository.dart';
 import '../../../../../core/widgets/empty_state_widget.dart';
@@ -197,8 +198,13 @@ class _DeviceApprovalAdminScreenState extends State<DeviceApprovalAdminScreen> {
     final deviceOs = device['os_version'] ?? '-';
 
     // Format tanggal
-    String dateStr = device['created_at'] ?? '';
-    if (dateStr.length > 10) dateStr = dateStr.substring(0, 10);
+    final createdAtRaw = device['created_at'];
+    final createdAtDt = createdAtRaw != null
+        ? DateTime.tryParse(createdAtRaw.toString())?.toLocal()
+        : null;
+    final dateStr = createdAtDt != null
+        ? DateFormat('d MMM yyyy', 'id_ID').format(createdAtDt)
+        : '-';
 
     return InfoCard(
       padding: EdgeInsets.all(16.w),

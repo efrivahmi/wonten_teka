@@ -64,14 +64,22 @@ class AnnouncementsScreen extends StatelessWidget {
                               Text(item.body,
                                   maxLines: 3, overflow: TextOverflow.ellipsis),
                               SizedBox(height: 8.h),
-                              Text(
-                                  item.createdAt == null
-                                      ? '-'
-                                      : DateFormat('dd MMM yyyy', 'id_ID')
-                                          .format(item.createdAt!),
-                                  style: TextStyle(
-                                      fontSize: 11.sp,
-                                      color: AppColors.onSurfaceVariant)),
+                              Row(
+                                children: [
+                                  Text(
+                                      item.createdAt == null
+                                          ? '-'
+                                          : DateFormat('dd MMM yyyy', 'id_ID')
+                                              .format(item.createdAt!),
+                                      style: TextStyle(
+                                          fontSize: 11.sp,
+                                          color: AppColors.onSurfaceVariant)),
+                                  if (item.attachmentUrl != null && item.attachmentUrl!.isNotEmpty) ...[
+                                    SizedBox(width: 8.w),
+                                    Icon(Icons.attach_file, size: 14.sp, color: AppColors.onSurfaceVariant),
+                                  ],
+                                ],
+                              ),
                             ])),
                         if (!item.isAcknowledged)
                           const Icon(Icons.circle,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../auth/bloc/auth_bloc.dart';
 import '../../../../attendance/bloc/attendance_cubit.dart';
@@ -12,6 +13,7 @@ import 'package:intl/intl.dart';
 import '../../../../../core/widgets/brand_panel.dart';
 import '../../../../../core/repositories/attendance_repository.dart';
 import '../../../../../core/widgets/app_brand_title.dart';
+import '../../../../../core/models/company_models.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
   const HomeDashboardScreen({super.key});
@@ -1032,14 +1034,18 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 children: state.announcements.take(3).map((announcement) {
                   return Padding(
                     padding: EdgeInsets.only(bottom: 12.h),
-                    child: _buildPromoCard(
-                      title: announcement.title,
-                      subtitle: DateFormat('dd MMM yyyy')
-                          .format(announcement.createdAt ?? DateTime.now()),
-                      color: announcement.priority == 'high'
-                          ? AppColors.errorContainer
-                          : AppColors.primaryFixedDim,
-                      icon: Icons.campaign,
+                    child: GestureDetector(
+                      onTap: () => _showAnnouncementDetail(announcement),
+                      child: _buildPromoCard(
+                        title: announcement.title,
+                        subtitle: DateFormat('dd MMM yyyy')
+                            .format(announcement.createdAt ?? DateTime.now()),
+                        color: announcement.priority == 'high'
+                            ? AppColors.errorContainer
+                            : AppColors.primaryFixedDim,
+                        icon: Icons.campaign,
+                        hasAttachment: announcement.attachmentUrl != null && announcement.attachmentUrl!.isNotEmpty,
+                      ),
                     ),
                   );
                 }).toList(),
@@ -1057,12 +1063,162 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     );
   }
 
+  void _showAnnouncementDetail(AnnouncementModel announcement) {
+    final attachUrl = announcement.attachmentUrl;
+    final bool isImage = attachUrl != null &&
+        RegExp(r'\.(jpg|jpeg|png|gif|webp)(\?|$)', caseSensitive: false)
+            .hasMatch(attachUrl);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.65,
+        maxChildSize: 0.92,
+        minChildSize: 0.4,
+        expand: false,
+        builder: (_, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+          ),
+          child: ListView(
+            controller: scrollController,
+            padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 32.h),
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40.w,
+                  height: 4.h,
+                  decoration: BoxDecoration(
+                    color: AppColors.outlineVariant,
+                    borderRadius: BorderRadius.circular(2.r),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20.h),
+              // Priority chip
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: announcement.isUrgent
+                      ? AppColors.errorCrimson.withValues(alpha: 0.1)
+                      : AppColors.primaryContainer,
+                  borderRadius: BorderRadius.circular(99.r),
+                ),
+                child: Text(
+                  announcement.priority.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.w800,
+                    color: announcement.isUrgent
+                        ? AppColors.errorCrimson
+                        : AppColors.primary,
+                  ),
+                ),
+              ),
+              SizedBox(height: 12.h),
+              Text(
+                announcement.title,
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.onSurface,
+                ),
+              ),
+              SizedBox(height: 6.h),
+              Text(
+                DateFormat('EEEE, d MMMM yyyy', 'id_ID')
+                    .format(announcement.createdAt ?? DateTime.now()),
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+              SizedBox(height: 16.h),
+              Text(
+                announcement.body,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: AppColors.onSurface,
+                  height: 1.6,
+                ),
+              ),
+              if (attachUrl != null && attachUrl.isNotEmpty) ...[
+                SizedBox(height: 20.h),
+                Text(
+                  'Lampiran',
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                if (isImage)
+                  GestureDetector(
+                    onTap: () => launchUrl(Uri.parse(attachUrl),
+                        mode: LaunchMode.externalApplication),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12.r),
+                      child: Image.network(
+                        attachUrl,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        loadingBuilder: (_, child, progress) =>
+                            progress == null
+                                ? child
+                                : SizedBox(
+                                    height: 180.h,
+                                    child: const Center(
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2))),
+                        errorBuilder: (_, __, ___) => Container(
+                          height: 120.h,
+                          color: Colors.grey[200],
+                          child: const Center(
+                              child: Icon(Icons.broken_image,
+                                  color: Colors.grey)),
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () => launchUrl(Uri.parse(attachUrl),
+                          mode: LaunchMode.externalApplication),
+                      icon: const Icon(Icons.download),
+                      label: Text(
+                        attachUrl.toLowerCase().endsWith('.pdf')
+                            ? 'Buka PDF'
+                            : 'Unduh Lampiran',
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r)),
+                      ),
+                    ),
+                  ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
   Widget _buildPromoCard(
       {required String title,
       required String subtitle,
       required Color color,
       required IconData icon,
-      VoidCallback? onTap}) {
+      VoidCallback? onTap,
+      bool hasAttachment = false}) {
     return GestureDetector(
         onTap: onTap,
         child: Container(
@@ -1102,6 +1258,20 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                         color: AppColors.onSurface,
                       ),
                     ),
+                    if (hasAttachment) ...[
+                      SizedBox(height: 6.h),
+                      Row(children: [
+                        Icon(Icons.attach_file,
+                            size: 13.sp,
+                            color: AppColors.onSurface.withValues(alpha: 0.6)),
+                        SizedBox(width: 4.w),
+                        Text('Ada lampiran — ketuk untuk melihat',
+                            style: TextStyle(
+                                fontSize: 11.sp,
+                                color: AppColors.onSurface
+                                    .withValues(alpha: 0.6))),
+                      ]),
+                    ],
                   ],
                 ),
               ),

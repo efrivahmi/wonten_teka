@@ -83,7 +83,9 @@ class AnnouncementModel extends Equatable {
       targetType: json['target_type'] as String? ?? 'company',
       isAcknowledged: acknowledged,
       createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at']) : null,
-      attachmentUrl: json['attachment_url'] as String?,
+      attachmentUrl: (json['attachment_full_url'] as String?)?.isNotEmpty == true
+          ? json['attachment_full_url'] as String
+          : json['attachment_url'] as String?,
     );
   }
 

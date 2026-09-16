@@ -141,6 +141,7 @@ class TaskCubit extends Cubit<TaskState> {
 
   Future<void> createTask(
       {required String title,
+      String? description,
       required String recurrenceRule,
       required String reminderTime}) async {
     final todayStr = DateTime.now().toIso8601String().split('T').first;
@@ -149,7 +150,7 @@ class TaskCubit extends Cubit<TaskState> {
     try {
       final task = await _repo.create(
         title: title,
-        description: null,
+        description: description,
         taskDate: todayStr,
         reminderTime: timeStr,
         isHabit: true,

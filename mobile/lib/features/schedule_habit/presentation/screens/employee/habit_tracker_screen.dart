@@ -264,7 +264,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                                           : AppColors.surfaceContainerHigh,
                                       borderRadius:
                                           BorderRadius.circular(12.r)),
-                                  child: Icon(Icons.star_outline,
+                                  child: Icon(h.isCompletedToday ? Icons.check_circle : (widget.isHabit ? Icons.star_outline : Icons.assignment_outlined),
                                       color: h.isCompletedToday
                                           ? AppColors.successEmerald
                                           : AppColors.onSurfaceVariant,
@@ -278,10 +278,20 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                                     children: [
                                       Text(h.title,
                                           style: TextStyle(
-                                              color: AppColors.onSurface,
+                                              color: h.isCompletedToday ? AppColors.onSurfaceVariant : AppColors.onSurface,
                                               fontWeight: FontWeight.w600,
+                                              decoration: h.isCompletedToday ? TextDecoration.lineThrough : null,
                                               fontSize: 14.sp)),
-                                      SizedBox(height: 2.h),
+                                      if (h.description != null && h.description!.isNotEmpty) ...[
+                                        SizedBox(height: 4.h),
+                                        Text(h.description!,
+                                            style: TextStyle(
+                                                color: AppColors.onSurfaceVariant,
+                                                decoration: h.isCompletedToday ? TextDecoration.lineThrough : null,
+                                                fontSize: 12.sp)),
+                                      ],
+                                      SizedBox(height: 6.h),
+                                      if (widget.isHabit)
                                       Row(
                                         children: [
                                           Icon(Icons.local_fire_department,
@@ -327,13 +337,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                                                 .read<TaskCubit>()
                                                 .completeTask(h.id);
                                           } else {
-                                            context.read<TaskCubit>().toggleTask(
-                                                h.id,
-                                                !h.isActive,
-                                                DateTime.now()
-                                                    .toIso8601String()
-                                                    .split('T')
-                                                    .first);
+                                            context.read<TaskCubit>().completeTask(h.id);
                                           }
                                         },
                                   activeColor: AppColors.successEmerald,

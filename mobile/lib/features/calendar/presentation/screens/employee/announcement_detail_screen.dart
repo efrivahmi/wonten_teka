@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/models/company_models.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
@@ -46,6 +47,26 @@ class AnnouncementDetailScreen extends StatelessWidget {
             InfoCard(
                 child: Text(announcement.body,
                     style: TextStyle(fontSize: 14.sp, height: 1.6))),
+            if (announcement.attachmentUrl != null && announcement.attachmentUrl!.isNotEmpty) ...[
+              SizedBox(height: 16.h),
+              SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final url = Uri.parse(announcement.attachmentUrl!);
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url, mode: LaunchMode.externalApplication);
+                      } else {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Gagal membuka tautan lampiran')));
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.attach_file),
+                    label: const Text('Buka Lampiran'),
+                  )),
+            ],
             if (!announcement.isAcknowledged) ...[
               SizedBox(height: 24.h),
               SizedBox(

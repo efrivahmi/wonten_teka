@@ -39,8 +39,16 @@ class _AttendanceAdjustmentFormScreenState
   }
 
   Future<void> _timePicker(TextEditingController c) async {
-    final t =
-        await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    final t = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (BuildContext context, Widget? child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child!,
+        );
+      },
+    );
     if (t != null) {
       c.text =
           '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';

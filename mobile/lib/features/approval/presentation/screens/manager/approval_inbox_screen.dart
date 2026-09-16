@@ -20,6 +20,23 @@ class ApprovalInboxScreen extends StatefulWidget {
 class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
   String _selectedFilter = 'Semua';
 
+  /// Format raw ISO date string (e.g. "2026-09-14T00:00:00.000000Z") menjadi
+  /// tanggal yang mudah dibaca. Mengembalikan nilai aslinya jika gagal parse.
+  String _fmtDate(dynamic raw, {String pattern = 'd MMM yyyy'}) {
+    if (raw == null) return '-';
+    final dt = DateTime.tryParse(raw.toString())?.toLocal();
+    if (dt == null) return raw.toString();
+    return DateFormat(pattern, 'id_ID').format(dt);
+  }
+
+  /// Format raw ISO datetime ke format jam, misal "14:30".
+  String _fmtTime(dynamic raw) {
+    if (raw == null) return '-';
+    final dt = DateTime.tryParse(raw.toString())?.toLocal();
+    if (dt == null) return raw.toString();
+    return DateFormat('HH:mm').format(dt);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -286,7 +303,7 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                                   children: [
                                     Icon(Icons.calendar_today, size: 14.w, color: AppColors.primary),
                                     SizedBox(width: 6.w),
-                                    Text("${req.approvable?['start_date']} - ${req.approvable?['end_date']}", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                                    Text("${_fmtDate(req.approvable?['start_date'])} - ${_fmtDate(req.approvable?['end_date'])}", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
                                   ],
                                 ),
                               ],
@@ -296,7 +313,7 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                                   children: [
                                     Icon(Icons.access_time, size: 14.w, color: AppColors.primary),
                                     SizedBox(width: 6.w),
-                                    Text("${req.approvable?['date']} (${req.approvable?['start_time']} - ${req.approvable?['end_time']})", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                                    Text("${_fmtDate(req.approvable?['date'])} (${_fmtTime(req.approvable?['start_time'])} - ${_fmtTime(req.approvable?['end_time'])})", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
                                   ],
                                 ),
                               ],
@@ -306,7 +323,7 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                                   children: [
                                     Icon(Icons.swap_horiz, size: 14.w, color: AppColors.primary),
                                     SizedBox(width: 6.w),
-                                    Text("${req.approvable?['original_date']} \u2192 ${req.approvable?['proposed_date']}", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                                    Text("${_fmtDate(req.approvable?['original_date'])} \u2192 ${_fmtDate(req.approvable?['proposed_date'])}", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
                                   ],
                                 ),
                               ],
@@ -316,7 +333,7 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                                   children: [
                                     Icon(Icons.history_toggle_off, size: 14.w, color: AppColors.primary),
                                     SizedBox(width: 6.w),
-                                    Text("${req.approvable?['date']} (${req.approvable?['check_in']} - ${req.approvable?['check_out']})", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                                    Text("${_fmtDate(req.approvable?['date'])} (${_fmtTime(req.approvable?['check_in'])} - ${_fmtTime(req.approvable?['check_out'])})", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
                                   ],
                                 ),
                               ],
@@ -326,7 +343,7 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                                   children: [
                                     Icon(Icons.card_travel, size: 14.w, color: AppColors.primary),
                                     SizedBox(width: 6.w),
-                                    Text("${req.approvable?['start_date']} - ${req.approvable?['end_date']} di ${req.approvable?['location']}", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                                    Text("${_fmtDate(req.approvable?['start_date'])} - ${_fmtDate(req.approvable?['end_date'])} di ${req.approvable?['location'] ?? '-'}", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
                                   ],
                                 ),
                               ],

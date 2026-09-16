@@ -96,6 +96,81 @@ class _AdminAttendanceDetailScreenState
     return '${minutes ~/ 60} jam ${minutes % 60} menit';
   }
 
+  String _photoUrl(dynamic raw) {
+    if (raw == null || raw.toString().isEmpty) return '';
+    final s = raw.toString();
+    if (s.startsWith('http://') || s.startsWith('https://')) return s;
+    return 'https://presensi.lemdiklattarunanusantaraindonesia.id/storage/$s';
+  }
+
+  Widget _buildPhotoSection(String label, dynamic photoRaw) {
+    final url = _photoUrl(photoRaw);
+    return Expanded(
+      child: InfoCard(
+        child: Column(
+          children: [
+            Text(label,
+                style: TextStyle(
+                    fontSize: 12.sp, fontWeight: FontWeight.w700,
+                    color: AppColors.onSurfaceVariant)),
+            SizedBox(height: 8.h),
+            if (url.isNotEmpty)
+              GestureDetector(
+                onTap: () => showDialog(
+                  context: context,
+                  builder: (_) => Dialog(
+                    child: InteractiveViewer(
+                      child: Image.network(url,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => const Icon(
+                              Icons.broken_image, size: 64)),
+                    ),
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8.r),
+                  child: Image.network(
+                    url,
+                    height: 130.h,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (_, child, progress) => progress == null
+                        ? child
+                        : SizedBox(
+                            height: 130.h,
+                            child: const Center(
+                                child: CircularProgressIndicator(strokeWidth: 2))),
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 130.h,
+                      color: Colors.grey[200],
+                      child: const Center(
+                          child: Icon(Icons.broken_image, color: Colors.grey)),
+                    ),
+                  ),
+                ),
+              )
+            else
+              Container(
+                height: 130.h,
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Center(
+                    child: Icon(Icons.face,
+                        color: AppColors.onSurfaceVariant, size: 48.w)),
+              ),
+            SizedBox(height: 4.h),
+            if (url.isNotEmpty)
+              Text('Ketuk untuk perbesar',
+                  style: TextStyle(
+                      fontSize: 10.sp, color: AppColors.onSurfaceVariant)),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: AppColors.surfaceContainerLow,
@@ -249,6 +324,19 @@ class _AdminAttendanceDetailScreenState
             ]),
           ),
         ],
+        // ─── Foto Check-in & Check-out ───────────────────────────────────────
+        SizedBox(height: 12.h),
+        Text('Foto & Verifikasi Wajah',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: AppColors.onSurface, fontWeight: FontWeight.w600)),
+        SizedBox(height: 8.h),
+        Row(
+          children: [
+            _buildPhotoSection('Masuk', log['check_in_photo_url']),
+            SizedBox(width: 12.w),
+            _buildPhotoSection('Keluar', log['check_out_photo_url']),
+          ],
+        ),
       ],
     );
   }
