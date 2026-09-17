@@ -167,7 +167,21 @@ class AttendanceController extends Controller
             }
             $shiftTemplate = $assignment->shiftTemplate;
         } else if ($shiftTemplateId) {
-            $shiftTemplate = \App\Models\ShiftTemplate::find($shiftTemplateId);
+            $hasAssignedShift = \App\Models\ShiftAssignment::where('employee_id', $employee->id)
+                ->whereDate('date', $businessNow->toDateString())->exists();
+            $hasRecurringShift = \App\Models\RecurringShiftAssignment::where('employee_id', $employee->id)
+                ->where('shift_template_id', $shiftTemplateId)
+                ->where('day_of_week', $businessNow->dayOfWeekIso)
+                ->where(fn ($query) => $query->whereNull('starts_on')->orWhereDate('starts_on', '<=', $businessNow))
+                ->where(fn ($query) => $query->whereNull('ends_on')->orWhereDate('ends_on', '>=', $businessNow))
+                ->exists();
+            $shiftTemplate = $hasAssignedShift
+                ? null
+                : \App\Models\ShiftTemplate::whereKey($shiftTemplateId)
+                    ->where(fn ($query) => $hasRecurringShift
+                        ? $query->where('is_active', true)
+                        : $query->where('is_default', true))
+                    ->first();
         }
 
         if (!$shiftTemplate) {
@@ -458,8 +472,8 @@ class AttendanceController extends Controller
             $workDate = $log->check_in_at->copy()
                 ->setTimezone(config('app.business_timezone'))
                 ->toDateString();
-            $shiftCount = \App\Models\ShiftAssignment::where('employee_id', $employee->id)
-                ->whereDate('date', $workDate)
+            $shiftCount = app(\App\Services\AttendanceAbsenceService::class)
+                ->shiftsFor($employee->id, \Carbon\Carbon::parse($workDate))
                 ->count();
             $overtime = \App\Models\OvertimeRequest::where('employee_id', $employee->id)
                 ->whereDate('date', $workDate)
