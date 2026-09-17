@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -67,23 +69,18 @@ class _EmployeeOnboardingAdminScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-          onPressed: () => context.pop(),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Wonten Teka'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
         ),
-        title: Text(
-          'Tambah Karyawan Baru',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-      ),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -152,7 +149,7 @@ class _EmployeeOnboardingAdminScreenState
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : _submitForm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryContainer,
+                    
                     disabledBackgroundColor: AppColors.surfaceContainerHigh,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.r),
@@ -180,7 +177,7 @@ class _EmployeeOnboardingAdminScreenState
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildTextField({

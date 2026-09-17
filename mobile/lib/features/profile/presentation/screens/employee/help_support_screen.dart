@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
 
@@ -14,11 +15,18 @@ class HelpSupportScreen extends StatelessWidget {
       {'q': 'Bagaimana cara mengajukan cuti?', 'a': 'Buka tab Approval > tekan "Ajukan Cuti" > isi formulir > kirim.'},
       {'q': 'Kapan slip gaji tersedia?', 'a': 'Slip gaji tersedia setiap tanggal 25 setiap bulan.'},
     ];
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
-      appBar: AppBar(backgroundColor: AppColors.surface, elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.onSurface), onPressed: () => context.pop()),
-        title: Text('Bantuan', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)), centerTitle: true),
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
+      appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Bantuan'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
       body: SingleChildScrollView(padding: EdgeInsets.all(16.w), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         // Contact Card
         InfoCard(child: Row(children: [
@@ -42,7 +50,7 @@ class HelpSupportScreen extends StatelessWidget {
           children: [Text(f['a']!, style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13.sp, height: 1.5))],
         )))),
       ])),
-    );
+    ));
   }
 }
 

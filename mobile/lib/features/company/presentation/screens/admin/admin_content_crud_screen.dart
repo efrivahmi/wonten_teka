@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/api/api_client.dart';
 
@@ -28,5 +29,7 @@ class _AdminContentCrudScreenState extends State<AdminContentCrudScreen> with Si
   }if(d.mounted)Navigator.pop(d,true);},child:const Text('Simpan'))]));title.dispose();body.dispose();if(ok==true)await load();}
   Future<void> remove(String path)async{await api.delete(path);await load();}
   Widget list(List<Map<String,dynamic>> data,bool isTask)=>ListView.builder(padding:const EdgeInsets.all(16),itemCount:data.length,itemBuilder:(c,i){final x=data[i];return Card(child:ListTile(title:Text(x['title']?.toString()??'-'),subtitle:Text(isTask?'${x['employee']?['full_name']??'-'} • ${x['is_habit']==true?'Habit':'Daily Task'}':x['body']?.toString()??''),trailing:Wrap(children:[IconButton(onPressed:()=>isTask?editTask(x):editAnnouncement(x),icon:const Icon(Icons.edit)),IconButton(onPressed:()=>remove(isTask?'/admin/tasks/${x['id']}':'/admin/announcements/${x['id']}'),icon:const Icon(Icons.delete,color:Colors.red))])));});
-  @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('Kelola Konten Karyawan'),bottom:TabBar(controller:tabs,tabs:const[Tab(text:'Task & Habit'),Tab(text:'Pengumuman')])),floatingActionButton:FloatingActionButton(onPressed:()=>tabs.index==0?editTask():editAnnouncement(),child:const Icon(Icons.add)),body:loading?const Center(child:CircularProgressIndicator()):TabBarView(controller:tabs,children:[list(tasks,true),list(announcements,false)]));
+  @override Widget build(BuildContext context)=>BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,appBar:AppBar(title:const Text('Kelola Konten Karyawan'),bottom:TabBar(controller:tabs,tabs:const[Tab(text:'Task & Habit'),Tab(text:'Pengumuman')])),floatingActionButton:FloatingActionButton(onPressed:()=>tabs.index==0?editTask():editAnnouncement(),child:const Icon(Icons.add)),body:loading?const Center(child:CircularProgressIndicator()):TabBarView(controller:tabs,children:[list(tasks,true),list(announcements,false)])));
 }

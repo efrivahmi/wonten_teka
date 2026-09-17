@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../schedule/bloc/task_cubit.dart';
+import 'package:wonten_teka_mobile/core/widgets/success_submission_screen.dart';
 
 class HabitFormScreen extends StatefulWidget {
   final bool isHabit;
@@ -53,15 +55,31 @@ class _HabitFormScreenState extends State<HabitFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(backgroundColor: AppColors.surface, elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.onSurface), onPressed: () => context.pop()),
-        title: Text(widget.isHabit ? 'Tambah Habit' : 'Tambah Daily Task', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)), centerTitle: true),
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
+      appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Wonten Teka'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
       body: BlocConsumer<TaskCubit, TaskState>(
         listener: (context, state) {
           if (state is TaskActionSuccess) {
-            context.pop();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (_) => SuccessSubmissionScreen(
+                    title: widget.isHabit ? 'Habit Berhasil Disimpan' : 'Tugas Berhasil Disimpan',
+                    message: state.message,
+                  ),
+                ),
+              );
+            });
           } else if (state is TaskError) {
             _showErrorSheet(context, state.message);
           }
@@ -139,7 +157,7 @@ class _HabitFormScreenState extends State<HabitFormScreen> {
                       child: ElevatedButton(
                         onPressed: isLoading ? null : _submit,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryContainer, 
+                           
                           foregroundColor: AppColors.onPrimary, 
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
                         ),
@@ -155,7 +173,7 @@ class _HabitFormScreenState extends State<HabitFormScreen> {
           );
         },
       ),
-    );
+    ));
   }
 
   Widget _label(String t) => Text(t, style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11.sp, fontWeight: FontWeight.w700, letterSpacing: 1.2));

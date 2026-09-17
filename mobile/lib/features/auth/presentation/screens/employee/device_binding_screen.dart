@@ -162,8 +162,10 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
   @override
   Widget build(BuildContext context) {
     // If there is an error during binding, we'll store it here to display properly
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       body: Stack(
         children: [
           Positioned(
@@ -295,6 +297,6 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
           ),
         ],
       ),
-    );
+    ));
   }
 }

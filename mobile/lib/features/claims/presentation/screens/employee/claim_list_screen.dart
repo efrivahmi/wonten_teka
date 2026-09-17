@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/empty_state_widget.dart';
 import '../../../../../core/widgets/error_state_widget.dart';
+import '../../../../../core/widgets/app_brand_title.dart';
+import '../../../../../core/widgets/brand_panel.dart';
 import '../../../bloc/claim_cubit.dart';
 
 class ClaimListScreen extends StatefulWidget {
@@ -28,7 +30,12 @@ class _ClaimListScreenState extends State<ClaimListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLowest,
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        title: const AppBrandTitle(section: 'Riwayat Klaim'),
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           await context.push('/app/claims/new');
@@ -39,31 +46,8 @@ class _ClaimListScreenState extends State<ClaimListScreen> {
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text('Ajukan Klaim', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
-      body: Stack(
-        children: [
-          Container(
-            height: 240.h,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(32.r), bottomRight: Radius.circular(32.r)),
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                  child: Row(
-                    children: [
-                      IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => context.pop()),
-                      Expanded(child: Text('Riwayat Klaim', style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
-                      SizedBox(width: 48.w),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                Expanded(
-                  child: BlocBuilder<ClaimCubit, ClaimState>(
+      body: BrandPageBackground(
+        child: BlocBuilder<ClaimCubit, ClaimState>(
                     builder: (context, state) {
                       if (state is ClaimLoading) {
                         return ListView.separated(
@@ -152,11 +136,6 @@ class _ClaimListScreenState extends State<ClaimListScreen> {
                       return const SizedBox.shrink();
                     },
                   ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

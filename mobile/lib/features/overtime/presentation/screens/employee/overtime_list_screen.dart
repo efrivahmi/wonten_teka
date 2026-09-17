@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/api/api_client.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -25,14 +27,23 @@ class _OvertimeListScreenState extends State<OvertimeListScreen> {
   void _refresh() => setState(() => _future = _load());
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Pengajuan lembur')),
+  Widget build(BuildContext context) => BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Pengajuan lembur'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () async {
             await context.push('/app/overtime/new');
             _refresh();
           },
-          backgroundColor: AppColors.primary,
+          
           foregroundColor: Colors.white,
           icon: const Icon(Icons.add),
           label: const Text('Ajukan lembur'),
@@ -89,7 +100,7 @@ class _OvertimeListScreenState extends State<OvertimeListScreen> {
                     },
                   ));
             }),
-      );
+      ));
 }
 
 class _Message extends StatelessWidget {

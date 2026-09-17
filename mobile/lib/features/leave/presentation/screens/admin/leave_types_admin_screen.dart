@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -45,14 +47,18 @@ class _LeaveTypesAdminScreenState extends State<LeaveTypesAdminScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       appBar: AppBar(
-        title: const Text('Tipe Cuti'),
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        foregroundColor: AppColors.primary,
-      ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Tipe Cuti'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await context.push('/admin/leave-types/form');
@@ -60,7 +66,7 @@ class _LeaveTypesAdminScreenState extends State<LeaveTypesAdminScreen> {
             context.read<LeaveCubit>().loadAdminTypes();
           }
         },
-        backgroundColor: AppColors.primary,
+        
         foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       ),
@@ -96,7 +102,7 @@ class _LeaveTypesAdminScreenState extends State<LeaveTypesAdminScreen> {
           return const SizedBox.shrink();
         },
       ),
-    );
+    ));
   }
 
   Widget _buildLeaveTypeCard(LeaveTypeModel type) {

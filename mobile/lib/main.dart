@@ -31,10 +31,14 @@ import 'features/schedule/bloc/shift_cubit.dart';
 import 'features/company/bloc/company_cubit.dart';
 import 'features/schedule/bloc/task_cubit.dart';
 
+import 'core/services/task_cache_service.dart';
+import 'features/tasks/notification_service.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await TaskCacheService.init();
+  await NotificationService().init();
 
   // Initialize locale data for date formatting (prevents LocaleDataException)
   await initializeDateFormatting('id_ID', null);

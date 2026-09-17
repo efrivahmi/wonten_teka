@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -27,38 +29,18 @@ class EmployeeDetailAdminScreen extends StatelessWidget {
         ? DateFormat('d MMM yyyy').format(DateTime.parse(employee['join_date']))
         : '-';
 
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-          onPressed: () => context.pop(),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Wonten Teka'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
         ),
-        title: Text(
-          'Detail Karyawan',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit, color: AppColors.primary),
-            onPressed: () async {
-              final result =
-                  await context.push('/admin/employees/edit', extra: employee);
-              if (result == true) {
-                // Return true to EmployeeManagementScreen so it reloads
-                if (context.mounted) {
-                  context.pop(true);
-                }
-              }
-            },
-          ),
-        ],
-      ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16.w),
         child: Column(
@@ -66,7 +48,7 @@ class EmployeeDetailAdminScreen extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 48.r,
-              backgroundColor: AppColors.primaryContainer,
+              
               child: Text(
                 initial,
                 style: TextStyle(
@@ -163,7 +145,7 @@ class EmployeeDetailAdminScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Future<void> _confirmDeactivate(BuildContext context, int empId) async {

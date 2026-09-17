@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -57,15 +59,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(backgroundColor: AppColors.surface, elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.onSurface), onPressed: () => context.pop()),
-        title: Text('Edit Profil', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)), centerTitle: true),
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
+      appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Edit Profil'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
       body: SafeArea(child: SingleChildScrollView(padding: EdgeInsets.all(24.w), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         // Avatar
         Center(child: Stack(children: [
-          CircleAvatar(radius: 48.r, backgroundColor: AppColors.surfaceContainerHigh, child: Icon(Icons.person, size: 48.w, color: AppColors.onSurfaceVariant)),
+          CircleAvatar(radius: 48.r,  child: Icon(Icons.person, size: 48.w, color: AppColors.onSurfaceVariant)),
           Positioned(bottom: 0, right: 0, child: Container(
             padding: EdgeInsets.all(6.w), decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.primaryContainer),
             child: Icon(Icons.camera_alt, color: AppColors.onPrimary, size: 16.w))),
@@ -81,10 +90,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         SizedBox(height: 32.h),
         SizedBox(height: 52.h, child: ElevatedButton(
           onPressed: _saving ? null : _save,
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryContainer, foregroundColor: AppColors.onPrimary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r))),
+          style: ElevatedButton.styleFrom( foregroundColor: AppColors.onPrimary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r))),
           child: _saving ? const CircularProgressIndicator() : Text('Simpan', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16.sp)))),
       ]))),
-    );
+    ));
   }
 
   Widget _label(String t) => Text(t, style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11.sp, fontWeight: FontWeight.w700, letterSpacing: 1.2));

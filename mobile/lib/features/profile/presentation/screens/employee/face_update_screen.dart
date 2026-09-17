@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -37,15 +39,18 @@ class _FaceUpdateScreenState extends State<FaceUpdateScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       appBar: AppBar(
-        title: const Text('Data Wajah Saya'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Data Wajah Saya'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
         ),
-      ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _status,
         builder: (context, snapshot) {
@@ -128,6 +133,6 @@ class _FaceUpdateScreenState extends State<FaceUpdateScreen> {
           );
         },
       ),
-    );
+    ));
   }
 }

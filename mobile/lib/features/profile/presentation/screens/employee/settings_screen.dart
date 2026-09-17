@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
 
@@ -16,11 +17,18 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
-      appBar: AppBar(backgroundColor: AppColors.surface, elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.onSurface), onPressed: () => context.pop()),
-        title: Text('Pengaturan', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)), centerTitle: true),
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
+      appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Pengaturan'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
       body: SingleChildScrollView(padding: EdgeInsets.all(16.w), child: Column(children: [
         _Section(title: 'Akun', items: [
           _SettingItem(icon: Icons.lock, title: 'Ubah Password', onTap: () => _showComingSoon(context)),
@@ -40,7 +48,7 @@ class SettingsScreen extends StatelessWidget {
           _SettingItem(icon: Icons.gavel, title: 'Syarat & Ketentuan', onTap: () => _showComingSoon(context)),
         ]),
       ])),
-    );
+    ));
   }
 }
 

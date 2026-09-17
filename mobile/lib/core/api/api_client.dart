@@ -33,7 +33,6 @@ class ApiClient {
         receiveTimeout: const Duration(seconds: 30),
         headers: {
           'Accept': 'application/json',
-          'Content-Type': 'application/json',
         },
       ),
     );
@@ -89,7 +88,6 @@ class ApiClient {
     return _execute(() => _dio.post(
           path,
           data: formData,
-          options: Options(contentType: 'multipart/form-data'),
         ));
   }
 
@@ -177,12 +175,15 @@ class _ErrorInterceptor extends Interceptor {
             .map((message) => message.toString())
             .firstOrNull
         : null;
-    final message = data is Map && data['message'] != null
-        ? data['message'].toString()
-        : firstValidationMessage ??
-            (data is String && data.trim().isNotEmpty
-                ? 'Server mengembalikan respons yang tidak valid.'
-                : 'Server tidak dapat memproses permintaan.');
+        
+    final message = (statusCode == 422 && firstValidationMessage != null)
+        ? firstValidationMessage
+        : (data is Map && data['message'] != null
+            ? data['message'].toString()
+            : firstValidationMessage ??
+                (data is String && data.trim().isNotEmpty
+                    ? 'Server mengembalikan respons yang tidak valid.'
+                    : 'Server tidak dapat memproses permintaan.'));
 
     final ApiException exception;
     switch (statusCode) {

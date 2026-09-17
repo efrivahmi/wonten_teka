@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
 
@@ -9,17 +10,18 @@ class ExportCenterScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-              onPressed: () => context.pop()),
-          title: Text('Export Center',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.primary, fontWeight: FontWeight.bold))),
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Export Center'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
       body: SingleChildScrollView(
           padding: EdgeInsets.all(16.w),
           child: const Column(
@@ -42,7 +44,7 @@ class ExportCenterScreen extends StatelessWidget {
                     icon: Icons.people,
                     color: AppColors.infoCerulean),
               ])),
-    );
+    ));
   }
 }
 

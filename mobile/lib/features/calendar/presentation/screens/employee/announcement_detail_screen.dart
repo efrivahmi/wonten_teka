@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -14,8 +16,17 @@ class AnnouncementDetailScreen extends StatelessWidget {
   const AnnouncementDetailScreen({super.key, required this.announcement});
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Pengumuman')),
+  Widget build(BuildContext context) => BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Pengumuman'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
         body: SingleChildScrollView(
           padding: EdgeInsets.all(16.w),
           child:
@@ -84,5 +95,5 @@ class AnnouncementDetailScreen extends StatelessWidget {
             ],
           ]),
         ),
-      );
+      ));
 }

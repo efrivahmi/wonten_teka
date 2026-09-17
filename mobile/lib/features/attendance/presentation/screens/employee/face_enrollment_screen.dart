@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -249,20 +251,18 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
             ? "Mengirim ke server..."
             : "Wajah berhasil didaftarkan!";
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        title: Text(
-          'Pendaftaran Wajah',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Wonten Teka'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
         ),
-        centerTitle: true,
-      ),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated &&
@@ -483,7 +483,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                           child: LinearProgressIndicator(
                             value: _scanProgress,
                             minHeight: 8.h,
-                            backgroundColor: AppColors.surfaceContainerHigh,
+                            
                             color: AppColors.primary,
                           ),
                         ),
@@ -518,7 +518,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                     child: LinearProgressIndicator(
                       value: _detectionMetrics.qualityPercent / 100,
                       minHeight: 8.h,
-                      backgroundColor: AppColors.surfaceContainerHigh,
+                      
                       color: _isFaceProper && !_isTooDark
                           ? AppColors.successEmerald
                           : AppColors.warningAmber,
@@ -677,7 +677,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
                               }
                             : _navigateToDashboard),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryContainer,
+                      
                       disabledBackgroundColor: AppColors.surfaceContainerHigh,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.r),
@@ -701,7 +701,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 }
 

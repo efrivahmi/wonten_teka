@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/models/leave_models.dart';
+import '../../../../../core/widgets/app_brand_title.dart';
+import '../../../../../core/widgets/brand_panel.dart';
+import '../../../../../core/widgets/success_submission_screen.dart';
 import '../../../bloc/leave_cubit.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
@@ -117,180 +119,66 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
     }
   }
 
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-        contentPadding: EdgeInsets.all(24.w),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: EdgeInsets.all(16.w),
-              decoration: BoxDecoration(
-                color: AppColors.successEmerald.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.check_circle_outline,
-                  color: AppColors.successEmerald, size: 48.w),
-            ),
-            SizedBox(height: 16.h),
-            Text('Berhasil!',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold, color: AppColors.onSurface)),
-            SizedBox(height: 8.h),
-            Text('Pengajuan cuti Anda telah dikirim dan menunggu persetujuan.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
-            SizedBox(height: 24.h),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  context.pop();
-                  context.pop();
-                  context.read<LeaveCubit>().loadAll();
-                },
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.successEmerald,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 12.h),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r))),
-                icon: const Icon(Icons.send),
-                label: const Text('Konfirmasi via WhatsApp'),
-              ),
-            ),
-            SizedBox(height: 12.h),
-            TextButton(
-              onPressed: () {
-                context.pop(); // close dialog
-                context.pop(); // pop form screen
-                context.read<LeaveCubit>().loadAll(); // reload history
-              },
-              child: const Text('Kembali'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showErrorSheet(String message) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: EdgeInsets.all(24.w),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-                width: 40.w,
-                height: 4.h,
-                decoration: BoxDecoration(
-                    color: AppColors.outlineVariant,
-                    borderRadius: BorderRadius.circular(2.r))),
-            SizedBox(height: 24.h),
-            Icon(Icons.error_outline, color: AppColors.error, size: 56.w),
-            SizedBox(height: 16.h),
-            Text('Pengajuan Gagal',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold, color: AppColors.onSurface)),
-            SizedBox(height: 8.h),
-            Text(message,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
-            SizedBox(height: 32.h),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () => Navigator.pop(ctx),
-                style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.error,
-                    foregroundColor: AppColors.onError,
-                    padding: EdgeInsets.symmetric(vertical: 16.h),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.r))),
-                child: const Text('Tutup & Coba Lagi'),
-              ),
-            ),
-            SizedBox(height: MediaQuery.of(context).padding.bottom + 16.h),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLowest,
-      body: Stack(
-        children: [
-          Container(
-            height: 240.h,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(32.r),
-                bottomRight: Radius.circular(32.r),
-              ),
-            ),
-          ),
-          SafeArea(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        title: const AppBrandTitle(section: 'Pengajuan Cuti'),
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
+      body: BrandPageBackground(
+        child: SafeArea(
             child: Column(
               children: [
-                Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: () => context.pop(),
-                      ),
-                      Expanded(
-                        child: Text(
-                          'Pengajuan Cuti',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20.sp,
-                              fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      SizedBox(width: 48.w),
-                    ],
-                  ),
-                ),
                 Expanded(
                   child: BlocConsumer<LeaveCubit, LeaveState>(
                     listener: (context, state) {
-                      if (state is LeaveSubmitted) {
-                        _showSuccessDialog();
-                      } else if (state is LeaveError) {
-                        _showErrorSheet(state.message);
+                      if (state is LeaveError) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                const Icon(Icons.error_outline, color: Colors.white),
+                                SizedBox(width: 8.w),
+                                Expanded(child: Text(state.message, style: const TextStyle(color: Colors.white))),
+                              ],
+                            ),
+                            backgroundColor: AppColors.errorCrimson,
+                            behavior: SnackBarBehavior.floating,
+                            margin: EdgeInsets.all(16.w),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                          ),
+                        );
                       }
                     },
                     builder: (context, state) {
+                      if (state is LeaveSubmitted) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const SuccessSubmissionScreen(
+                                title: 'Cuti Berhasil Diajukan!',
+                                message: 'Pengajuan cuti Anda telah dicatat dalam sistem dan saat ini sedang menunggu persetujuan dari atasan atau HRD.',
+                              ),
+                            ),
+                          );
+                        });
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
                       bool isLoading = state is LeaveLoading;
                       List<LeaveTypeModel> types = [];
                       List<LeaveBalanceModel> balances = [];
                       if (state is LeaveLoaded) {
                         types = state.types;
                         balances = state.balances;
+                      } else if (context.read<LeaveCubit>().state is LeaveLoaded) {
+                        final loadedState = context.read<LeaveCubit>().state as LeaveLoaded;
+                        types = loadedState.types;
+                        balances = loadedState.balances;
                       }
 
                       return SingleChildScrollView(
@@ -319,10 +207,7 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
                                         fontWeight: FontWeight.bold)),
                                 SizedBox(height: 8.h),
                                 DropdownButtonFormField<int>(
-                                  initialValue: types.any(
-                                          (type) => type.id == _selectedTypeId)
-                                      ? _selectedTypeId
-                                      : null,
+                                  initialValue: _selectedTypeId,
                                   decoration: InputDecoration(
                                     filled: true,
                                     fillColor: Colors.grey[50],
@@ -505,8 +390,7 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
                 ),
               ],
             ),
-          ),
-        ],
+        ),
       ),
     );
   }

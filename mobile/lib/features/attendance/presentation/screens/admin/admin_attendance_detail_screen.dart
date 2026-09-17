@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../core/api/api_client.dart';
@@ -172,13 +173,17 @@ class _AdminAttendanceDetailScreenState
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        backgroundColor: AppColors.surfaceContainerLow,
+  Widget build(BuildContext context) => BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        
         appBar: AppBar(
-          title: const Text('Detail Absensi Karyawan'),
-          leading: IconButton(
-              onPressed: () => context.pop(),
-              icon: const Icon(Icons.arrow_back)),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Detail Absensi Karyawan'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
         ),
         body: _loading
             ? const Center(child: CircularProgressIndicator())
@@ -197,7 +202,7 @@ class _AdminAttendanceDetailScreenState
                     onRefresh: _load,
                     child: _content(_log!),
                   ),
-      );
+      ));
 
   Widget _content(Map<String, dynamic> log) {
     final employee = Map<String, dynamic>.from(log['employee'] as Map? ?? {});

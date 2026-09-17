@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -121,31 +122,17 @@ class _DeviceApprovalAdminScreenState extends State<DeviceApprovalAdminScreen> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
+      child: BrandPageBackground(
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Colors.transparent,
+        
         appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-            onPressed: () => context.pop(),
-          ),
-          title: Text(
-            'Kelola Perangkat',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          bottom: const TabBar(
-            labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.onSurfaceVariant,
-            indicatorColor: AppColors.primary,
-            tabs: [
-              Tab(text: 'Menunggu'),
-              Tab(text: 'Aktif'),
-            ],
-          ),
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Wonten Teka'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
         ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -157,7 +144,7 @@ class _DeviceApprovalAdminScreenState extends State<DeviceApprovalAdminScreen> {
                       _buildList(_activeDevices, isPending: false),
                     ],
                   ),
-      ),
+      )),
     );
   }
 

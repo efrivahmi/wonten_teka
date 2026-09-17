@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/widgets/app_brand_title.dart';
+import '../../../../../core/widgets/brand_panel.dart';
 import '../../../bloc/payslip_cubit.dart';
 
 class PayslipListScreen extends StatefulWidget {
@@ -25,32 +27,14 @@ class _PayslipListScreenState extends State<PayslipListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLowest,
-      body: Stack(
-        children: [
-          Container(
-            height: 240.h,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(32.r), bottomRight: Radius.circular(32.r)),
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                  child: Row(
-                    children: [
-                      IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => context.pop()),
-                      Expanded(child: Text('Slip Gaji', style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
-                      SizedBox(width: 48.w),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                Expanded(
-                  child: BlocBuilder<PayslipCubit, PayslipState>(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        title: const AppBrandTitle(section: 'Slip Gaji'),
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
+      body: BrandPageBackground(
+        child: BlocBuilder<PayslipCubit, PayslipState>(
                     builder: (context, state) {
                       if (state is PayslipLoading) {
                         return ListView.separated(
@@ -134,11 +118,6 @@ class _PayslipListScreenState extends State<PayslipListScreen> {
                       return const SizedBox.shrink();
                     },
                   ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

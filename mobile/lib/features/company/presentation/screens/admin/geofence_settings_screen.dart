@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -63,12 +65,17 @@ class _GeofenceSettingsScreenState extends State<GeofenceSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('Pengaturan Geofence'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-      ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Pengaturan Geofence'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(24.w),
         child: Column(
@@ -246,7 +253,7 @@ class _GeofenceSettingsScreenState extends State<GeofenceSettingsScreen> {
               height: 56.h,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
@@ -258,6 +265,6 @@ class _GeofenceSettingsScreenState extends State<GeofenceSettingsScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 }

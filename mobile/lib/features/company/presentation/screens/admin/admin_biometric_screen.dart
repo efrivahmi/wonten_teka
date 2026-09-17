@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/api/api_client.dart';
@@ -74,8 +76,17 @@ class _AdminBiometricScreenState extends State<AdminBiometricScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Biometrik Wajah')),
+  Widget build(BuildContext context) => BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Biometrik Wajah'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
         body: RefreshIndicator(
           onRefresh: _load,
           child: _loading
@@ -124,5 +135,5 @@ class _AdminBiometricScreenState extends State<AdminBiometricScreen> {
                       },
                     ),
         ),
-      );
+      ));
 }

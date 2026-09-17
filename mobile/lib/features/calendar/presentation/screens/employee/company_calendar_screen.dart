@@ -3,6 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'dart:io';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
 import '../../../../company/bloc/company_cubit.dart';
@@ -58,6 +61,47 @@ class _CompanyCalendarScreenState extends State<CompanyCalendarScreen> {
     return DateTime(year, month, 1).weekday; // 1 = Monday, 7 = Sunday
   }
 
+  Future<void> _exportToCalendar(List<dynamic> events) async {
+    try {
+      String ics = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//WontenTeka//NONSGML v1.0//EN\n";
+      final stamp = "${DateTime.now().toIso8601String().replaceAll(RegExp(r'[-:]'), '').split('.')[0]}Z";
+      
+      for (var event in events) {
+        final uid = "${event.id}@wontenteka-${DateTime.now().millisecondsSinceEpoch}";
+        final startDT = event.startDate;
+        final startStr = "${startDT.toIso8601String().replaceAll(RegExp(r'[-:]'), '').split('.')[0]}Z";
+        
+        String endStr = startStr;
+        if (event.endDate != null) {
+          final endDT = event.endDate!;
+          endStr = "${endDT.toIso8601String().replaceAll(RegExp(r'[-:]'), '').split('.')[0]}Z";
+        }
+        
+        ics += "BEGIN:VEVENT\n";
+        ics += "UID:$uid\nDTSTAMP:$stamp\nDTSTART:$startStr\nDTEND:$endStr\n";
+        ics += "SUMMARY:${event.title ?? event.type}\n";
+        if (event.description != null && event.description!.isNotEmpty) {
+          ics += "DESCRIPTION:${event.description!.replaceAll('\n', '\\n')}\n";
+        }
+        ics += "END:VEVENT\n";
+      }
+      ics += "END:VCALENDAR";
+
+      final directory = await getTemporaryDirectory();
+      final monthStr = DateFormat('MMM_yyyy', 'id_ID').format(_currentMonth);
+      final file = File('${directory.path}/Kalender_Perusahaan_$monthStr.ics');
+      await file.writeAsString(ics);
+      
+      await Share.shareXFiles([XFile(file.path)], text: 'Kalender Perusahaan');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mengekspor kalender: $e'), backgroundColor: AppColors.errorCrimson),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,6 +148,23 @@ class _CompanyCalendarScreenState extends State<CompanyCalendarScreen> {
                               onPressed: () => _changeMonth(1)),
                         ])),
                     SizedBox(height: 16.h),
+
+                    if (isLoaded && events.isNotEmpty) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () => _exportToCalendar(events),
+                          icon: const Icon(Icons.event_available, color: AppColors.primary),
+                          label: const Text('Ekspor ke Kalender (Alarm)', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppColors.primary),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                            padding: EdgeInsets.symmetric(vertical: 12.h),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                    ],
 
                     if (state is CompanyLoading)
                       const Center(
@@ -333,40 +394,101 @@ class _CompanyCalendarScreenState extends State<CompanyCalendarScreen> {
                           final color = _getEventColor(e.type ?? 'meeting');
                           return Padding(
                               padding: EdgeInsets.only(bottom: 12.h),
-                              child: InfoCard(
-                                borderLeftColor: color,
-                                onTap: () => context.push('/app/calendar/event',
-                                    extra: e),
-                                child: Row(children: [
-                                  Expanded(
-                                      child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                        Text(e.title,
-                                            style: TextStyle(
-                                                color: AppColors.onSurface,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 14.sp)),
-                                        SizedBox(height: 4.h),
-                                        Row(children: [
-                                          Icon(Icons.calendar_today,
-                                              size: 12.w,
-                                              color:
-                                                  AppColors.onSurfaceVariant),
-                                          SizedBox(width: 4.w),
-                                          Text(
-                                              DateFormat('dd MMM yyyy')
-                                                  .format(e.startDate),
-                                              style: TextStyle(
-                                                  color: AppColors
-                                                      .onSurfaceVariant,
-                                                  fontSize: 12.sp)),
-                                        ]),
-                                      ])),
-                                  Icon(Icons.chevron_right,
-                                      color: AppColors.outline, size: 20.w),
-                                ]),
+                              child: Material(
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  side: BorderSide(color: AppColors.outline.withValues(alpha: 0.2)),
+                                ),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(16),
+                                  onTap: () => context.push('/app/calendar/event', extra: e),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16.w),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          width: 4.w,
+                                          height: 40.h,
+                                          decoration: BoxDecoration(
+                                            color: color,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                        ),
+                                        SizedBox(width: 12.w),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Container(
+                                                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                                                decoration: BoxDecoration(
+                                                  color: color.withValues(alpha: 0.1),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                child: Text(
+                                                  (e.type ?? 'EVENT').toUpperCase(),
+                                                  style: TextStyle(
+                                                    color: color,
+                                                    fontSize: 10.sp,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 8.h),
+                                              Text(
+                                                e.title,
+                                                style: TextStyle(
+                                                  color: AppColors.onSurface,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16.sp,
+                                                ),
+                                              ),
+                                              SizedBox(height: 6.h),
+                                              Row(
+                                                children: [
+                                                  Icon(Icons.calendar_today, size: 14.w, color: AppColors.onSurfaceVariant),
+                                                  SizedBox(width: 6.w),
+                                                  Expanded(
+                                                    child: Text(
+                                                      DateFormat('dd MMMM yyyy', 'id_ID').format(e.startDate),
+                                                      style: TextStyle(
+                                                        color: AppColors.onSurfaceVariant,
+                                                        fontSize: 13.sp,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              if (e.startTime != null) ...[
+                                                SizedBox(height: 4.h),
+                                                Row(
+                                                  children: [
+                                                    Icon(Icons.schedule, size: 14.w, color: AppColors.onSurfaceVariant),
+                                                    SizedBox(width: 6.w),
+                                                    Text(
+                                                      '${e.startTime!.substring(0, 5)} WIB',
+                                                      style: TextStyle(
+                                                        color: AppColors.onSurfaceVariant,
+                                                        fontSize: 13.sp,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.only(top: 8.h),
+                                          child: Icon(Icons.chevron_right, color: AppColors.outline, size: 24.w),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ));
                         }),
                     ]

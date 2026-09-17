@@ -7,6 +7,8 @@ import 'package:shimmer/shimmer.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/empty_state_widget.dart';
 import '../../../../../core/widgets/error_state_widget.dart';
+import '../../../../../core/widgets/app_brand_title.dart';
+import '../../../../../core/widgets/brand_panel.dart';
 import '../../../bloc/leave_cubit.dart';
 
 class LeaveHistoryScreen extends StatefulWidget {
@@ -87,7 +89,12 @@ class _LeaveHistoryScreenState extends State<LeaveHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLowest,
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        title: const AppBrandTitle(section: 'Riwayat Cuti'),
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           await context.push('/app/leave/new');
@@ -99,31 +106,8 @@ class _LeaveHistoryScreenState extends State<LeaveHistoryScreen> {
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text('Ajukan Cuti', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
-      body: Stack(
-        children: [
-          Container(
-            height: 240.h,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(32.r), bottomRight: Radius.circular(32.r)),
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                  child: Row(
-                    children: [
-                      IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => context.pop()),
-                      Expanded(child: Text('Riwayat Cuti', style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
-                      SizedBox(width: 48.w),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                Expanded(
-                  child: BlocBuilder<LeaveCubit, LeaveState>(
+      body: BrandPageBackground(
+        child: BlocBuilder<LeaveCubit, LeaveState>(
                     builder: (context, state) {
                       if (state is LeaveLoading) {
                         return _buildShimmer();
@@ -205,11 +189,6 @@ class _LeaveHistoryScreenState extends State<LeaveHistoryScreen> {
                       return const SizedBox.shrink();
                     },
                   ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

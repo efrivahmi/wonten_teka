@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -154,20 +156,18 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        title: Text(
-          'Approval Inbox',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            color: AppColors.primary,
-            fontWeight: FontWeight.bold,
-          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Wonten Teka'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
         ),
-        centerTitle: true,
-      ),
       body: BlocConsumer<ApprovalCubit, ApprovalState>(
         listener: (context, state) {
           if (state is ApprovalActioned) {
@@ -364,7 +364,7 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                             Expanded(
                               child: FilledButton(
                                 onPressed: () => _showActionDialog(context, req, true),
-                                style: FilledButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r))),
+                                style: FilledButton.styleFrom( foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r))),
                                 child: const Text('Setujui'),
                               ),
                             ),
@@ -402,7 +402,7 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                           color: isSelected ? AppColors.primary : AppColors.onSurfaceVariant,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
-                        backgroundColor: Colors.white,
+                        
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16.r),
                           side: BorderSide(color: isSelected ? AppColors.primary : AppColors.outlineVariant),
@@ -417,6 +417,6 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
           );
         },
       ),
-    );
+    ));
   }
 }

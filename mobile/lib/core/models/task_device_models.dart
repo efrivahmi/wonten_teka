@@ -62,13 +62,52 @@ class PersonalTaskModel extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
+        'id': id,
+        'employee_id': employeeId,
         'title': title,
         'description': description,
+        'task_date': taskDate?.toIso8601String(),
         'recurrence_rule': recurrenceRule,
         'reminder_time': reminderTime,
         'is_habit': isHabit,
         'reminder_enabled': reminderEnabled,
+        'streak_count': streakCount,
+        'longest_streak': longestStreak,
+        'is_active': isActive,
+        'last_completed_at': lastCompletedAt?.toIso8601String(),
       };
+
+  PersonalTaskModel copyWith({
+    int? id,
+    int? employeeId,
+    String? title,
+    String? description,
+    DateTime? taskDate,
+    String? recurrenceRule,
+    String? reminderTime,
+    bool? isHabit,
+    bool? reminderEnabled,
+    int? streakCount,
+    int? longestStreak,
+    bool? isActive,
+    DateTime? lastCompletedAt,
+  }) {
+    return PersonalTaskModel(
+      id: id ?? this.id,
+      employeeId: employeeId ?? this.employeeId,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      taskDate: taskDate ?? this.taskDate,
+      recurrenceRule: recurrenceRule ?? this.recurrenceRule,
+      reminderTime: reminderTime ?? this.reminderTime,
+      isHabit: isHabit ?? this.isHabit,
+      reminderEnabled: reminderEnabled ?? this.reminderEnabled,
+      streakCount: streakCount ?? this.streakCount,
+      longestStreak: longestStreak ?? this.longestStreak,
+      isActive: isActive ?? this.isActive,
+      lastCompletedAt: lastCompletedAt ?? this.lastCompletedAt,
+    );
+  }
 
   @override
   List<Object?> get props => [id, title, streakCount, isActive];

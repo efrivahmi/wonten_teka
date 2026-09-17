@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/models/claim_models.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -13,11 +14,17 @@ class ClaimDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final money = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
-    return Scaffold(
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
-        title: const Text('Detail klaim'),
-      ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Detail klaim'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
       body: ListView(
         padding: EdgeInsets.all(20.w),
         children: [
@@ -45,7 +52,7 @@ class ClaimDetailScreen extends StatelessWidget {
           ],
         ],
       ),
-    );
+    ));
   }
 
   Widget _row(String label, String value) => Padding(

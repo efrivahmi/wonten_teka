@@ -64,12 +64,14 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       body: SafeArea(
         child: RefreshIndicator(
           color: AppColors.primary,
-          backgroundColor: AppColors.surface,
+          
           onRefresh: () async {
             context.read<AttendanceCubit>().loadHistory();
             context.read<CompanyCubit>().loadAll();
@@ -139,7 +141,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 
   bool get _hasAdditionalSchedule {

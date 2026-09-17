@@ -94,8 +94,10 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       body: Stack(
         children: [
           Positioned(
@@ -196,6 +198,6 @@ class _DevicePendingScreenState extends State<DevicePendingScreen> {
           ),
         ],
       ),
-    );
+    ));
   }
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -11,15 +13,17 @@ class AnnouncementsScreen extends StatelessWidget {
   const AnnouncementsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        backgroundColor: AppColors.surfaceContainerLow,
+  Widget build(BuildContext context) => BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        
         appBar: AppBar(
-          title: const Text('Pengumuman'),
-          actions: [
-            IconButton(
-                onPressed: () => context.read<CompanyCubit>().loadAll(),
-                icon: const Icon(Icons.refresh))
-          ],
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Pengumuman'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
         ),
         body:
             BlocBuilder<CompanyCubit, CompanyState>(builder: (context, state) {
@@ -90,5 +94,5 @@ class AnnouncementsScreen extends StatelessWidget {
             ),
           );
         }),
-      );
+      ));
 }

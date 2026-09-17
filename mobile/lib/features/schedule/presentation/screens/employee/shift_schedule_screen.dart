@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -39,8 +40,10 @@ class _ShiftScheduleScreenState extends State<ShiftScheduleScreen> {
   Widget build(BuildContext context) {
     final days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLowest,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       body: Stack(
         children: [
           Container(
@@ -78,7 +81,7 @@ class _ShiftScheduleScreenState extends State<ShiftScheduleScreen> {
                 Expanded(
                   child: RefreshIndicator(
                     color: AppColors.primary,
-                    backgroundColor: Colors.white,
+                    
                     onRefresh: () async {
                       context.read<ShiftCubit>().loadUpcoming();
                       await Future.delayed(const Duration(milliseconds: 600));
@@ -155,8 +158,7 @@ class _ShiftScheduleScreenState extends State<ShiftScheduleScreen> {
                                         icon: const Icon(Icons.refresh),
                                         label: const Text('Coba Lagi'),
                                         style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                                AppColors.primaryContainer,
+                                            
                                             foregroundColor: AppColors.primary,
                                             shape: RoundedRectangleBorder(
                                                 borderRadius:
@@ -407,6 +409,6 @@ class _ShiftScheduleScreenState extends State<ShiftScheduleScreen> {
           ),
         ],
       ),
-    );
+    ));
   }
 }

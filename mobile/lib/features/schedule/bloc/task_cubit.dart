@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/api/api_exceptions.dart';
 import '../../../core/models/task_device_models.dart';
 import '../../../core/repositories/task_repository.dart';
-
+import '../../../core/services/task_cache_service.dart';
 import '../../tasks/notification_service.dart';
 
 abstract class TaskState extends Equatable {
@@ -19,11 +19,12 @@ class TaskLoading extends TaskState {}
 class TaskLoaded extends TaskState {
   final List<PersonalTaskModel> tasks;
   final String dateStr;
+  final Map<String, dynamic>? trackingData;
 
-  const TaskLoaded(this.tasks, this.dateStr);
+  const TaskLoaded(this.tasks, this.dateStr, {this.trackingData});
 
   @override
-  List<Object?> get props => [tasks, dateStr];
+  List<Object?> get props => [tasks, dateStr, trackingData];
 }
 
 class TaskError extends TaskState {
@@ -49,26 +50,100 @@ class TaskCubit extends Cubit<TaskState> {
 
   Future<void> loadTasksByDate(String dateStr) async {
     emit(TaskLoading());
+    
+    // First yield cached data for instant UI
+    final cachedData = TaskCacheService.getCachedTasksPayload();
+    if (cachedData != null) {
+       try {
+         final cachedTasks = (cachedData['tasks'] as List)
+             .map((e) => PersonalTaskModel.fromJson(e))
+             .toList();
+         emit(TaskLoaded(cachedTasks, dateStr, trackingData: cachedData['tracking']));
+       } catch (_) {}
+    }
+
     try {
       final tasks = await _repo.getTasksByDate(dateStr);
-      emit(TaskLoaded(tasks, dateStr));
-    } catch (e) {
-      String message = 'Gagal memuat tugas.';
-      if (e is ApiException) {
-        message = e.message;
+      Map<String, dynamic>? trackingData;
+      try {
+        trackingData = await _repo.getTrackingHistory();
+      } catch (_) {}
+      
+      // Save to cache
+      final payloadToCache = {
+        'tasks': tasks.map((t) => t.toJson()).toList(),
+        'tracking': trackingData,
+      };
+      await TaskCacheService.cacheTasksPayload(payloadToCache);
+
+      // Process offline queue
+      final queue = TaskCacheService.getOfflineToggleQueue();
+      for (final queuedId in queue) {
+         try {
+           final t = tasks.firstWhere((element) => element.id == queuedId);
+           await _repo.toggleTaskCompletion(queuedId, !t.isActive);
+           await TaskCacheService.removeTaskFromQueue(queuedId);
+         } catch (_) {}
       }
-      emit(TaskError(message));
+
+      // Re-fetch if queue was processed
+      final freshTasks = queue.isNotEmpty ? await _repo.getTasksByDate(dateStr) : tasks;
+      
+      // Schedule local notifications for active tasks
+      for (final t in freshTasks) {
+        if (t.isActive && t.reminderEnabled && t.reminderTime != null) {
+          final timeParts = t.reminderTime!.split(':');
+          final dateParts = dateStr.split('-');
+          final scheduledDate = DateTime(
+            int.parse(dateParts[0]),
+            int.parse(dateParts[1]),
+            int.parse(dateParts[2]),
+            int.parse(timeParts[0]),
+            int.parse(timeParts[1]),
+          );
+          if (scheduledDate.isAfter(DateTime.now())) {
+            await NotificationService().scheduleAlarm(
+              id: t.id,
+              title: t.isHabit ? 'Pengingat Habit: ${t.title}' : 'Pengingat Tugas: ${t.title}',
+              body: t.description ?? 'Waktunya menyelesaikan tugas Anda!',
+              scheduledDate: scheduledDate,
+              repeatDaily: t.recurrenceRule == 'daily',
+            );
+          }
+        }
+      }
+
+      emit(TaskLoaded(freshTasks, dateStr, trackingData: trackingData));
+    } catch (e) {
+      if (cachedData == null) {
+        String message = 'Gagal memuat tugas. Anda sedang offline.';
+        if (e is ApiException) {
+          message = e.message;
+        }
+        emit(TaskError(message));
+      }
     }
   }
 
   Future<void> toggleTask(int id, bool currentStatus, String dateStr) async {
     try {
-      // currentStatus represents "sudah selesai". The database stores the
-      // inverse as is_active, so false completes and true reopens the task.
       await _repo.toggleTaskCompletion(id, currentStatus);
       await loadTasksByDate(dateStr); // Reload tasks
     } catch (e) {
-      // Ignore errors for now
+      // Offline fallback
+      await TaskCacheService.queueTaskToggle(id);
+      
+      // Update UI optimistically
+      if (state is TaskLoaded) {
+        final current = state as TaskLoaded;
+        final updatedTasks = current.tasks.map((t) {
+          if (t.id == id) {
+            return t.copyWith(isActive: !t.isActive);
+          }
+          return t;
+        }).toList();
+        emit(TaskLoaded(updatedTasks, current.dateStr, trackingData: current.trackingData));
+      }
     }
   }
 
@@ -129,7 +204,11 @@ class TaskCubit extends Cubit<TaskState> {
     emit(TaskLoading());
     try {
       final tasks = await _repo.getTasksByDate(todayStr, habitsOnly: habitsOnly);
-      emit(TaskLoaded(tasks, todayStr));
+      Map<String, dynamic>? trackingData;
+      try {
+        trackingData = await _repo.getTrackingHistory();
+      } catch (_) {}
+      emit(TaskLoaded(tasks, todayStr, trackingData: trackingData));
     } catch (e) {
       emit(TaskError(e is ApiException
           ? e.message

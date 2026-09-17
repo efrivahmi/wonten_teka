@@ -19,6 +19,12 @@ class TaskRepository {
         .toList();
   }
 
+  Future<Map<String, dynamic>> getTrackingHistory() async {
+    final response = await _api.get('/tasks/tracking/monthly');
+    final data = response.data as Map<String, dynamic>;
+    return data['data'];
+  }
+
   Future<PersonalTaskModel> create({
     required String title,
     String? description,

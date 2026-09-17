@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -112,17 +114,18 @@ class _CreateAnnouncementScreenState extends State<CreateAnnouncementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-              onPressed: () => context.pop()),
-          title: Text('Buat Pengumuman',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.primary, fontWeight: FontWeight.bold))),
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Buat Pengumuman'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
       body: SafeArea(
           child: SingleChildScrollView(
               padding: EdgeInsets.all(24.w),
@@ -203,7 +206,7 @@ class _CreateAnnouncementScreenState extends State<CreateAnnouncementScreen> {
                           child: ElevatedButton(
                             onPressed: _isSubmitting ? null : _submit,
                             style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primaryContainer,
+                                
                                 foregroundColor: AppColors.onPrimary,
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12.r))),
@@ -222,7 +225,7 @@ class _CreateAnnouncementScreenState extends State<CreateAnnouncementScreen> {
                           )),
                     ]),
               ))),
-    );
+    ));
   }
 
   Widget _label(String t) => Text(t,

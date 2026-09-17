@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -29,19 +31,18 @@ class _AttendanceDisputeScreenState extends State<AttendanceDisputeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-            onPressed: () => context.pop()),
-        title: Text('Dispute Absensi',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppColors.primary, fontWeight: FontWeight.bold)),
-        centerTitle: true,
-      ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Dispute Absensi'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(24.w),
@@ -164,7 +165,7 @@ class _AttendanceDisputeScreenState extends State<AttendanceDisputeScreen> {
                     context.pop();
                   },
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryContainer,
+                      
                       foregroundColor: AppColors.onPrimary,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12.r))),
@@ -175,7 +176,7 @@ class _AttendanceDisputeScreenState extends State<AttendanceDisputeScreen> {
           ]),
         ),
       ),
-    );
+    ));
   }
 
   InputDecoration _inputDeco(String hint) => InputDecoration(

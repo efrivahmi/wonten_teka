@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -67,23 +69,24 @@ class _ShiftTemplatesScreenState extends State<ShiftTemplatesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-              onPressed: () => context.pop()),
-          title: Text('Template Shift',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.primary, fontWeight: FontWeight.bold))),
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Template Shift'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
       floatingActionButton: FloatingActionButton.extended(
           onPressed: () async {
             final refresh = await context.push('/admin/shifts/form');
             if (refresh == true) _loadTemplates();
           },
-          backgroundColor: AppColors.primaryContainer,
+          
           icon: const Icon(Icons.add, color: AppColors.onPrimary),
           label: const Text('Template Baru',
               style: TextStyle(color: AppColors.onPrimary))),
@@ -135,7 +138,7 @@ class _ShiftTemplatesScreenState extends State<ShiftTemplatesScreen> {
                       },
                     );
                   }),
-    );
+    ));
   }
 }
 

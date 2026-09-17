@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:geolocator/geolocator.dart';
@@ -476,8 +477,10 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
     final timeString = DateFormat('HH:mm').format(now);
     final dateString = DateFormat('EEEE, d MMM y', 'id_ID').format(now);
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       body: Stack(
         children: [
           // Background Header
@@ -514,7 +517,7 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
 
                   showModalBottomSheet(
                     context: context,
-                    backgroundColor: Colors.white,
+                    
                     shape: RoundedRectangleBorder(
                         borderRadius:
                             BorderRadius.vertical(top: Radius.circular(24.r))),
@@ -555,7 +558,7 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                               icon: const Icon(Icons.refresh),
                               label: const Text('Tutup & Coba Lagi'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primaryContainer,
+                                
                                 foregroundColor: AppColors.primary,
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16.r)),
@@ -797,8 +800,7 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
                                       child: LinearProgressIndicator(
                                           value: _scanProgress,
                                           minHeight: 10.h,
-                                          backgroundColor:
-                                              AppColors.surfaceContainerHigh,
+                                          
                                           color: _isTooDark ||
                                                   !_hasCompatibleReference
                                               ? AppColors.error
@@ -1148,7 +1150,7 @@ class _FaceCheckInScreenState extends State<FaceCheckInScreen> {
           ),
         ],
       ),
-    );
+    ));
   }
 }
 

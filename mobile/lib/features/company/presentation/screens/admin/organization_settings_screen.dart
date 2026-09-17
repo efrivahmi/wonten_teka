@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -190,32 +191,17 @@ class _OrganizationSettingsScreenState
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 3,
+      child: BrandPageBackground(
       child: Scaffold(
-        backgroundColor: AppColors.surfaceContainerLow,
+        backgroundColor: Colors.transparent,
+        
         appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-            onPressed: () => context.pop(),
-          ),
-          title: Text(
-            'Pengaturan',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          bottom: const TabBar(
-            labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.onSurfaceVariant,
-            indicatorColor: AppColors.primary,
-            tabs: [
-              Tab(text: 'Geofence'),
-              Tab(text: 'Hari Kerja'),
-              Tab(text: 'Absensi'),
-            ],
-          ),
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Wonten Teka'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
         ),
         body: TabBarView(
           physics: const NeverScrollableScrollPhysics(),
@@ -225,7 +211,7 @@ class _OrganizationSettingsScreenState
             _buildAttendanceTab(),
           ],
         ),
-      ),
+      )),
     );
   }
 

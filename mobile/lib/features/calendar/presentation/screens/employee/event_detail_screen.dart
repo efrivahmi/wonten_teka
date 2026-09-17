@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/models/company_models.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -25,9 +26,18 @@ class EventDetailScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: AppColors.surfaceContainerLow,
-    appBar: AppBar(leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: context.pop), title: const Text('Detail Acara')),
+  Widget build(BuildContext context) => BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+    
+    appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Detail Acara'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
     body: SingleChildScrollView(padding: EdgeInsets.all(16.w), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       InfoCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text((event.type ?? 'event').toUpperCase(), style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11.sp)),
@@ -38,7 +48,7 @@ class EventDetailScreen extends StatelessWidget {
       InfoCard(child: Text(event.description?.trim().isNotEmpty == true ? event.description! : 'Tidak ada detail tambahan.', style: TextStyle(fontSize: 14.sp, height: 1.5))),
       if (eventDateTime != null) Padding(padding: EdgeInsets.only(top: 18.h), child: ElevatedButton.icon(onPressed: () => enableReminder(context), icon: const Icon(Icons.alarm_add), label: const Text('Aktifkan pengingat 30 menit sebelumnya'))),
     ])),
-  );
+  ));
 
   Widget row(IconData icon, String text) => Padding(padding: EdgeInsets.only(bottom: 9.h), child: Row(children: [Icon(icon, size: 17.w, color: AppColors.onSurfaceVariant), SizedBox(width: 9.w), Expanded(child: Text(text))]));
 }

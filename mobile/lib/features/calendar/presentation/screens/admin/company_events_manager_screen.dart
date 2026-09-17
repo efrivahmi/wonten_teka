@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -92,17 +94,18 @@ class _CompanyEventsManagerScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-              onPressed: () => context.pop()),
-          title: Text('Kelola Event Perusahaan',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.primary, fontWeight: FontWeight.bold))),
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Kelola Event Perusahaan'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
       floatingActionButton: FloatingActionButton.extended(
           onPressed: () async {
             final result = await context.push('/admin/events/edit');
@@ -110,7 +113,7 @@ class _CompanyEventsManagerScreenState
               _loadEvents();
             }
           },
-          backgroundColor: AppColors.primaryContainer,
+          
           icon: const Icon(Icons.add, color: AppColors.onPrimary),
           label: const Text('Buat Event',
               style: TextStyle(color: AppColors.onPrimary))),
@@ -228,7 +231,7 @@ class _CompanyEventsManagerScreenState
                                   ],
                                 ]));
                       }),
-    );
+    ));
   }
 }
 

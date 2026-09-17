@@ -1,13 +1,17 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+
+import 'package:wonten_teka_mobile/core/widgets/success_submission_screen.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/models/claim_models.dart';
+import '../../../../../core/widgets/app_brand_title.dart';
+import '../../../../../core/widgets/brand_panel.dart';
 import '../../../bloc/claim_cubit.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
 
 class ClaimSubmissionScreen extends StatefulWidget {
   const ClaimSubmissionScreen({super.key});
@@ -17,12 +21,26 @@ class ClaimSubmissionScreen extends StatefulWidget {
 
 class _ClaimSubmissionScreenState extends State<ClaimSubmissionScreen> {
   final _formKey = GlobalKey<FormState>();
+  
+  // Cached categories to prevent dropdown crash on state changes
+  List<ClaimCategoryModel> _categories = [];
+  
   int? _selectedCategoryId;
   final _amountController = TextEditingController();
   final _descController = TextEditingController();
   DateTime? _expenseDate;
   File? _attachment;
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fetch categories if they are loaded in the current state
+    final currentState = context.read<ClaimCubit>().state;
+    if (currentState is ClaimLoaded) {
+      _categories = currentState.categories;
+    }
+  }
 
   Future<void> _pickFile() async {
     try {
@@ -85,284 +103,216 @@ class _ClaimSubmissionScreenState extends State<ClaimSubmissionScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Pilih tanggal pengeluaran terlebih dahulu.'),
-            backgroundColor: AppColors.error),
+            backgroundColor: AppColors.errorCrimson),
       );
     }
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-        contentPadding: EdgeInsets.all(24.w),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: EdgeInsets.all(16.w),
-              decoration: BoxDecoration(
-                color: AppColors.successEmerald.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.check_circle_outline,
-                  color: AppColors.successEmerald, size: 48.w),
-            ),
-            SizedBox(height: 16.h),
-            Text('Klaim Berhasil!',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold, color: AppColors.onSurface)),
-            SizedBox(height: 8.h),
-            Text('Pengajuan klaim Anda telah dikirim dan menunggu persetujuan.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
-            SizedBox(height: 24.h),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  context.pop(); // close dialog
-                  context.pop(); // pop form screen
-                  context.read<ClaimCubit>().loadAll(); // reload history
-                },
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryContainer,
-                    foregroundColor: AppColors.onPrimary,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r))),
-                child: const Text('Kembali'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showErrorSheet(String message) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: EdgeInsets.all(24.w),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(width: 40.w, height: 4.h, decoration: BoxDecoration(color: AppColors.outlineVariant, borderRadius: BorderRadius.circular(2.r))),
-            SizedBox(height: 24.h),
-            Icon(Icons.error_outline, color: AppColors.error, size: 56.w),
-            SizedBox(height: 16.h),
-            Text('Klaim Gagal', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.onSurface)),
-            SizedBox(height: 8.h),
-            Text(message, textAlign: TextAlign.center, style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
-            SizedBox(height: 32.h),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () => Navigator.pop(ctx),
-                style: FilledButton.styleFrom(backgroundColor: AppColors.error, foregroundColor: AppColors.onError, padding: EdgeInsets.symmetric(vertical: 16.h), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r))),
-                child: const Text('Tutup & Coba Lagi'),
-              ),
-            ),
-            SizedBox(height: MediaQuery.of(context).padding.bottom + 16.h),
-          ],
-        ),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLowest,
-      body: Stack(
-        children: [
-          Container(
-            height: 240.h,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(32.r), bottomRight: Radius.circular(32.r)),
-            ),
-          ),
-          
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                  child: Row(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        title: const AppBrandTitle(section: 'Pengajuan Klaim'),
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
+      body: BrandPageBackground(
+        child: BlocConsumer<ClaimCubit, ClaimState>(
+          listener: (context, state) {
+            if (state is ClaimError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
                     children: [
-                      IconButton(icon: const Icon(Icons.close, color: Colors.white), onPressed: () => context.pop()),
-                      Expanded(child: Text('Pengajuan Klaim', style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
-                      SizedBox(width: 48.w),
+                      const Icon(Icons.error_outline, color: Colors.white),
+                      SizedBox(width: 8.w),
+                      Expanded(child: Text(state.message, style: const TextStyle(color: Colors.white))),
+                    ],
+                  ),
+                  backgroundColor: AppColors.errorCrimson,
+                  behavior: SnackBarBehavior.floating,
+                  margin: EdgeInsets.all(16.w),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            // Success Full Page
+            if (state is ClaimSubmitted) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SuccessSubmissionScreen(
+                      title: 'Klaim Berhasil Dikirim!',
+                      message: 'Pengajuan klaim Anda telah dicatat dalam sistem dan saat ini sedang menunggu persetujuan dari atasan atau HRD.',
+                    ),
+                  ),
+                );
+              });
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            // Sync categories if loaded successfully to prevent dropdown crash
+            if (state is ClaimLoaded && state.categories.isNotEmpty) {
+              _categories = state.categories;
+            }
+
+            bool isLoading = state is ClaimLoading;
+            
+            return SingleChildScrollView(
+              padding: EdgeInsets.all(16.w),
+              child: Container(
+                padding: EdgeInsets.all(24.w),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24.r),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, 10))
+                  ],
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Jenis Klaim', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 8.h),
+                      DropdownButtonFormField<int>(
+                        initialValue: _selectedCategoryId,
+                        decoration: InputDecoration(
+                          filled: true, fillColor: Colors.grey[50],
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide.none),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide(color: Colors.grey[200]!)),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                          helperText: 'Pilih jenis klaim yang sesuai dengan bukti',
+                        ),
+                        hint: const Text('Pilih Jenis Klaim'),
+                        items: _categories.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name))).toList(),
+                        onChanged: isLoading ? null : (v) => setState(() => _selectedCategoryId = v),
+                        validator: (v) => v == null ? 'Pilih jenis klaim' : null,
+                      ),
+                      SizedBox(height: 24.h),
+                      
+                      Text('Tanggal Kejadian / Pembelian', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 8.h),
+                      InkWell(
+                        onTap: isLoading ? null : _selectDate,
+                        borderRadius: BorderRadius.circular(16.r),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[50], borderRadius: BorderRadius.circular(16.r), border: Border.all(color: Colors.grey[200]!),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.calendar_month, color: AppColors.primary, size: 20.w),
+                              SizedBox(width: 12.w),
+                              Expanded(
+                                child: Text(_expenseDate == null ? 'Pilih Tanggal' : DateFormat('dd MMM yyyy', 'id_ID').format(_expenseDate!), style: TextStyle(color: _expenseDate == null ? Colors.grey[500] : AppColors.onSurface, fontSize: 14.sp)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(top: 8.h, left: 16.w),
+                        child: Text('Tanggal yang tertera pada nota', style: TextStyle(fontSize: 12.sp, color: Colors.grey[600])),
+                      ),
+                      SizedBox(height: 24.h),
+                      
+                      Text('Nominal (Rp)', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 8.h),
+                      TextFormField(
+                        controller: _amountController,
+                        keyboardType: TextInputType.number,
+                        enabled: !isLoading,
+                        decoration: InputDecoration(
+                          hintText: 'Contoh: 150000',
+                          filled: true, fillColor: Colors.grey[50],
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide.none),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide(color: Colors.grey[200]!)),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                          prefixText: 'Rp ',
+                          helperText: 'Masukkan total nominal pengeluaran',
+                        ),
+                        validator: (v) => (v == null || v.isEmpty || double.tryParse(v) == null) ? 'Masukkan nominal valid' : null,
+                      ),
+                      SizedBox(height: 24.h),
+                      
+                      Text('Keterangan', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 8.h),
+                      TextFormField(
+                        controller: _descController,
+                        maxLines: 3,
+                        enabled: !isLoading,
+                        decoration: InputDecoration(
+                          hintText: 'Jelaskan keperluan klaim secara detail...',
+                          filled: true, fillColor: Colors.grey[50],
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide.none),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide(color: Colors.grey[200]!)),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                          helperText: 'Wajib diisi agar pengajuan lebih cepat diproses',
+                        ),
+                        validator: (v) => v?.isEmpty ?? true ? 'Wajib diisi' : null,
+                      ),
+                      SizedBox(height: 24.h),
+                      
+                      Text('Lampiran Bukti (Opsional)', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 8.h),
+                      InkWell(
+                        onTap: isLoading ? null : _pickFile,
+                        borderRadius: BorderRadius.circular(16.r),
+                        child: Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.symmetric(vertical: 24.h),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[50],
+                            borderRadius: BorderRadius.circular(16.r),
+                            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), style: BorderStyle.solid),
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(Icons.cloud_upload_outlined, size: 32.w, color: AppColors.primary),
+                              SizedBox(height: 8.h),
+                              Text(_attachment == null ? 'Upload Foto / Bukti Transaksi' : 'File dipilih:\n${_attachment!.path.split('/').last.split('\\').last}', 
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 14.sp)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(top: 8.h, left: 16.w),
+                        child: Text('Pastikan tulisan pada nota terbaca jelas', style: TextStyle(fontSize: 12.sp, color: Colors.grey[600])),
+                      ),
+                      
+                      SizedBox(height: 32.h),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52.h,
+                        child: ElevatedButton(
+                          onPressed: isLoading ? null : _submit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                            elevation: 0,
+                          ),
+                          child: isLoading
+                              ? SizedBox(width: 24.w, height: 24.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                              : Text('Kirim Pengajuan', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                
-                Expanded(
-                  child: BlocConsumer<ClaimCubit, ClaimState>(
-                    listener: (context, state) {
-                      if (state is ClaimSubmitted) {
-                        _showSuccessDialog();
-                      } else if (state is ClaimError) {
-                        _showErrorSheet(state.message);
-                      }
-                    },
-                    builder: (context, state) {
-                      bool isLoading = state is ClaimLoading;
-                      List<ClaimCategoryModel> types = [];
-                      if (state is ClaimLoaded) types = state.categories;
-                      
-                      return SingleChildScrollView(
-                        padding: EdgeInsets.all(24.w),
-                        child: Container(
-                          padding: EdgeInsets.all(24.w),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(24.r),
-                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 10))],
-                          ),
-                          child: Form(
-                            key: _formKey,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Jenis Klaim', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
-                                SizedBox(height: 8.h),
-                                DropdownButtonFormField<int>(
-                                  initialValue: _selectedCategoryId,
-                                  decoration: InputDecoration(
-                                    filled: true, fillColor: Colors.grey[50],
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide.none),
-                                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide(color: Colors.grey[200]!)),
-                                    contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                                  ),
-                                  hint: const Text('Pilih Jenis Klaim'),
-                                  items: types.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name))).toList(),
-                                  onChanged: isLoading ? null : (v) => setState(() => _selectedCategoryId = v),
-                                  validator: (v) => v == null ? 'Pilih jenis klaim' : null,
-                                ),
-                                SizedBox(height: 24.h),
-                                
-                                Text('Tanggal Kejadian / Pembelian', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
-                                SizedBox(height: 8.h),
-                                InkWell(
-                                  onTap: isLoading ? null : _selectDate,
-                                  borderRadius: BorderRadius.circular(16.r),
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[50], borderRadius: BorderRadius.circular(16.r), border: Border.all(color: Colors.grey[200]!),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.calendar_month, color: AppColors.primary, size: 20.w),
-                                        SizedBox(width: 12.w),
-                                        Expanded(
-                                          child: Text(_expenseDate == null ? 'Pilih Tanggal' : DateFormat('dd MMM yyyy').format(_expenseDate!), style: TextStyle(color: _expenseDate == null ? Colors.grey[500] : AppColors.onSurface, fontSize: 14.sp)),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: 24.h),
-                                
-                                Text('Nominal (Rp)', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
-                                SizedBox(height: 8.h),
-                                TextFormField(
-                                  controller: _amountController,
-                                  keyboardType: TextInputType.number,
-                                  enabled: !isLoading,
-                                  decoration: InputDecoration(
-                                    hintText: 'Contoh: 150000',
-                                    filled: true, fillColor: Colors.grey[50],
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide.none),
-                                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide(color: Colors.grey[200]!)),
-                                    contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                                    prefixText: 'Rp ',
-                                  ),
-                                  validator: (v) => (v == null || v.isEmpty || double.tryParse(v) == null) ? 'Masukkan nominal valid' : null,
-                                ),
-                                SizedBox(height: 24.h),
-                                
-                                Text('Keterangan', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
-                                SizedBox(height: 8.h),
-                                TextFormField(
-                                  controller: _descController,
-                                  maxLines: 3,
-                                  enabled: !isLoading,
-                                  decoration: InputDecoration(
-                                    hintText: 'Jelaskan keperluan klaim',
-                                    filled: true, fillColor: Colors.grey[50],
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide.none),
-                                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide(color: Colors.grey[200]!)),
-                                    contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                                  ),
-                                  validator: (v) => v?.isEmpty ?? true ? 'Wajib diisi' : null,
-                                ),
-                                SizedBox(height: 24.h),
-                                
-                                Text('Lampiran Bukti (Opsional)', style: TextStyle(color: AppColors.onSurface, fontSize: 14.sp, fontWeight: FontWeight.bold)),
-                                SizedBox(height: 8.h),
-                                InkWell(
-                                  onTap: isLoading ? null : _pickFile,
-                                  borderRadius: BorderRadius.circular(16.r),
-                                  child: Container(
-                                    width: double.infinity,
-                                    padding: EdgeInsets.symmetric(vertical: 24.h),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[50],
-                                      borderRadius: BorderRadius.circular(16.r),
-                                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), style: BorderStyle.solid),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Icon(Icons.cloud_upload_outlined, size: 32.w, color: AppColors.primary),
-                                        SizedBox(height: 8.h),
-                                        Text(_attachment == null ? 'Upload Foto / Bukti Transaksi' : 'File dipilih: ${_attachment!.path.split('/').last.split('\\').last}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                
-                                SizedBox(height: 32.h),
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: 52.h,
-                                  child: ElevatedButton(
-                                    onPressed: isLoading ? null : _submit,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primary,
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-                                      elevation: 0,
-                                    ),
-                                    child: isLoading
-                                        ? SizedBox(width: 24.w, height: 24.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                        : Text('Kirim Pengajuan', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

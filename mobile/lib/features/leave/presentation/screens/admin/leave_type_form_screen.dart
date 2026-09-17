@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -75,14 +77,17 @@ class _LeaveTypeFormScreenState extends State<LeaveTypeFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: Text(
-            widget.leaveType == null ? 'Tambah Tipe Cuti' : 'Edit Tipe Cuti'),
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.primary,
-        elevation: 0,
-      ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Wonten Teka'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16.w),
         child: Form(
@@ -147,7 +152,7 @@ class _LeaveTypeFormScreenState extends State<LeaveTypeFormScreen> {
                 child: ElevatedButton(
                   onPressed: _submit,
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
+                      
                       foregroundColor: Colors.white),
                   child: const Text('Simpan Tipe Cuti'),
                 ),
@@ -156,6 +161,6 @@ class _LeaveTypeFormScreenState extends State<LeaveTypeFormScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 }

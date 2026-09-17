@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -10,18 +12,18 @@ class ApprovalDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-              onPressed: () => context.pop()),
-          title: Text('Detail Pengajuan',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.primary, fontWeight: FontWeight.bold)),
-          centerTitle: true),
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Detail Pengajuan'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
+        ),
       body: Column(children: [
         Expanded(
             child: SingleChildScrollView(
@@ -34,7 +36,7 @@ class ApprovalDetailScreen extends StatelessWidget {
                           child: Row(children: [
                         CircleAvatar(
                             radius: 24.r,
-                            backgroundColor: AppColors.surfaceContainerHigh,
+                            
                             child: Text('DL',
                                 style: TextStyle(
                                     color: AppColors.onSurface,
@@ -160,7 +162,7 @@ class ApprovalDetailScreen extends StatelessWidget {
                           context.pop();
                         },
                         style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.successEmerald,
+                            
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12.r))),
@@ -169,7 +171,7 @@ class ApprovalDetailScreen extends StatelessWidget {
           ])),
         ),
       ]),
-    );
+    ));
   }
 }
 

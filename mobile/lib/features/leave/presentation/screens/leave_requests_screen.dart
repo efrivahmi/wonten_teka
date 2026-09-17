@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/widgets/app_brand_title.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,31 +29,28 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        scrolledUnderElevation: 1,
-        title: Text(
-          'Cuti Saya',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const AppBrandTitle(section: 'Wonten Teka'),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.onSurface),
         ),
-        centerTitle: true,
-      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/app/leave/new'),
-        backgroundColor: AppColors.primaryContainer,
+        
         foregroundColor: AppColors.onPrimary,
         icon: const Icon(Icons.add),
         label: const Text('Ajukan Cuti'),
       ),
       body: RefreshIndicator(
         color: AppColors.primary,
-        backgroundColor: AppColors.surface,
+        
         onRefresh: () async {
           context.read<LeaveCubit>().loadAll();
           await Future.delayed(const Duration(milliseconds: 600));
@@ -193,7 +192,7 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
                             icon: const Icon(Icons.refresh),
                             label: const Text('Coba Lagi'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryContainer,
+                              
                               foregroundColor: AppColors.onPrimary,
                             ),
                           ),
@@ -299,7 +298,7 @@ class _LeaveRequestsScreenState extends State<LeaveRequestsScreen> {
           },
         ),
       ),
-    );
+    ));
   }
 }
 

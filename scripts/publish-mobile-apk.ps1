@@ -21,7 +21,7 @@ if (-not $versionLine) {
 }
 $version = $versionLine.Matches[0].Groups[1].Value.Trim()
 $downloadDirectory = Join-Path $projectRoot "backend/public/downloads"
-$fileName = "e-Absensi Lemdiklat Taruna Nusantara Indonesia.apk"
+$fileName = "e-Absensi_Mobile.apk"
 $destinationApk = Join-Path $downloadDirectory $fileName
 $manifestPath = Join-Path $downloadDirectory "mobile-app.json"
 
@@ -34,7 +34,9 @@ $manifest = [ordered]@{
     platform = "Android"
     published_at = (Get-Date).ToString("yyyy-MM-dd")
 }
-$manifest | ConvertTo-Json | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+$jsonContent = $manifest | ConvertTo-Json
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText($manifestPath, $jsonContent, $utf8NoBom)
 
 Write-Host "APK website diperbarui: $destinationApk"
 Write-Host "Versi publik: $version"

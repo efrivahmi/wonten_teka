@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -46,8 +47,10 @@ class _AppTourGuideScreenState extends State<AppTourGuideScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.primaryContainer,
+    return BrandPageBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+      
       body: SafeArea(
           child: Column(children: [
         Align(
@@ -124,7 +127,7 @@ class _AppTourGuideScreenState extends State<AppTourGuideScreen> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.onPrimary,
+                          
                           foregroundColor: AppColors.primaryContainer,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20.r))),
@@ -133,7 +136,7 @@ class _AppTourGuideScreenState extends State<AppTourGuideScreen> {
                           style: const TextStyle(fontWeight: FontWeight.bold))),
                 ])),
       ])),
-    );
+    ));
   }
 }
 
