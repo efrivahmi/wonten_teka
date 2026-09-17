@@ -120,6 +120,10 @@ class ApprovalService
                             ->whereDate('check_in_at', $date->format('Y-m-d'))
                             ->first();
                             
+                        if ($log && $log->status !== 'absent') {
+                            throw new \RuntimeException('Terdapat data absensi pada tanggal ' . $date->format('d/m/Y') . '. Cuti tidak dapat membatalkan absensi yang sudah tercatat.');
+                        }
+                            
                         if (!$log) {
                             $log = new AttendanceLog();
                             $log->employee_id = $leave->employee_id;
@@ -142,6 +146,10 @@ class ApprovalService
                             ->whereDate('check_in_at', $date->format('Y-m-d'))
                             ->first();
                             
+                        if ($log && $log->status !== 'absent') {
+                            throw new \RuntimeException('Terdapat data absensi pada tanggal ' . $date->format('d/m/Y') . '. Perjalanan dinas tidak dapat menimpa absensi yang sudah tercatat.');
+                        }
+                            
                         if (!$log) {
                             $log = new AttendanceLog();
                             $log->employee_id = $trip->employee_id;
@@ -154,17 +162,33 @@ class ApprovalService
 
                 } elseif ($instance->approvable instanceof AttendanceAdjustmentRequest) {
                     $adjustment = $instance->approvable;
-                    $log = AttendanceLog::firstOrNew([
-                        'employee_id' => $adjustment->employee_id,
-                        'date' => $adjustment->date,
-                    ]);
+                    $dateStr = \Carbon\Carbon::parse($adjustment->date)->format('Y-m-d');
                     
-                    $log->check_in = $adjustment->check_in;
-                    $log->check_out = $adjustment->check_out;
+                    $log = AttendanceLog::where('employee_id', $adjustment->employee_id)
+                        ->whereDate('check_in_at', $dateStr)
+                        ->first();
+                        
+                    if ($log && $log->status !== 'absent') {
+                        throw new \RuntimeException('Karyawan sudah memiliki rekaman absensi pada tanggal ' . \Carbon\Carbon::parse($dateStr)->format('d/m/Y') . '. Pengajuan lupa absen hanya bisa dilakukan jika sama sekali tidak ada data.');
+                    }
+                        
+                    if (!$log) {
+                        $log = new AttendanceLog();
+                        $log->employee_id = $adjustment->employee_id;
+                    }
+                    
+                    if ($adjustment->check_in) {
+                        $log->check_in_at = \Carbon\Carbon::parse($dateStr . ' ' . $adjustment->check_in);
+                    }
+                    if ($adjustment->check_out) {
+                        $log->check_out_at = \Carbon\Carbon::parse($dateStr . ' ' . $adjustment->check_out);
+                    }
+                    
                     // You might want to update status depending on your company logic. 
                     // For now, if we adjust it, we consider it 'present' (or 'late' based on logic).
                     // We'll set it to 'present' if they have both check_in and check_out.
                     $log->status = 'present';
+                    $log->notes = 'Lupa melakukan absensi';
                     $log->save();
                 }
             }
