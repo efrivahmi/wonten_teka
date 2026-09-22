@@ -90,12 +90,13 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
                       itemCount: _logs.length + 1,
                       separatorBuilder: (_, __) => SizedBox(height: 12.h),
                       itemBuilder: (context, i) {
-                        if (i == 0)
+                        if (i == 0) {
                           return AdminPaginationBar(
                               currentPage: _currentPage,
                               lastPage: _lastPage,
                               total: _totalLogs,
                               onPageChanged: (page) => _loadLogs(page: page));
+                        }
                         final log = _logs[i - 1];
                         final actorName = log['actor'] != null
                             ? log['actor']['name']

@@ -39,19 +39,21 @@ class _PayrollConfigurationScreenState
       final response = await _api.get('/admin/payroll/config');
       final body = Map<String, dynamic>.from(response.data as Map);
       final data = Map<String, dynamic>.from(body['data'] as Map);
-      if (mounted)
+      if (mounted) {
         setState(() {
           _settings = Map<String, dynamic>.from(data['settings'] as Map? ?? {});
           _bpjs = data['bpjs_rates'] as List? ?? [];
           _tax = data['pph21_ter_rates'] as List? ?? [];
           _loading = false;
         });
+      }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = 'Gagal memuat konfigurasi: $e';
           _loading = false;
         });
+      }
     }
   }
 
@@ -59,13 +61,15 @@ class _PayrollConfigurationScreenState
     setState(() => _saving = true);
     try {
       await _api.put('/admin/payroll/config', data: {'settings': _settings});
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Konfigurasi payroll disimpan.')));
+      }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e')));
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }

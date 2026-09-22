@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/api/api_exceptions.dart';
 import '../../../core/models/company_models.dart';
 import '../../../core/repositories/company_repository.dart';
+import '../../tasks/notification_service.dart';
 
 abstract class CompanyState extends Equatable {
   const CompanyState();
@@ -63,6 +64,7 @@ class CompanyCubit extends Cubit<CompanyState> {
       final events = (calendarData['events'] as List)
           .map((e) => CalendarEventModel.fromJson(e))
           .toList();
+      await _scheduleEventAlarms(events);
       final logs = List<Map<String, dynamic>>.from(
           calendarData['attendance_logs'] ?? []);
       final wDays =
@@ -81,6 +83,25 @@ class CompanyCubit extends Cubit<CompanyState> {
       emit(CompanyError(e.message));
     } catch (e) {
       emit(const CompanyError('Gagal memuat data perusahaan.'));
+    }
+  }
+
+  Future<void> _scheduleEventAlarms(List<CalendarEventModel> events) async {
+    for (final event in events) {
+      final time = (event.startTime ?? '09:00:00').split(':');
+      final start = DateTime(
+        event.startDate.toLocal().year,
+        event.startDate.toLocal().month,
+        event.startDate.toLocal().day,
+        int.tryParse(time.isNotEmpty ? time[0] : '9') ?? 9,
+        int.tryParse(time.length > 1 ? time[1] : '0') ?? 0,
+      );
+      await NotificationService().scheduleCompanyEvent(
+        eventId: event.id,
+        title: event.title,
+        start: start,
+        description: event.description,
+      );
     }
   }
 

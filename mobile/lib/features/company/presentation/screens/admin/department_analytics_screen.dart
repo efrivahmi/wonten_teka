@@ -35,17 +35,19 @@ class _DepartmentAnalyticsScreenState extends State<DepartmentAnalyticsScreen> {
       final response = await _api.get('/admin/dashboard');
       final body = Map<String, dynamic>.from(response.data as Map);
       final data = body['data'] is Map ? body['data'] : body;
-      if (mounted)
+      if (mounted) {
         setState(() {
           _stats = Map<String, dynamic>.from(data as Map);
           _loading = false;
         });
+      }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = 'Gagal memuat analitik: $e';
           _loading = false;
         });
+      }
     }
   }
 

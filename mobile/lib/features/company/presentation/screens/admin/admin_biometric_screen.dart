@@ -117,12 +117,13 @@ class _AdminBiometricScreenState extends State<AdminBiometricScreen> {
                       itemCount: _items.length + 1,
                       separatorBuilder: (_, __) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
-                        if (index == 0)
+                        if (index == 0) {
                           return AdminPaginationBar(
                               currentPage: _currentPage,
                               lastPage: _lastPage,
                               total: _totalItems,
                               onPageChanged: (page) => _load(page: page));
+                        }
                         final item = _items[index - 1];
                         final enrolled = item['face_enrolled'] == true;
                         return Card(

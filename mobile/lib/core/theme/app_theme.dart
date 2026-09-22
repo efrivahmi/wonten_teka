@@ -76,7 +76,9 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryContainer,
           foregroundColor: AppColors.onPrimary,
-          minimumSize: const Size.fromHeight(52), // 52px height for ergonomics
+          // Keep the width flexible. Size.fromHeight uses double.infinity for
+          // width, which breaks buttons placed in rows and dialog actions.
+          minimumSize: const Size(0, 52),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),
@@ -87,7 +89,7 @@ class AppTheme {
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.onPrimary,
-          minimumSize: const Size.fromHeight(54),
+          minimumSize: const Size(0, 54),
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
@@ -126,7 +128,7 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size(0, 52),
           side: const BorderSide(color: AppColors.primary),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),

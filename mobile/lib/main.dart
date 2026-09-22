@@ -170,6 +170,7 @@ class WontenTekaApp extends StatelessWidget {
                 }
 
                 // 2. Force Device Binding Check via Backend.
+                if (!context.mounted) return;
                 final deviceRepo = context.read<DeviceRepository>();
                 final storage = SecureStorage();
                 var fingerprint = await storage.getDeviceFingerprint();

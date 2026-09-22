@@ -48,9 +48,10 @@ class _ExportCenterScreenState extends State<ExportCenterScreen> {
       await file.writeAsString('${lines.join('\n')}\n');
       await Share.shareXFiles([XFile(file.path)], text: title);
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Export gagal: $e')));
+      }
     } finally {
       if (mounted) setState(() => _busy = null);
     }

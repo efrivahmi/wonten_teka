@@ -96,4 +96,29 @@ class NotificationService {
   Future<void> cancelAlarm(int id) async {
     await _flutterLocalNotificationsPlugin.cancel(id);
   }
+
+  Future<void> scheduleCompanyEvent({
+    required int eventId,
+    required String title,
+    required DateTime start,
+    String? description,
+  }) async {
+    final reminderId = 700000 + (eventId * 2);
+    final startId = reminderId + 1;
+    final body = description?.trim().isNotEmpty == true
+        ? description!.trim()
+        : 'Agenda perusahaan akan dimulai.';
+    await scheduleAlarm(
+      id: reminderId,
+      title: 'Pengingat agenda: $title',
+      body: '30 menit lagi • $body',
+      scheduledDate: start.subtract(const Duration(minutes: 30)),
+    );
+    await scheduleAlarm(
+      id: startId,
+      title: 'Agenda dimulai: $title',
+      body: body,
+      scheduledDate: start,
+    );
+  }
 }

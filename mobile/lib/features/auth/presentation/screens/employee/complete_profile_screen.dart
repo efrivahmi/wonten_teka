@@ -75,16 +75,20 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
           _dobController.text =
               emp.dateOfBirth!.toIso8601String().split('T')[0];
         }
-        if (emp.employmentStatus != null)
+        if (emp.employmentStatus != null) {
           _employmentStatus = emp.employmentStatus;
-        if (emp.bpjsKesehatan != null)
+        }
+        if (emp.bpjsKesehatan != null) {
           _bpjsKesController.text = emp.bpjsKesehatan!;
-        if (emp.bpjsKetenagakerjaan != null)
+        }
+        if (emp.bpjsKetenagakerjaan != null) {
           _bpjsTkController.text = emp.bpjsKetenagakerjaan!;
+        }
         if (emp.ptkpStatus != null) _ptkpController.text = emp.ptkpStatus!;
         if (emp.bankName != null) _bankNameController.text = emp.bankName!;
-        if (emp.bankAccount != null)
+        if (emp.bankAccount != null) {
           _bankAccountController.text = emp.bankAccount!;
+        }
       }
     }
 
