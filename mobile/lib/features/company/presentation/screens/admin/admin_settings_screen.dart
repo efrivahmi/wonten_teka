@@ -41,7 +41,9 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
     setState(() => _loading = true);
     try {
       final response = await _api.get('/app-config');
-      final data = Map<String, dynamic>.from(response.data['data'] as Map);
+      final raw =
+          response.data['data'] is Map ? response.data['data'] : response.data;
+      final data = Map<String, dynamic>.from(raw as Map);
       final branding =
           Map<String, dynamic>.from(data['branding'] as Map? ?? {});
       final dropdowns =

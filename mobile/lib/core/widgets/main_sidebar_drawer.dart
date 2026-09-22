@@ -35,8 +35,9 @@ class MainSidebarDrawer extends StatelessWidget {
                   future: context.read<ApiClient>().get('/app-config'),
                   builder: (context, configSnapshot) {
                     final menu = configSnapshot.hasData
-                        ? ((configSnapshot.data!.data['data']['employee_menu']
-                                    as List? ??
+                        ? (((configSnapshot.data!.data['data'] ??
+                                    configSnapshot.data!
+                                        .data)['employee_menu'] as List? ??
                                 const [])
                             .whereType<Map>()
                             .where((item) => item['enabled'] == true)
