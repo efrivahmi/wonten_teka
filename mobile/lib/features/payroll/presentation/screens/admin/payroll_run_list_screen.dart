@@ -8,6 +8,7 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/api/api_client.dart';
+import '../../../../../core/widgets/admin_pagination_bar.dart';
 
 class PayrollRunListScreen extends StatefulWidget {
   const PayrollRunListScreen({super.key});
@@ -21,6 +22,9 @@ class _PayrollRunListScreenState extends State<PayrollRunListScreen> {
   bool _isLoading = true;
   List<dynamic> _runs = [];
   String? _errorMessage;
+  int _currentPage = 1;
+  int _lastPage = 1;
+  int _totalRuns = 0;
 
   @override
   void initState() {
@@ -29,17 +33,25 @@ class _PayrollRunListScreenState extends State<PayrollRunListScreen> {
     _loadRuns();
   }
 
-  Future<void> _loadRuns() async {
+  Future<void> _loadRuns({int page = 1}) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      final response = await _api.get('/admin/payroll/runs');
-      final data = response.data['data'] as List;
+      final response = await _api.get('/admin/payroll/runs',
+          queryParameters: {'page': page, 'per_page': 25});
+      final body = Map<String, dynamic>.from(response.data as Map);
+      final pageData = body['data'] is Map
+          ? Map<String, dynamic>.from(body['data'] as Map)
+          : body;
+      final data = pageData['data'] as List? ?? const [];
       setState(() {
         _runs = data;
+        _currentPage = pageData['current_page'] as int? ?? page;
+        _lastPage = pageData['last_page'] as int? ?? 1;
+        _totalRuns = pageData['total'] as int? ?? data.length;
         _isLoading = false;
       });
     } catch (e) {
@@ -154,20 +166,18 @@ class _PayrollRunListScreenState extends State<PayrollRunListScreen> {
   @override
   Widget build(BuildContext context) {
     return BrandPageBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-      
+        child: Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          title: const AppBrandTitle(section: 'Riwayat Penggajian'),
-          centerTitle: true,
-          iconTheme: const IconThemeData(color: AppColors.onSurface),
-        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: const AppBrandTitle(section: 'Riwayat Penggajian'),
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: AppColors.onSurface),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showGenerateDialog,
-        
         icon: const Icon(Icons.play_arrow, color: AppColors.onPrimary),
         label: const Text('Run Payroll',
             style: TextStyle(color: AppColors.onPrimary)),
@@ -182,9 +192,17 @@ class _PayrollRunListScreenState extends State<PayrollRunListScreen> {
                   ? const Center(child: Text('Belum ada riwayat payroll'))
                   : ListView.separated(
                       padding: EdgeInsets.all(16.w),
-                      itemCount: _runs.length,
+                      itemCount: _runs.length + 1,
                       separatorBuilder: (_, __) => SizedBox(height: 12.h),
                       itemBuilder: (context, i) {
+                        if (i == 0) {
+                          return AdminPaginationBar(
+                              currentPage: _currentPage,
+                              lastPage: _lastPage,
+                              total: _totalRuns,
+                              onPageChanged: (page) => _loadRuns(page: page));
+                        }
+                        i -= 1;
                         final run = _runs[i];
                         final month = run['period_month'];
                         final year = run['period_year'];
@@ -247,4 +265,3 @@ class _PayrollRunListScreenState extends State<PayrollRunListScreen> {
     ));
   }
 }
-

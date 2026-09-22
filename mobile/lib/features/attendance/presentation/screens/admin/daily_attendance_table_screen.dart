@@ -35,6 +35,9 @@ class _DailyAttendanceTableScreenState
   final Set<int> _selectedEmployees = {};
   bool _draftReady = false;
   String? _errorMessage;
+  int _currentPage = 1;
+  int _lastPage = 1;
+  int _totalRecords = 0;
 
   @override
   void dispose() {
@@ -84,7 +87,7 @@ class _DailyAttendanceTableScreenState
       _errorMessage = null;
     });
     try {
-      final params = <String, dynamic>{'per_page': 500};
+      final params = <String, dynamic>{'page': _currentPage, 'per_page': 50};
       if (_department != null) params['department'] = _department;
       if (_searchController.text.trim().isNotEmpty) {
         params['search'] = _searchController.text.trim();
@@ -112,6 +115,15 @@ class _DailyAttendanceTableScreenState
           }).toList();
           _isLoading = false;
           _draftReady = true;
+          _currentPage = body is Map && body['current_page'] is int
+              ? body['current_page'] as int
+              : 1;
+          _lastPage = body is Map && body['last_page'] is int
+              ? body['last_page'] as int
+              : 1;
+          _totalRecords = body is Map && body['total'] is int
+              ? body['total'] as int
+              : rawData.length;
         });
       }
     } catch (_) {
@@ -537,7 +549,7 @@ class _DailyAttendanceTableScreenState
                           child: Row(children: [
                             Expanded(
                                 child: Text(
-                                    '${_logs.length} catatan dalam draft',
+                                    'Halaman $_currentPage/$_lastPage • $_totalRecords catatan',
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold))),
                             FilledButton.icon(
@@ -545,6 +557,36 @@ class _DailyAttendanceTableScreenState
                                 icon: const Icon(Icons.download),
                                 label: const Text('Export draft'))
                           ])),
+                      if (_lastPage > 1)
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(16.w, 6.h, 16.w, 0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                tooltip: 'Halaman sebelumnya',
+                                onPressed: _currentPage > 1
+                                    ? () {
+                                        setState(() => _currentPage--);
+                                        _loadData();
+                                      }
+                                    : null,
+                                icon: const Icon(Icons.chevron_left),
+                              ),
+                              Text('$_currentPage / $_lastPage'),
+                              IconButton(
+                                tooltip: 'Halaman berikutnya',
+                                onPressed: _currentPage < _lastPage
+                                    ? () {
+                                        setState(() => _currentPage++);
+                                        _loadData();
+                                      }
+                                    : null,
+                                icon: const Icon(Icons.chevron_right),
+                              ),
+                            ],
+                          ),
+                        ),
                       Expanded(
                           child: MediaQuery.sizeOf(context).width < 700
                               ? _buildMobileLogList()

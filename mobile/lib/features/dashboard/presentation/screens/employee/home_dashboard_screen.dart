@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../auth/bloc/auth_bloc.dart';
 import '../../../../attendance/bloc/attendance_cubit.dart';
@@ -27,11 +28,15 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   Map<String, dynamic>? _todayInfo;
   bool _loadingTodayInfo = true;
   String? _todayInfoError;
+  bool _checkingLocation = true;
+  bool _locationReady = false;
+  String _locationMessage = 'Memeriksa GPS perangkat...';
 
   @override
   void initState() {
     super.initState();
     _loadTodayInfo();
+    _checkLocation();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<AttendanceCubit>().loadHistory();
@@ -65,13 +70,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return BrandPageBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-      
+        child: Scaffold(
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: RefreshIndicator(
           color: AppColors.primary,
-          
           onRefresh: () async {
             context.read<AttendanceCubit>().loadHistory();
             context.read<CompanyCubit>().loadAll();
@@ -99,6 +102,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      ViewEntrance(child: _buildLocationGate(context)),
+                      SizedBox(height: 16.h),
                       ViewEntrance(child: _buildHeroCard(context)),
                       SizedBox(height: 24.h),
                       ViewEntrance(
@@ -142,6 +147,87 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         ),
       ),
     ));
+  }
+
+  Future<void> _checkLocation() async {
+    if (mounted) setState(() => _checkingLocation = true);
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) {
+          setState(() {
+            _locationReady = false;
+            _locationMessage =
+                'GPS sedang mati. Aktifkan lokasi untuk absensi.';
+          });
+        }
+        return;
+      }
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      final ready = permission == LocationPermission.whileInUse ||
+          permission == LocationPermission.always;
+      if (mounted) {
+        setState(() {
+          _locationReady = ready;
+          _locationMessage = ready
+              ? 'GPS aktif dan siap digunakan untuk absensi.'
+              : permission == LocationPermission.deniedForever
+                  ? 'Izin lokasi diblokir. Buka pengaturan aplikasi.'
+                  : 'Izin lokasi diperlukan untuk absensi.';
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _checkingLocation = false);
+    }
+  }
+
+  Widget _buildLocationGate(BuildContext context) {
+    final color =
+        _locationReady ? AppColors.successEmerald : AppColors.warningAmber;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(14.w),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .10),
+        borderRadius: BorderRadius.circular(18.r),
+        border: Border.all(color: color.withValues(alpha: .30)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+              _locationReady
+                  ? Icons.gps_fixed_rounded
+                  : Icons.location_off_rounded,
+              color: color),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: Text(
+                _checkingLocation
+                    ? 'Memeriksa GPS perangkat...'
+                    : _locationMessage,
+                style: TextStyle(
+                    color: AppColors.onSurface, fontSize: 12.sp, height: 1.35)),
+          ),
+          if (!_locationReady && !_checkingLocation)
+            TextButton(
+              onPressed: () async {
+                final permission = await Geolocator.checkPermission();
+                if (permission == LocationPermission.deniedForever) {
+                  await Geolocator.openAppSettings();
+                } else {
+                  await Geolocator.openLocationSettings();
+                }
+                await _checkLocation();
+              },
+              child: const Text('Aktifkan'),
+            ),
+        ],
+      ),
+    );
   }
 
   bool get _hasAdditionalSchedule {
@@ -791,14 +877,14 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   }
 
   bool _canCheckIn() {
-    if (_todayInfo == null) return false;
+    if (_todayInfo == null || !_locationReady) return false;
     final shifts = _todayInfo!['shifts'] as List? ?? [];
     return shifts
         .any((s) => s['attendance'] == null && s['time_status'] != 'ended');
   }
 
   bool _canCheckOut() {
-    if (_todayInfo == null) return false;
+    if (_todayInfo == null || !_locationReady) return false;
     final shifts = _todayInfo!['shifts'] as List? ?? [];
     return shifts.any((shift) {
       final rawAttendance = shift['attendance'];
@@ -1046,7 +1132,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                             ? AppColors.errorContainer
                             : AppColors.primaryFixedDim,
                         icon: Icons.campaign,
-                        hasAttachment: announcement.attachmentUrl != null && announcement.attachmentUrl!.isNotEmpty,
+                        hasAttachment: announcement.attachmentUrl != null &&
+                            announcement.attachmentUrl!.isNotEmpty,
                       ),
                     ),
                   );
@@ -1169,20 +1256,19 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                         attachUrl,
                         fit: BoxFit.cover,
                         width: double.infinity,
-                        loadingBuilder: (_, child, progress) =>
-                            progress == null
-                                ? child
-                                : SizedBox(
-                                    height: 180.h,
-                                    child: const Center(
-                                        child: CircularProgressIndicator(
-                                            strokeWidth: 2))),
+                        loadingBuilder: (_, child, progress) => progress == null
+                            ? child
+                            : SizedBox(
+                                height: 180.h,
+                                child: const Center(
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2))),
                         errorBuilder: (_, __, ___) => Container(
                           height: 120.h,
                           color: Colors.grey[200],
                           child: const Center(
-                              child: Icon(Icons.broken_image,
-                                  color: Colors.grey)),
+                              child:
+                                  Icon(Icons.broken_image, color: Colors.grey)),
                         ),
                       ),
                     ),
@@ -1214,6 +1300,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
       ),
     );
   }
+
   Widget _buildPromoCard(
       {required String title,
       required String subtitle,

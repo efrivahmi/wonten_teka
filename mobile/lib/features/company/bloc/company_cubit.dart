@@ -11,6 +11,7 @@ abstract class CompanyState extends Equatable {
 }
 
 class CompanyInitial extends CompanyState {}
+
 class CompanyLoading extends CompanyState {}
 
 class CompanyLoaded extends CompanyState {
@@ -19,17 +20,18 @@ class CompanyLoaded extends CompanyState {
   final List<Map<String, dynamic>> attendanceLogs;
   final List<int> workingDays;
   final Map<String, dynamic>? geofence;
-  
+
   const CompanyLoaded({
-    this.calendarEvents = const [], 
+    this.calendarEvents = const [],
     this.announcements = const [],
     this.attendanceLogs = const [],
-    this.workingDays = const [1,2,3,4,5],
+    this.workingDays = const [1, 2, 3, 4, 5],
     this.geofence,
   });
-  
+
   @override
-  List<Object?> get props => [calendarEvents, announcements, attendanceLogs, workingDays, geofence];
+  List<Object?> get props =>
+      [calendarEvents, announcements, attendanceLogs, workingDays, geofence];
 }
 
 class CompanyError extends CompanyState {
@@ -52,25 +54,61 @@ class CompanyCubit extends Cubit<CompanyState> {
       final results = await Future.wait([
         _repo.getCalendar(month: month, year: year),
         _repo.getAnnouncements(),
-        _repo.getGeofence().catchError((_) => <String, dynamic>{}), // Optional fallback
+        _repo
+            .getGeofence()
+            .catchError((_) => <String, dynamic>{}), // Optional fallback
       ]);
-      
+
       final calendarData = results[0] as Map<String, dynamic>;
-      final events = (calendarData['events'] as List).map((e) => CalendarEventModel.fromJson(e)).toList();
-      final logs = List<Map<String, dynamic>>.from(calendarData['attendance_logs'] ?? []);
-      final wDays = List<int>.from(calendarData['working_days'] ?? [1,2,3,4,5]);
-      
+      final events = (calendarData['events'] as List)
+          .map((e) => CalendarEventModel.fromJson(e))
+          .toList();
+      final logs = List<Map<String, dynamic>>.from(
+          calendarData['attendance_logs'] ?? []);
+      final wDays =
+          List<int>.from(calendarData['working_days'] ?? [1, 2, 3, 4, 5]);
+
       emit(CompanyLoaded(
         calendarEvents: events,
         attendanceLogs: logs,
         workingDays: wDays,
         announcements: (results[1] as dynamic).data as List<AnnouncementModel>,
-        geofence: (results[2] as Map<String, dynamic>).isNotEmpty ? results[2] as Map<String, dynamic> : null,
+        geofence: (results[2] as Map<String, dynamic>).isNotEmpty
+            ? results[2] as Map<String, dynamic>
+            : null,
       ));
     } on ApiException catch (e) {
       emit(CompanyError(e.message));
     } catch (e) {
       emit(const CompanyError('Gagal memuat data perusahaan.'));
+    }
+  }
+
+  /// Loads calendar-only data for admin surfaces. Admin accounts do not need
+  /// the employee-targeted announcements endpoint, which requires an employee
+  /// profile and used to make the whole admin calendar fail.
+  Future<void> loadCalendar({int? month, int? year}) async {
+    emit(CompanyLoading());
+    try {
+      final calendarData = await _repo.getCalendar(month: month, year: year);
+      final geofence =
+          await _repo.getGeofence().catchError((_) => <String, dynamic>{});
+      final events = (calendarData['events'] as List? ?? const [])
+          .map((e) =>
+              CalendarEventModel.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
+      emit(CompanyLoaded(
+        calendarEvents: events,
+        attendanceLogs: List<Map<String, dynamic>>.from(
+            calendarData['attendance_logs'] ?? const []),
+        workingDays:
+            List<int>.from(calendarData['working_days'] ?? [1, 2, 3, 4, 5]),
+        geofence: geofence.isNotEmpty ? geofence : null,
+      ));
+    } on ApiException catch (e) {
+      emit(CompanyError(e.message));
+    } catch (_) {
+      emit(const CompanyError('Gagal memuat kalender perusahaan.'));
     }
   }
 
@@ -94,9 +132,9 @@ class CompanyCubit extends Cubit<CompanyState> {
           }
           return a;
         }).toList();
-        
+
         emit(CompanyLoaded(
-          calendarEvents: currentState.calendarEvents, 
+          calendarEvents: currentState.calendarEvents,
           announcements: updatedAnnouncements,
           attendanceLogs: currentState.attendanceLogs,
           workingDays: currentState.workingDays,
@@ -107,9 +145,13 @@ class CompanyCubit extends Cubit<CompanyState> {
     }
   }
 
-  Future<void> updateGeofence({required double latitude, required double longitude, required double radius}) async {
+  Future<void> updateGeofence(
+      {required double latitude,
+      required double longitude,
+      required double radius}) async {
     try {
-      await _repo.updateGeofence(latitude: latitude, longitude: longitude, radius: radius);
+      await _repo.updateGeofence(
+          latitude: latitude, longitude: longitude, radius: radius);
       if (state is CompanyLoaded) {
         final current = state as CompanyLoaded;
         emit(CompanyLoaded(
@@ -117,7 +159,11 @@ class CompanyCubit extends Cubit<CompanyState> {
           announcements: current.announcements,
           attendanceLogs: current.attendanceLogs,
           workingDays: current.workingDays,
-          geofence: {'latitude': latitude, 'longitude': longitude, 'geofence_radius_meters': radius},
+          geofence: {
+            'latitude': latitude,
+            'longitude': longitude,
+            'geofence_radius_meters': radius
+          },
         ));
       }
     } catch (e) {

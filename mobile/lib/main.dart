@@ -143,7 +143,33 @@ class WontenTekaApp extends StatelessWidget {
                   return;
                 }
 
-                // 0. Force Device Binding Check via Backend
+                // 0. A device status endpoint requires an employee record.
+                // Complete the profile before asking the user to bind a device.
+                final hasEmployeeProfile = state.user.employee != null;
+                if (!hasEmployeeProfile ||
+                    !state.user.employee!.isProfileCompleted) {
+                  appRouter.go('/complete-profile');
+                  return;
+                }
+
+                final attendanceRepo = context.read<AttendanceRepository>();
+                Map<String, dynamic>? biometricStatus;
+                try {
+                  biometricStatus = await attendanceRepo.getFaceStatus();
+                } catch (_) {
+                  // A missing/invalid biometric status must never unlock
+                  // attendance. The enrollment screen provides recovery.
+                }
+                final mobileFace = biometricStatus?['mobile'];
+                final hasMobileFace = mobileFace is Map &&
+                    mobileFace['available'] == true &&
+                    (mobileFace['pose_count'] as num? ?? 0) >= 3;
+                if (!hasMobileFace) {
+                  appRouter.go('/face-enrollment');
+                  return;
+                }
+
+                // 2. Force Device Binding Check via Backend.
                 final deviceRepo = context.read<DeviceRepository>();
                 final storage = SecureStorage();
                 var fingerprint = await storage.getDeviceFingerprint();
@@ -164,42 +190,26 @@ class WontenTekaApp extends StatelessWidget {
                 try {
                   final device = await deviceRepo.getStatus(fingerprint);
                   final status = device.status;
-
                   if (status == 'pending_approval') {
                     appRouter.go('/device-pending');
                     return;
-                  } else if (status != 'active') {
+                  }
+                  if (status != 'active') {
                     appRouter.go('/device-binding');
                     return;
                   }
-                } catch (e) {
-                  // e.g. 404 if device not found
+                } catch (_) {
+                  // 404 means this account has not registered this device.
                   appRouter.go('/device-binding');
                   return;
                 }
 
-                // 1. Force Profile Completion Check
-                final hasEmployeeProfile = state.user.employee != null;
-                if (!hasEmployeeProfile ||
-                    !state.user.employee!.isProfileCompleted) {
-                  appRouter.go('/complete-profile');
-                  return;
-                }
-
-                // 2. Force Face Enrollment Check
-                final isFaceEnrolled =
-                    state.user.employee?.faceEnrolled ?? false;
-                if (!isFaceEnrolled) {
-                  appRouter.go('/face-enrollment');
-                  return;
-                }
-
-                // Fire-and-forget sync of face data for offline/fast recognition
+                // Sync the server-confirmed embedding for offline recognition.
                 if (context.mounted) {
                   context.read<AttendanceCubit>().syncFaceData();
                 }
 
-                // 3. Unified Dashboard Routing (All Roles start at Usage/Employee Home)
+                // 3. Unified dashboard routing.
                 appRouter.go('/app/home');
               } catch (e) {
                 // If anything fails during routing checks, go to device binding as safe default

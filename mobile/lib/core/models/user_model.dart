@@ -15,7 +15,6 @@ class UserModel extends Equatable {
     required this.id,
     required this.name,
     required this.email,
-
     this.isActive = true,
     this.employee,
     this.roles = const [],
@@ -30,13 +29,13 @@ class UserModel extends Equatable {
       id: json['id'] as int,
       name: json['name'] as String,
       email: json['email'] as String,
-
       isActive: json['is_active'] as bool? ?? true,
       employee: json['employee'] != null
           ? EmployeeModel.fromJson(json['employee'] as Map<String, dynamic>)
           : null,
       roles: (json['roles'] as List?)
-              ?.map((r) => r is Map ? (r['name'] as String? ?? '') : r.toString())
+              ?.map(
+                  (r) => r is Map ? (r['name'] as String? ?? '') : r.toString())
               .toList() ??
           [],
     );
@@ -46,7 +45,6 @@ class UserModel extends Equatable {
         'id': id,
         'name': name,
         'email': email,
-        
         'is_active': isActive,
         'employee': employee?.toJson(),
         'roles': roles,
@@ -59,7 +57,7 @@ class UserModel extends Equatable {
 /// Maps the Laravel Employee model.
 class EmployeeModel extends Equatable {
   final int id;
-  
+
   final String? employeeNumber;
   final String fullName;
   final String? department;
@@ -70,7 +68,7 @@ class EmployeeModel extends Equatable {
   final DateTime? faceEnrolledAt;
   final String? gender;
   final String? address;
-  
+
   final String? nik;
   final String? npwp;
   final DateTime? dateOfBirth;
@@ -83,7 +81,6 @@ class EmployeeModel extends Equatable {
 
   const EmployeeModel({
     required this.id,
-    
     this.employeeNumber,
     required this.fullName,
     this.department,
@@ -105,9 +102,11 @@ class EmployeeModel extends Equatable {
     this.bankAccount,
   });
 
-  bool get isProfileCompleted => 
-    gender != null && gender!.isNotEmpty &&
-    address != null && address!.isNotEmpty;
+  bool get isProfileCompleted =>
+      gender != null &&
+      gender!.isNotEmpty &&
+      address != null &&
+      address!.isNotEmpty;
 
   factory EmployeeModel.fromJson(Map<String, dynamic> json) {
     return EmployeeModel(
@@ -118,7 +117,9 @@ class EmployeeModel extends Equatable {
       department: json['department'] as String?,
       position: json['position'] as String?,
       phone: json['phone'] as String?,
-      joinDate: json['join_date'] != null ? DateTime.tryParse(json['join_date']) : null,
+      joinDate: json['join_date'] != null
+          ? DateTime.tryParse(json['join_date'])
+          : null,
       faceEnrolled: json['face_enrolled'] as bool? ?? false,
       faceEnrolledAt: json['face_enrolled_at'] != null
           ? DateTime.tryParse(json['face_enrolled_at'])
@@ -127,19 +128,25 @@ class EmployeeModel extends Equatable {
       address: json['address'] as String?,
       nik: json['nik'] as String?,
       npwp: json['npwp'] as String?,
-      dateOfBirth: json['date_of_birth'] != null ? DateTime.tryParse(json['date_of_birth']) : null,
+      dateOfBirth: json['date_of_birth'] != null
+          ? DateTime.tryParse(json['date_of_birth'])
+          : null,
       employmentStatus: json['employment_status'] as String?,
-      bpjsKesehatan: json['bpjs_kesehatan'] as String?,
-      bpjsKetenagakerjaan: json['bpjs_ketenagakerjaan'] as String?,
+      // The API exposes encrypted fields through their public appended names.
+      // Keep the legacy keys as a fallback for older backend responses.
+      bpjsKesehatan:
+          (json['bpjs_kesehatan_number'] ?? json['bpjs_kesehatan']) as String?,
+      bpjsKetenagakerjaan: (json['bpjs_ketenagakerjaan_number'] ??
+          json['bpjs_ketenagakerjaan']) as String?,
       ptkpStatus: json['ptkp_status'] as String?,
       bankName: json['bank_name'] as String?,
-      bankAccount: json['bank_account'] as String?,
+      bankAccount:
+          (json['bank_account_number'] ?? json['bank_account']) as String?,
     );
   }
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        
         'employee_number': employeeNumber,
         'full_name': fullName,
         'department': department,
@@ -163,8 +170,21 @@ class EmployeeModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id, employeeNumber, fullName, department, position, gender, address,
-        nik, npwp, dateOfBirth, employmentStatus, bpjsKesehatan,
-        bpjsKetenagakerjaan, ptkpStatus, bankName, bankAccount,
+        id,
+        employeeNumber,
+        fullName,
+        department,
+        position,
+        gender,
+        address,
+        nik,
+        npwp,
+        dateOfBirth,
+        employmentStatus,
+        bpjsKesehatan,
+        bpjsKetenagakerjaan,
+        ptkpStatus,
+        bankName,
+        bankAccount,
       ];
 }

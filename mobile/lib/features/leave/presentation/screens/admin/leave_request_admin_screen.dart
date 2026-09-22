@@ -5,5 +5,8 @@ class LeaveRequestAdminScreen extends StatelessWidget {
   const LeaveRequestAdminScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => const ApprovalInboxScreen();
+  Widget build(BuildContext context) => const ApprovalInboxScreen(
+        requestTypeFilter: 'Cuti',
+        title: 'Persetujuan Cuti',
+      );
 }

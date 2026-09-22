@@ -13,7 +13,14 @@ import '../../../bloc/approval_cubit.dart';
 import '../../../../../core/models/approval_instance_model.dart';
 
 class ApprovalInboxScreen extends StatefulWidget {
-  const ApprovalInboxScreen({super.key});
+  final String? requestTypeFilter;
+  final String title;
+
+  const ApprovalInboxScreen({
+    super.key,
+    this.requestTypeFilter,
+    this.title = 'Wonten Teka',
+  });
 
   @override
   State<ApprovalInboxScreen> createState() => _ApprovalInboxScreenState();
@@ -47,9 +54,10 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
     });
   }
 
-  void _showActionDialog(BuildContext context, ApprovalInstanceModel request, bool isApprove) {
+  void _showActionDialog(
+      BuildContext context, ApprovalInstanceModel request, bool isApprove) {
     final commentController = TextEditingController();
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -64,15 +72,24 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(child: Container(width: 40.w, height: 4.h, decoration: BoxDecoration(color: AppColors.outlineVariant, borderRadius: BorderRadius.circular(2.r)))),
+            Center(
+                child: Container(
+                    width: 40.w,
+                    height: 4.h,
+                    decoration: BoxDecoration(
+                        color: AppColors.outlineVariant,
+                        borderRadius: BorderRadius.circular(2.r)))),
             SizedBox(height: 24.h),
-            Text(isApprove ? 'Setujui Permintaan?' : 'Tolak Permintaan?', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+            Text(isApprove ? 'Setujui Permintaan?' : 'Tolak Permintaan?',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold, color: AppColors.onSurface)),
             SizedBox(height: 16.h),
             TextField(
               controller: commentController,
               decoration: InputDecoration(
                 hintText: 'Tambahkan catatan (opsional)...',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r)),
                 filled: true,
                 fillColor: AppColors.surfaceContainerLowest,
               ),
@@ -86,7 +103,8 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                     onPressed: () => Navigator.pop(ctx),
                     style: OutlinedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 16.h),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16.r)),
                     ),
                     child: const Text('Batal'),
                   ),
@@ -97,16 +115,21 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                     onPressed: () {
                       Navigator.pop(ctx);
                       if (isApprove) {
-                        context.read<ApprovalCubit>().approve(request.id, comment: commentController.text);
+                        context.read<ApprovalCubit>().approve(request.id,
+                            comment: commentController.text);
                       } else {
-                        context.read<ApprovalCubit>().reject(request.id, comment: commentController.text);
+                        context.read<ApprovalCubit>().reject(request.id,
+                            comment: commentController.text);
                       }
                     },
                     style: FilledButton.styleFrom(
-                      backgroundColor: isApprove ? AppColors.successEmerald : AppColors.errorCrimson,
+                      backgroundColor: isApprove
+                          ? AppColors.successEmerald
+                          : AppColors.errorCrimson,
                       foregroundColor: Colors.white,
                       padding: EdgeInsets.symmetric(vertical: 16.h),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16.r)),
                     ),
                     child: Text(isApprove ? 'Setujui' : 'Tolak'),
                   ),
@@ -127,23 +150,40 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
         padding: EdgeInsets.all(24.w),
-        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.vertical(top: Radius.circular(24.r))),
+        decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24.r))),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 40.w, height: 4.h, decoration: BoxDecoration(color: AppColors.outlineVariant, borderRadius: BorderRadius.circular(2.r))),
+            Container(
+                width: 40.w,
+                height: 4.h,
+                decoration: BoxDecoration(
+                    color: AppColors.outlineVariant,
+                    borderRadius: BorderRadius.circular(2.r))),
             SizedBox(height: 24.h),
             Icon(Icons.error_outline, color: AppColors.error, size: 56.w),
             SizedBox(height: 16.h),
-            Text('Gagal', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+            Text('Gagal',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold, color: AppColors.onSurface)),
             SizedBox(height: 8.h),
-            Text(message, textAlign: TextAlign.center, style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
+            Text(message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
             SizedBox(height: 32.h),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
                 onPressed: () => Navigator.pop(ctx),
-                style: FilledButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: AppColors.onPrimary, padding: EdgeInsets.symmetric(vertical: 16.h), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r))),
+                style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.onPrimary,
+                    padding: EdgeInsets.symmetric(vertical: 16.h),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16.r))),
                 child: const Text('Tutup'),
               ),
             ),
@@ -157,22 +197,23 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
   @override
   Widget build(BuildContext context) {
     return BrandPageBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-      
+        child: Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          title: const AppBrandTitle(section: 'Wonten Teka'),
-          centerTitle: true,
-          iconTheme: const IconThemeData(color: AppColors.onSurface),
-        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: AppBrandTitle(section: widget.title),
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: AppColors.onSurface),
+      ),
       body: BlocConsumer<ApprovalCubit, ApprovalState>(
         listener: (context, state) {
           if (state is ApprovalActioned) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: AppColors.successEmerald),
+              SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: AppColors.successEmerald),
             );
             context.read<ApprovalCubit>().loadPending();
           } else if (state is ApprovalError) {
@@ -184,45 +225,72 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
           if (state is ApprovalLoaded) {
             requests = state.pending;
           } else if (context.read<ApprovalCubit>().state is ApprovalLoaded) {
-            requests = (context.read<ApprovalCubit>().state as ApprovalLoaded).pending;
+            requests =
+                (context.read<ApprovalCubit>().state as ApprovalLoaded).pending;
           }
 
-          if (_selectedFilter != 'Semua') {
+          if (widget.requestTypeFilter != null) {
+            requests = requests
+                .where((r) => r.requestType == widget.requestTypeFilter)
+                .toList();
+          } else if (_selectedFilter != 'Semua') {
             if (_selectedFilter == 'Cuti / Dinas') {
-              requests = requests.where((r) => r.requestType == 'Cuti' || r.requestType == 'Dinas Luar').toList();
+              requests = requests
+                  .where((r) =>
+                      r.requestType == 'Cuti' || r.requestType == 'Dinas Luar')
+                  .toList();
             } else if (_selectedFilter == 'Lainnya') {
-              requests = requests.where((r) => r.requestType != 'Cuti' && r.requestType != 'Dinas Luar' && r.requestType != 'Lembur' && r.requestType != 'Lupa Absen').toList();
+              requests = requests
+                  .where((r) =>
+                      r.requestType != 'Cuti' &&
+                      r.requestType != 'Dinas Luar' &&
+                      r.requestType != 'Lembur' &&
+                      r.requestType != 'Lupa Absen')
+                  .toList();
             } else {
-              requests = requests.where((r) => r.requestType == _selectedFilter).toList();
+              requests = requests
+                  .where((r) => r.requestType == _selectedFilter)
+                  .toList();
             }
           }
 
           Widget content;
-          if (state is ApprovalLoading && context.read<ApprovalCubit>().state is! ApprovalLoaded) {
+          if (state is ApprovalLoading &&
+              context.read<ApprovalCubit>().state is! ApprovalLoaded) {
             content = ListView.separated(
               padding: EdgeInsets.all(16.w),
               physics: const AlwaysScrollableScrollPhysics(),
               itemCount: 4,
               separatorBuilder: (_, __) => SizedBox(height: 12.h),
               itemBuilder: (context, index) {
-                return Container(height: 160.h, width: double.infinity, decoration: BoxDecoration(color: AppColors.surfaceContainerHigh, borderRadius: BorderRadius.circular(16.r)));
+                return Container(
+                    height: 160.h,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                        color: AppColors.surfaceContainerHigh,
+                        borderRadius: BorderRadius.circular(16.r)));
               },
-            ).animate(onPlay: (c) => c.repeat()).shimmer(duration: 1200.ms, color: AppColors.surface.withValues(alpha: 0.5));
-          } else if (state is ApprovalError && context.read<ApprovalCubit>().state is! ApprovalLoaded) {
+            ).animate(onPlay: (c) => c.repeat()).shimmer(
+                duration: 1200.ms,
+                color: AppColors.surface.withValues(alpha: 0.5));
+          } else if (state is ApprovalError &&
+              context.read<ApprovalCubit>().state is! ApprovalLoaded) {
             content = ErrorStateWidget(
               message: state.message,
               onRetry: () => context.read<ApprovalCubit>().loadPending(),
             );
           } else if (requests.isEmpty) {
             content = RefreshIndicator(
-              onRefresh: () async => context.read<ApprovalCubit>().loadPending(),
+              onRefresh: () async =>
+                  context.read<ApprovalCubit>().loadPending(),
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
                   SizedBox(height: 100.h),
                   const EmptyStateWidget(
                     title: 'Semua bersih!',
-                    message: 'Tidak ada permintaan yang menunggu persetujuan Anda saat ini.',
+                    message:
+                        'Tidak ada permintaan yang menunggu persetujuan Anda saat ini.',
                     icon: Icons.check_circle_outline,
                   ),
                 ],
@@ -230,7 +298,8 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
             );
           } else {
             content = RefreshIndicator(
-              onRefresh: () async => context.read<ApprovalCubit>().loadPending(),
+              onRefresh: () async =>
+                  context.read<ApprovalCubit>().loadPending(),
               child: ListView.separated(
                 padding: EdgeInsets.all(16.w),
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -238,7 +307,7 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                 separatorBuilder: (_, __) => SizedBox(height: 16.h),
                 itemBuilder: (context, index) {
                   final req = requests[index];
-                  
+
                   return InfoCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,13 +316,25 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Container(
-                              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                              decoration: BoxDecoration(color: AppColors.primaryContainer, borderRadius: BorderRadius.circular(8.r)),
-                              child: Text(req.requestType, style: TextStyle(color: AppColors.primary, fontSize: 11.sp, fontWeight: FontWeight.bold)),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 10.w, vertical: 4.h),
+                              decoration: BoxDecoration(
+                                  color: AppColors.primaryContainer,
+                                  borderRadius: BorderRadius.circular(8.r)),
+                              child: Text(req.requestType,
+                                  style: TextStyle(
+                                      color: AppColors.primary,
+                                      fontSize: 11.sp,
+                                      fontWeight: FontWeight.bold)),
                             ),
                             Text(
-                              req.createdAt != null ? DateFormat('dd MMM yyyy').format(req.createdAt!) : '',
-                              style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp),
+                              req.createdAt != null
+                                  ? DateFormat('dd MMM yyyy')
+                                      .format(req.createdAt!)
+                                  : '',
+                              style: TextStyle(
+                                  color: AppColors.onSurfaceVariant,
+                                  fontSize: 12.sp),
                             ),
                           ],
                         ),
@@ -262,8 +343,10 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                           children: [
                             CircleAvatar(
                               radius: 20.r,
-                              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                              child: Icon(Icons.person, color: AppColors.primary, size: 20.w),
+                              backgroundColor:
+                                  AppColors.primary.withValues(alpha: 0.1),
+                              child: Icon(Icons.person,
+                                  color: AppColors.primary, size: 20.w),
                             ),
                             SizedBox(width: 12.w),
                             Expanded(
@@ -271,13 +354,21 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    req.approvable?['employee']?['full_name'] ?? 'Karyawan',
-                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: AppColors.onSurface),
+                                    req.approvable?['employee']?['full_name'] ??
+                                        'Karyawan',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.onSurface),
                                   ),
                                   SizedBox(height: 2.h),
                                   Text(
                                     "Posisi: ${req.approvable?['employee']?['position'] ?? '-'}",
-                                    style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp),
+                                    style: TextStyle(
+                                        color: AppColors.onSurfaceVariant,
+                                        fontSize: 12.sp),
                                   ),
                                 ],
                               ),
@@ -288,22 +379,40 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                         Container(
                           padding: EdgeInsets.all(12.w),
                           width: double.infinity,
-                          decoration: BoxDecoration(color: AppColors.surfaceContainerLowest, borderRadius: BorderRadius.circular(12.r), border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5))),
+                          decoration: BoxDecoration(
+                              color: AppColors.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(12.r),
+                              border: Border.all(
+                                  color: AppColors.outlineVariant
+                                      .withValues(alpha: 0.5))),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (req.approvable?['reason'] != null) ...[
-                                Text('Alasan:', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.sp, fontWeight: FontWeight.w600)),
+                                Text('Alasan:',
+                                    style: TextStyle(
+                                        color: AppColors.onSurfaceVariant,
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.w600)),
                                 SizedBox(height: 4.h),
-                                Text(req.approvable!['reason'].toString(), style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp)),
+                                Text(req.approvable!['reason'].toString(),
+                                    style: TextStyle(
+                                        color: AppColors.onSurface,
+                                        fontSize: 13.sp)),
                               ],
                               if (req.requestType == 'Cuti') ...[
                                 SizedBox(height: 8.h),
                                 Row(
                                   children: [
-                                    Icon(Icons.calendar_today, size: 14.w, color: AppColors.primary),
+                                    Icon(Icons.calendar_today,
+                                        size: 14.w, color: AppColors.primary),
                                     SizedBox(width: 6.w),
-                                    Text("${_fmtDate(req.approvable?['start_date'])} - ${_fmtDate(req.approvable?['end_date'])}", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                                    Text(
+                                        "${_fmtDate(req.approvable?['start_date'])} - ${_fmtDate(req.approvable?['end_date'])}",
+                                        style: TextStyle(
+                                            color: AppColors.onSurface,
+                                            fontSize: 13.sp,
+                                            fontWeight: FontWeight.w500)),
                                   ],
                                 ),
                               ],
@@ -311,9 +420,15 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                                 SizedBox(height: 8.h),
                                 Row(
                                   children: [
-                                    Icon(Icons.access_time, size: 14.w, color: AppColors.primary),
+                                    Icon(Icons.access_time,
+                                        size: 14.w, color: AppColors.primary),
                                     SizedBox(width: 6.w),
-                                    Text("${_fmtDate(req.approvable?['date'])} (${_fmtTime(req.approvable?['start_time'])} - ${_fmtTime(req.approvable?['end_time'])})", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                                    Text(
+                                        "${_fmtDate(req.approvable?['date'])} (${_fmtTime(req.approvable?['start_time'])} - ${_fmtTime(req.approvable?['end_time'])})",
+                                        style: TextStyle(
+                                            color: AppColors.onSurface,
+                                            fontSize: 13.sp,
+                                            fontWeight: FontWeight.w500)),
                                   ],
                                 ),
                               ],
@@ -321,9 +436,15 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                                 SizedBox(height: 8.h),
                                 Row(
                                   children: [
-                                    Icon(Icons.swap_horiz, size: 14.w, color: AppColors.primary),
+                                    Icon(Icons.swap_horiz,
+                                        size: 14.w, color: AppColors.primary),
                                     SizedBox(width: 6.w),
-                                    Text("${_fmtDate(req.approvable?['original_date'])} \u2192 ${_fmtDate(req.approvable?['proposed_date'])}", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                                    Text(
+                                        "${_fmtDate(req.approvable?['original_date'])} \u2192 ${_fmtDate(req.approvable?['proposed_date'])}",
+                                        style: TextStyle(
+                                            color: AppColors.onSurface,
+                                            fontSize: 13.sp,
+                                            fontWeight: FontWeight.w500)),
                                   ],
                                 ),
                               ],
@@ -331,9 +452,15 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                                 SizedBox(height: 8.h),
                                 Row(
                                   children: [
-                                    Icon(Icons.history_toggle_off, size: 14.w, color: AppColors.primary),
+                                    Icon(Icons.history_toggle_off,
+                                        size: 14.w, color: AppColors.primary),
                                     SizedBox(width: 6.w),
-                                    Text("${_fmtDate(req.approvable?['date'])} (${_fmtTime(req.approvable?['check_in'])} - ${_fmtTime(req.approvable?['check_out'])})", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                                    Text(
+                                        "${_fmtDate(req.approvable?['date'])} (${_fmtTime(req.approvable?['check_in'])} - ${_fmtTime(req.approvable?['check_out'])})",
+                                        style: TextStyle(
+                                            color: AppColors.onSurface,
+                                            fontSize: 13.sp,
+                                            fontWeight: FontWeight.w500)),
                                   ],
                                 ),
                               ],
@@ -341,9 +468,15 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                                 SizedBox(height: 8.h),
                                 Row(
                                   children: [
-                                    Icon(Icons.card_travel, size: 14.w, color: AppColors.primary),
+                                    Icon(Icons.card_travel,
+                                        size: 14.w, color: AppColors.primary),
                                     SizedBox(width: 6.w),
-                                    Text("${_fmtDate(req.approvable?['start_date'])} - ${_fmtDate(req.approvable?['end_date'])} di ${req.approvable?['location'] ?? '-'}", style: TextStyle(color: AppColors.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                                    Text(
+                                        "${_fmtDate(req.approvable?['start_date'])} - ${_fmtDate(req.approvable?['end_date'])} di ${req.approvable?['location'] ?? '-'}",
+                                        style: TextStyle(
+                                            color: AppColors.onSurface,
+                                            fontSize: 13.sp,
+                                            fontWeight: FontWeight.w500)),
                                   ],
                                 ),
                               ],
@@ -355,16 +488,28 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                           children: [
                             Expanded(
                               child: OutlinedButton(
-                                onPressed: () => _showActionDialog(context, req, false),
-                                style: OutlinedButton.styleFrom(foregroundColor: AppColors.errorCrimson, side: const BorderSide(color: AppColors.errorCrimson), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r))),
+                                onPressed: () =>
+                                    _showActionDialog(context, req, false),
+                                style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.errorCrimson,
+                                    side: const BorderSide(
+                                        color: AppColors.errorCrimson),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12.r))),
                                 child: const Text('Tolak'),
                               ),
                             ),
                             SizedBox(width: 12.w),
                             Expanded(
                               child: FilledButton(
-                                onPressed: () => _showActionDialog(context, req, true),
-                                style: FilledButton.styleFrom( foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r))),
+                                onPressed: () =>
+                                    _showActionDialog(context, req, true),
+                                style: FilledButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12.r))),
                                 child: const Text('Setujui'),
                               ),
                             ),
@@ -372,7 +517,10 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                         ),
                       ],
                     ),
-                  ).animate().fadeIn(delay: Duration(milliseconds: 50 * index)).slideX(begin: 0.05, end: 0);
+                  )
+                      .animate()
+                      .fadeIn(delay: Duration(milliseconds: 50 * index))
+                      .slideX(begin: 0.05, end: 0);
                 },
               ),
             );
@@ -384,7 +532,13 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                 scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                 child: Row(
-                  children: ['Semua', 'Cuti / Dinas', 'Lembur', 'Lupa Absen', 'Lainnya'].map((filter) {
+                  children: [
+                    'Semua',
+                    'Cuti / Dinas',
+                    'Lembur',
+                    'Lupa Absen',
+                    'Lainnya'
+                  ].map((filter) {
                     final isSelected = _selectedFilter == filter;
                     return Padding(
                       padding: EdgeInsets.only(right: 8.w),
@@ -399,13 +553,18 @@ class _ApprovalInboxScreenState extends State<ApprovalInboxScreen> {
                         selectedColor: AppColors.primaryContainer,
                         checkmarkColor: AppColors.primary,
                         labelStyle: TextStyle(
-                          color: isSelected ? AppColors.primary : AppColors.onSurfaceVariant,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.onSurfaceVariant,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
-                        
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16.r),
-                          side: BorderSide(color: isSelected ? AppColors.primary : AppColors.outlineVariant),
+                          side: BorderSide(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.outlineVariant),
                         ),
                       ),
                     );

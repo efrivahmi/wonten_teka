@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/info_card.dart';
 import '../../../../../core/api/api_client.dart';
+import '../../../../../core/widgets/admin_pagination_bar.dart';
 
 class AuditLogsScreen extends StatefulWidget {
   const AuditLogsScreen({super.key});
@@ -19,6 +20,7 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
   bool _isLoading = true;
   List<dynamic> _logs = [];
   String? _errorMessage;
+  int _currentPage = 1, _lastPage = 1, _totalLogs = 0;
 
   @override
   void initState() {
@@ -27,17 +29,23 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
     _loadLogs();
   }
 
-  Future<void> _loadLogs() async {
+  Future<void> _loadLogs({int page = 1}) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      final response = await _api.get('/admin/audit-logs');
-      final data = response.data['data'] as List;
+      final response = await _api.get('/admin/audit-logs',
+          queryParameters: {'page': page, 'per_page': 25});
+      final pageData = Map<String, dynamic>.from(
+          response.data['data'] is Map ? response.data['data'] : response.data);
+      final data = pageData['data'] as List? ?? const [];
       setState(() {
         _logs = data;
+        _currentPage = pageData['current_page'] as int? ?? page;
+        _lastPage = pageData['last_page'] as int? ?? 1;
+        _totalLogs = pageData['total'] as int? ?? data.length;
         _isLoading = false;
       });
     } catch (e) {
@@ -59,17 +67,16 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
   @override
   Widget build(BuildContext context) {
     return BrandPageBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-      
+        child: Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          title: const AppBrandTitle(section: 'Audit Logs'),
-          centerTitle: true,
-          iconTheme: const IconThemeData(color: AppColors.onSurface),
-        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: const AppBrandTitle(section: 'Audit Logs'),
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: AppColors.onSurface),
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
@@ -80,11 +87,19 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
                   ? const Center(child: Text('Belum ada log audit.'))
                   : ListView.separated(
                       padding: EdgeInsets.all(16.w),
-                      itemCount: _logs.length,
+                      itemCount: _logs.length + 1,
                       separatorBuilder: (_, __) => SizedBox(height: 12.h),
                       itemBuilder: (context, i) {
-                        final log = _logs[i];
-                        final actorName = log['actor'] != null ? log['actor']['name'] : 'System';
+                        if (i == 0)
+                          return AdminPaginationBar(
+                              currentPage: _currentPage,
+                              lastPage: _lastPage,
+                              total: _totalLogs,
+                              onPageChanged: (page) => _loadLogs(page: page));
+                        final log = _logs[i - 1];
+                        final actorName = log['actor'] != null
+                            ? log['actor']['name']
+                            : 'System';
                         final action = log['action'] ?? 'Unknown Action';
                         final createdAt = DateTime.parse(log['created_at']);
                         return InfoCard(
@@ -92,7 +107,8 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                               Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text('Admin - $actorName',
                                         style: TextStyle(
@@ -107,10 +123,10 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
                               SizedBox(height: 8.h),
                               Text(action,
                                   style: TextStyle(
-                                      color: AppColors.onSurface, fontSize: 14.sp)),
+                                      color: AppColors.onSurface,
+                                      fontSize: 14.sp)),
                             ]));
                       }),
     ));
   }
 }
-

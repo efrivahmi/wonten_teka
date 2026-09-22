@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/api/api_client.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/widgets/admin_pagination_bar.dart';
 
 class AdminBiometricScreen extends StatefulWidget {
   const AdminBiometricScreen({super.key});
@@ -17,6 +18,7 @@ class _AdminBiometricScreenState extends State<AdminBiometricScreen> {
   List<Map<String, dynamic>> _items = const [];
   bool _loading = true;
   String? _error;
+  int _currentPage = 1, _lastPage = 1, _totalItems = 0;
 
   ApiClient get _api => context.read<ApiClient>();
 
@@ -26,20 +28,27 @@ class _AdminBiometricScreenState extends State<AdminBiometricScreen> {
     _load();
   }
 
-  Future<void> _load() async {
+  Future<void> _load({int page = 1}) async {
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      final response = await _api.get('/admin/biometrics');
-      final raw = response.data is Map ? response.data['data'] : null;
+      final response = await _api.get('/admin/biometrics',
+          queryParameters: {'page': page, 'per_page': 25});
+      final outer = Map<String, dynamic>.from(response.data as Map);
+      final pageData = Map<String, dynamic>.from(
+          outer['data'] is Map ? outer['data'] : outer);
+      final raw = pageData['data'];
       if (!mounted) return;
       setState(() {
         _items = (raw as List? ?? const [])
             .whereType<Map>()
             .map(Map<String, dynamic>.from)
             .toList();
+        _currentPage = pageData['current_page'] as int? ?? page;
+        _lastPage = pageData['last_page'] as int? ?? 1;
+        _totalItems = pageData['total'] as int? ?? _items.length;
         _loading = false;
       });
     } catch (_) {
@@ -77,7 +86,7 @@ class _AdminBiometricScreenState extends State<AdminBiometricScreen> {
 
   @override
   Widget build(BuildContext context) => BrandPageBackground(
-      child: Scaffold(
+          child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
@@ -105,10 +114,16 @@ class _AdminBiometricScreenState extends State<AdminBiometricScreen> {
                     ])
                   : ListView.separated(
                       padding: const EdgeInsets.all(16),
-                      itemCount: _items.length,
+                      itemCount: _items.length + 1,
                       separatorBuilder: (_, __) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
-                        final item = _items[index];
+                        if (index == 0)
+                          return AdminPaginationBar(
+                              currentPage: _currentPage,
+                              lastPage: _lastPage,
+                              total: _totalItems,
+                              onPageChanged: (page) => _load(page: page));
+                        final item = _items[index - 1];
                         final enrolled = item['face_enrolled'] == true;
                         return Card(
                           child: ListTile(

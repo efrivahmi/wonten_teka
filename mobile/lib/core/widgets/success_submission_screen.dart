@@ -56,7 +56,7 @@ class _SuccessSubmissionScreenState extends State<SuccessSubmissionScreen>
           context.go(widget.customRoute!);
         } else {
           // Default to Dashboard
-          context.go('/dashboard');
+          context.go('/app/home');
         }
       }
     });

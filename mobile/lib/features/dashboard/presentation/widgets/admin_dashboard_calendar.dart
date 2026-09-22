@@ -24,7 +24,7 @@ class _AdminDashboardCalendarState extends State<AdminDashboardCalendar> {
 
   void _loadEvents() => context
       .read<CompanyCubit>()
-      .loadAll(month: _currentMonth.month, year: _currentMonth.year);
+      .loadCalendar(month: _currentMonth.month, year: _currentMonth.year);
 
   void _goToPreviousMonth() {
     final newMonth = DateTime(_currentMonth.year, _currentMonth.month - 1, 1);

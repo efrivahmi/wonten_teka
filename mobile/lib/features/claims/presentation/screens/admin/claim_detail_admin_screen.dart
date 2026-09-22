@@ -5,5 +5,8 @@ class ClaimDetailAdminScreen extends StatelessWidget {
   const ClaimDetailAdminScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => const ApprovalInboxScreen();
+  Widget build(BuildContext context) => const ApprovalInboxScreen(
+        requestTypeFilter: 'Klaim',
+        title: 'Persetujuan Klaim',
+      );
 }

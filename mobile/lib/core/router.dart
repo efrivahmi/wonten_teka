@@ -54,6 +54,8 @@ import '../features/payroll/presentation/screens/employee/payslip_list_screen.da
 import '../features/payroll/presentation/screens/employee/payslip_detail_screen.dart';
 import '../features/calendar/presentation/screens/employee/company_calendar_screen.dart';
 import '../features/calendar/presentation/screens/employee/event_detail_screen.dart';
+import '../features/calendar/presentation/screens/employee/announcements_screen.dart';
+import '../features/calendar/presentation/screens/employee/announcement_detail_screen.dart';
 
 // Profile, Settings, Notifications, Directory, Face Update
 import '../features/profile/presentation/screens/employee/user_profile_screen.dart';
@@ -80,6 +82,7 @@ import '../features/attendance/presentation/screens/admin/daily_attendance_table
 import '../features/attendance/presentation/screens/admin/admin_attendance_detail_screen.dart';
 
 import '../features/claims/presentation/screens/admin/claim_detail_admin_screen.dart';
+import '../features/leave/presentation/screens/admin/leave_request_admin_screen.dart';
 import '../features/payroll/presentation/screens/admin/payroll_configuration_screen.dart';
 import '../features/payroll/presentation/screens/admin/payroll_run_list_screen.dart';
 import '../features/payroll/presentation/screens/admin/payroll_run_detail_screen.dart';
@@ -216,6 +219,17 @@ final appRouter = GoRouter(
         path: '/app/calendar',
         builder: (_, __) => const CompanyCalendarScreen()),
     GoRoute(
+        path: '/app/announcements',
+        builder: (_, __) => const AnnouncementsScreen()),
+    GoRoute(
+        path: '/app/announcements/detail',
+        builder: (_, state) {
+          final announcement = state.extra as AnnouncementModel?;
+          return announcement == null
+              ? const AnnouncementsScreen()
+              : AnnouncementDetailScreen(announcement: announcement);
+        }),
+    GoRoute(
         path: '/app/calendar/event',
         builder: (_, state) {
           final event = state.extra as CalendarEventModel?;
@@ -297,6 +311,9 @@ final appRouter = GoRouter(
     GoRoute(
         path: '/admin/claims',
         builder: (_, __) => const ClaimDetailAdminScreen()),
+    GoRoute(
+        path: '/admin/leave-requests',
+        builder: (_, __) => const LeaveRequestAdminScreen()),
     GoRoute(
         path: '/admin/payroll-config',
         builder: (_, __) => const PayrollConfigurationScreen()),

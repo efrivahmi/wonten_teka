@@ -1,6 +1,5 @@
-import 'package:wonten_teka_mobile/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:wonten_teka_mobile/core/widgets/brand_panel.dart';
+import 'package:wonten_teka_mobile/core/theme/app_colors.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,8 +21,8 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkInitialState() async {
-    // 5 seconds delay for loading screen
-    await Future.delayed(const Duration(seconds: 5));
+    // Keep startup calm and fast; the session check does the real work.
+    await Future.delayed(const Duration(milliseconds: 1200));
 
     if (!mounted) return;
 
@@ -51,10 +50,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BrandPageBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-      
+    return Scaffold(
+      backgroundColor: AppColors.surface,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -62,7 +59,7 @@ class _SplashScreenState extends State<SplashScreen> {
             Container(
               padding: EdgeInsets.all(14.w),
               decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.onSurface,
                   borderRadius: BorderRadius.circular(28.r),
                   boxShadow: [
                     BoxShadow(
@@ -92,7 +89,7 @@ class _SplashScreenState extends State<SplashScreen> {
             Text(
               'Lemdiklat Taruna Nusantara Indonesia',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.8),
+                color: AppColors.onSurfaceVariant,
                 fontSize: 14.sp,
                 letterSpacing: 0.5,
               ),
@@ -102,13 +99,13 @@ class _SplashScreenState extends State<SplashScreen> {
               width: 32.w,
               height: 32.w,
               child: const CircularProgressIndicator(
-                color: Colors.white,
+                color: AppColors.primary,
                 strokeWidth: 3,
               ),
             ),
           ],
         ),
       ),
-    ));
+    );
   }
 }

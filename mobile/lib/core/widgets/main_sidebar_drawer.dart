@@ -100,6 +100,11 @@ class MainSidebarDrawer extends StatelessWidget {
                                   'Persetujuan',
                                   Icons.fact_check_outlined,
                                   '/admin/approvals'),
+                              _buildListTile(
+                                  context,
+                                  'Persetujuan Cuti',
+                                  Icons.event_busy_outlined,
+                                  '/admin/leave-requests'),
                               _buildListTile(context, 'Klaim / Reimburse',
                                   Icons.receipt_long_outlined, '/admin/claims'),
                               _buildListTile(context, 'Jenis Cuti',
