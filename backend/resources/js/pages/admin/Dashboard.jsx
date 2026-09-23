@@ -9,24 +9,30 @@ import api from '../../api';
 import MobileAppDownloadCard from '../../components/MobileAppDownloadCard';
 
 const accessGroups = [
-    { title: 'SDM & Persetujuan', icon: Users, links: [
-        ['Karyawan', '/admin/employees', Users], ['Persetujuan', '/admin/approvals', CheckSquare],
-        ['Klaim / Reimburse', '/admin/claims', FileBarChart], ['Jenis Klaim', '/admin/claim-categories', Banknote],
-        ['Jenis Cuti', '/admin/leave-types', Briefcase],
-    ] },
-    { title: 'Presensi', icon: CalendarCheck, links: [
-        ['Jadwal & Shift', '/admin/schedule', CalendarRange], ['Penugasan Shift', '/admin/shift-assignments', CalendarRange],
-        ['Lokasi Absensi', '/admin/attendance-settings', MapPin], ['Kehadiran Harian', '/admin/attendance-daily', CalendarCheck],
-        ['Laporan Absensi', '/admin/reports', FileBarChart], ['Deteksi Fake GPS', '/admin/attendance-security-events', Flag],
-    ] },
-    { title: 'Operasional', icon: ListChecks, links: [
-        ['Perangkat', '/admin/devices', Smartphone], ['Event', '/admin/events', CalendarDays],
-        ['Pengumuman', '/admin/announcements', Bell], ['Daily Task & Habit', '/admin/tasks', ListChecks],
-        ['Payroll', '/admin/payroll', Banknote], ['Konfigurasi Payroll', '/admin/payroll-config', Banknote],
-        ['Biometrik Wajah', '/admin/biometrics', Shield], ['Analitik Departemen', '/admin/department-analytics', FileBarChart],
-        ['Pusat Ekspor', '/admin/export', FileBarChart], ['Log Audit', '/admin/audit-logs', Shield],
-        ['Pengaturan Perusahaan', '/admin/org-settings', MapPin], ['Pengaturan Sistem', '/admin/settings', Shield],
-    ] },
+    {
+        title: 'SDM & Persetujuan', icon: Users, links: [
+            ['Karyawan', '/admin/employees', Users], ['Persetujuan', '/admin/approvals', CheckSquare],
+            ['Klaim / Reimburse', '/admin/claims', FileBarChart], ['Jenis Klaim', '/admin/claim-categories', Banknote],
+            ['Jenis Cuti', '/admin/leave-types', Briefcase],
+        ]
+    },
+    {
+        title: 'Presensi', icon: CalendarCheck, links: [
+            ['Jadwal & Shift', '/admin/schedule', CalendarRange], ['Penugasan Shift', '/admin/shift-assignments', CalendarRange],
+            ['Lokasi Absensi', '/admin/attendance-settings', MapPin], ['Kehadiran Harian', '/admin/attendance-daily', CalendarCheck],
+            ['Laporan Absensi', '/admin/reports', FileBarChart], ['Deteksi Fake GPS', '/admin/attendance-security-events', Flag],
+        ]
+    },
+    {
+        title: 'Operasional', icon: ListChecks, links: [
+            ['Perangkat', '/admin/devices', Smartphone], ['Event', '/admin/events', CalendarDays],
+            ['Pengumuman', '/admin/announcements', Bell], ['Daily Task & Habit', '/admin/tasks', ListChecks],
+            ['Payroll', '/admin/payroll', Banknote], ['Konfigurasi Payroll', '/admin/payroll-config', Banknote],
+            ['Biometrik Wajah', '/admin/biometrics', Shield], ['Analitik Departemen', '/admin/department-analytics', FileBarChart],
+            ['Pusat Ekspor', '/admin/export', FileBarChart], ['Log Audit', '/admin/audit-logs', Shield],
+            ['Pengaturan Perusahaan', '/admin/org-settings', MapPin], ['Pengaturan Sistem', '/admin/settings', Shield],
+        ]
+    },
     { title: 'Akun', icon: Shield, links: [['Profil Administrator', '/admin/profile', Shield]] },
 ];
 
