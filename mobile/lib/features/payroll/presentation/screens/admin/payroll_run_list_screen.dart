@@ -52,11 +52,12 @@ class _PayrollRunListScreenState extends State<PayrollRunListScreen> {
         _loading = false;
       });
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = _apiMessage(e);
           _loading = false;
         });
+      }
     }
   }
 
@@ -154,8 +155,9 @@ class _PayrollRunListScreenState extends State<PayrollRunListScreen> {
                 ],
                 onChanged: (value) async {
                   setDialogState(() => mode = value ?? 'automatic');
-                  if (mode != 'manual' || employeesLoaded || employeesLoading)
+                  if (mode != 'manual' || employeesLoaded || employeesLoading) {
                     return;
+                  }
                   setDialogState(() => employeesLoading = true);
                   try {
                     final response =
@@ -225,7 +227,7 @@ class _PayrollRunListScreenState extends State<PayrollRunListScreen> {
               ],
               SizedBox(height: 18.h),
               DropdownButtonFormField<int>(
-                value: month,
+                initialValue: month,
                 decoration: const InputDecoration(
                     labelText: 'Bulan gaji', border: OutlineInputBorder()),
                 items: List.generate(
@@ -240,7 +242,7 @@ class _PayrollRunListScreenState extends State<PayrollRunListScreen> {
               ),
               SizedBox(height: 12.h),
               DropdownButtonFormField<int>(
-                value: year,
+                initialValue: year,
                 decoration: const InputDecoration(
                     labelText: 'Tahun', border: OutlineInputBorder()),
                 items: List.generate(81, (i) => 2020 + i)

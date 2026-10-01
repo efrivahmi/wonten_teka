@@ -55,11 +55,12 @@ class _PayrollConfigurationScreenState
         _loading = false;
       });
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = _message(e);
           _loading = false;
         });
+      }
     }
   }
 
@@ -258,9 +259,10 @@ class _PayrollConfigurationScreenState
     try {
       await request();
       await _load();
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(success)));
+      }
     } catch (e) {
       if (mounted) setState(() => _error = _message(e));
     } finally {
@@ -338,7 +340,7 @@ class _PayrollConfigurationScreenState
                             _ErrorBanner(message: _error!)
                           ],
                           SizedBox(height: 14.h),
-                          _SectionHeader(
+                          const _SectionHeader(
                               title: 'Siklus & kebijakan',
                               subtitle:
                                   'Atur periode rekap dan kebijakan otomatis. Cara hitung otomatis atau jumlah bersih manual dipilih setiap kali membuat payroll.'),
@@ -353,7 +355,7 @@ class _PayrollConfigurationScreenState
                               busy: _saving,
                               onPressed: _saveSettings),
                           SizedBox(height: 20.h),
-                          _SectionHeader(
+                          const _SectionHeader(
                               title: 'Komponen gaji',
                               subtitle:
                                   'Gaji pokok BASE per karyawan, tunjangan, dan potongan rutin.'),
@@ -367,8 +369,9 @@ class _PayrollConfigurationScreenState
                                       context: context,
                                       builder: (_) => const _ComponentEditor(),
                                     );
-                                    if (result != null)
+                                    if (result != null) {
                                       await _saveComponents(result);
+                                    }
                                   },
                             icon: const Icon(Icons.add_rounded),
                             label: const Text('Tambah komponen'),
@@ -387,7 +390,7 @@ class _PayrollConfigurationScreenState
                                     setState(() => row[key] = value),
                               )),
                           SizedBox(height: 20.h),
-                          _SectionHeader(
+                          const _SectionHeader(
                               title: 'BPJS Kesehatan & Ketenagakerjaan',
                               subtitle:
                                   'Tarif desimal, contoh 0,02 = 2%. Tanggal efektif menjaga hasil payroll lama tetap.'),
@@ -414,7 +417,7 @@ class _PayrollConfigurationScreenState
                                 onPressed: _saveBpjs)
                           ],
                           SizedBox(height: 20.h),
-                          _SectionHeader(
+                          const _SectionHeader(
                               title: 'PPh 21 TER bulanan',
                               subtitle:
                                   'Masukkan semua rentang kategori A, B, dan C. Contoh 0,005 = 0,5%.'),
@@ -441,7 +444,7 @@ class _PayrollConfigurationScreenState
                                 onPressed: _saveTer)
                           ],
                           SizedBox(height: 20.h),
-                          _SectionHeader(
+                          const _SectionHeader(
                               title: 'Pajak tahunan & PTKP',
                               subtitle:
                                   'Dipakai untuk rekonsiliasi payroll Desember.'),
@@ -658,7 +661,8 @@ class _SwitchRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SwitchListTile.adaptive(
       contentPadding: EdgeInsets.zero,
-      activeColor: AppColors.primary,
+      activeThumbColor: AppColors.primary,
+      activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
       title: Text(title,
           style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w700)),
       subtitle: Text(subtitle, style: TextStyle(fontSize: 10.sp)),
@@ -804,7 +808,7 @@ class _ComponentEditorState extends State<_ComponentEditor> {
                   decoration: const InputDecoration(
                       labelText: 'Kode (gunakan BASE untuk gaji pokok)')),
               DropdownButtonFormField<String>(
-                  value: _type,
+                  initialValue: _type,
                   decoration: const InputDecoration(labelText: 'Jenis'),
                   items: const [
                     DropdownMenuItem(
@@ -857,7 +861,7 @@ class _BpjsRateCard extends StatelessWidget {
       margin: EdgeInsets.only(bottom: 8.h),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         DropdownButtonFormField<String>(
-            value: '${row['program'] ?? 'kesehatan'}',
+            initialValue: '${row['program'] ?? 'kesehatan'}',
             decoration: const InputDecoration(labelText: 'Program BPJS'),
             items: const [
               DropdownMenuItem(
@@ -892,7 +896,7 @@ class _BpjsRateCard extends StatelessWidget {
         if (row['program'] == 'jkk') ...[
           SizedBox(height: 7.h),
           DropdownButtonFormField<String>(
-              value: row['jkk_risk_class']?.toString(),
+              initialValue: row['jkk_risk_class']?.toString(),
               decoration: const InputDecoration(labelText: 'Kelas risiko JKK'),
               items: ['I', 'II', 'III', 'IV', 'V']
                   .map((v) =>
@@ -936,7 +940,7 @@ class _TerRateCard extends StatelessWidget {
       margin: EdgeInsets.only(bottom: 8.h),
       child: Column(children: [
         DropdownButtonFormField<String>(
-            value: '${row['category'] ?? 'A'}',
+            initialValue: '${row['category'] ?? 'A'}',
             decoration: const InputDecoration(labelText: 'Kategori TER'),
             items: ['A', 'B', 'C']
                 .map((v) =>

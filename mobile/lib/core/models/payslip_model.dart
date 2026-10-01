@@ -40,10 +40,12 @@ class PayslipModel extends Equatable {
   });
 
   String get periodLabel {
-    if (payrollRun != null)
+    if (payrollRun != null) {
       return '${payrollRun!.periodMonth}/${payrollRun!.periodYear}';
-    if (periodStart != null && periodStart!.length >= 7)
+    }
+    if (periodStart != null && periodStart!.length >= 7) {
       return periodStart!.substring(0, 7);
+    }
     return '-';
   }
 

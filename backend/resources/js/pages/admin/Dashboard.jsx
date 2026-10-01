@@ -99,7 +99,7 @@ const AdminDashboard = () => {
             {error && <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-700">{error} <button onClick={fetchStats} className="ml-2 font-bold underline">Muat ulang</button></div>}
 
             <header className="relative overflow-hidden rounded-3xl bg-linear-to-br from-slate-950 via-emerald-950 to-slate-900 p-6 text-white shadow-lg shadow-emerald-950/10 sm:p-8">
-                <svg aria-hidden="true" viewBox="0 0 420 220" className="pointer-events-none absolute -right-20 -top-24 h-72 w-[32rem] text-emerald-300 opacity-15">
+                <svg aria-hidden="true" viewBox="0 0 420 220" className="pointer-events-none absolute -right-20 -top-24 h-72 w-lg text-emerald-300 opacity-15">
                     <circle cx="210" cy="110" r="96" fill="none" stroke="currentColor" strokeWidth="1" />
                     <circle cx="210" cy="110" r="62" fill="none" stroke="currentColor" strokeWidth="1" />
                     <path d="M0 110h420M210 0v220" stroke="currentColor" strokeWidth="1" />

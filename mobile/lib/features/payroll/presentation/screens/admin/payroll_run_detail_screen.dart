@@ -41,11 +41,12 @@ class _PayrollRunDetailScreenState extends State<PayrollRunDetailScreen> {
   }
 
   Future<void> _loadDetail() async {
-    if (mounted)
+    if (mounted) {
       setState(() {
         _loading = true;
         _error = null;
       });
+    }
     try {
       final response = await _api.get('/admin/payroll/runs/${widget.runId}');
       final body = Map<String, dynamic>.from(response.data as Map);
@@ -57,11 +58,12 @@ class _PayrollRunDetailScreenState extends State<PayrollRunDetailScreen> {
         _loading = false;
       });
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = _apiMessage(e);
           _loading = false;
         });
+      }
     }
   }
 
@@ -106,9 +108,10 @@ class _PayrollRunDetailScreenState extends State<PayrollRunDetailScreen> {
     try {
       await _api.post('/admin/payroll/runs/${widget.runId}/$action');
       await _loadDetail();
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: const Text('Slip diterbitkan untuk karyawan.')));
+            const SnackBar(content: Text('Slip diterbitkan untuk karyawan.')));
+      }
     } catch (e) {
       if (mounted) setState(() => _error = _apiMessage(e));
     } finally {

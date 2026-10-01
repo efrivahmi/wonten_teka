@@ -162,7 +162,7 @@ class _PayrollProfileScreenState extends State<PayrollProfileScreen> {
                           elevation: 1,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(22.r),
-                            side: BorderSide(color: AppColors.outlineVariant),
+                            side: const BorderSide(color: AppColors.outlineVariant),
                           ),
                           child: Padding(
                             padding: EdgeInsets.all(18.w),
@@ -193,8 +193,9 @@ class _PayrollProfileScreenState extends State<PayrollProfileScreen> {
                                           value: value, child: Text(value)))
                                       .toList(),
                                   onChanged: (value) {
-                                    if (value != null)
+                                    if (value != null) {
                                       setState(() => _ptkp = value);
+                                    }
                                   },
                                 ),
                                 SizedBox(height: 12.h),

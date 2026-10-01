@@ -45,19 +45,21 @@ class _PayslipDetailScreenState extends State<PayslipDetailScreen> {
       final response = await _api.get('/payslips/${widget.payslip.id}');
       final body = Map<String, dynamic>.from(response.data as Map);
       final detail = PayslipModel.fromJson(body);
-      if (mounted)
+      if (mounted) {
         setState(() {
           _slip = detail;
           _error = null;
           _loading = false;
         });
+      }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error =
               'Rincian terbaru gagal dimuat. Menampilkan data yang tersedia.';
           _loading = false;
         });
+      }
     }
   }
 
@@ -68,8 +70,9 @@ class _PayslipDetailScreenState extends State<PayslipDetailScreen> {
       final fileName = 'slip-gaji-${widget.payslip.id}.pdf';
       final path = '${folder.path}/$fileName';
       await _api.download('/payslips/${widget.payslip.id}/download', path);
-      if (!await File(path).exists())
+      if (!await File(path).exists()) {
         throw Exception('Berkas slip tidak ditemukan.');
+      }
       await Share.shareXFiles([XFile(path)],
           text: 'Slip gaji ${_slip.periodLabel}');
     } catch (e) {
@@ -241,8 +244,9 @@ class _PayslipDetailScreenState extends State<PayslipDetailScreen> {
   }
 
   String _periodRange(PayslipModel slip) {
-    if (slip.periodStart == null || slip.periodEnd == null)
+    if (slip.periodStart == null || slip.periodEnd == null) {
       return slip.periodLabel;
+    }
     return '${_date(slip.periodStart!)} – ${_date(slip.periodEnd!)}';
   }
 
