@@ -23,9 +23,9 @@ class AppTheme {
         outline: AppColors.outline,
       ),
       navigationBarTheme: const NavigationBarThemeData(
-          backgroundColor: AppColors.surface,
+          backgroundColor: Color(0xF2F4FCF6),
           elevation: 0,
-          indicatorColor: AppColors.secondaryContainer,
+          indicatorColor: Color(0xFFDDF7E6),
           height: 72,
           surfaceTintColor: Colors.transparent),
       dividerTheme: const DividerThemeData(
@@ -58,17 +58,17 @@ class AppTheme {
         },
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xE8E8F8EE),
         foregroundColor: AppColors.onSurface,
         elevation: 0,
         centerTitle: false,
         surfaceTintColor: Colors.transparent,
       ),
       cardTheme: CardThemeData(
-        color: Colors.white,
+        color: const Color(0xEFFFFFFF),
         elevation: 0,
         shape: RoundedRectangleBorder(
-          side: const BorderSide(color: AppColors.outlineVariant),
+          side: const BorderSide(color: Color(0xCCFFFFFF)),
           borderRadius: BorderRadius.circular(24),
         ),
       ),

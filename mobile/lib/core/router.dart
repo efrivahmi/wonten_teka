@@ -52,6 +52,7 @@ import '../features/claims/presentation/screens/employee/claim_detail_screen.dar
 // Payroll, Calendar, Announcements
 import '../features/payroll/presentation/screens/employee/payslip_list_screen.dart';
 import '../features/payroll/presentation/screens/employee/payslip_detail_screen.dart';
+import '../features/payroll/presentation/screens/employee/payroll_profile_screen.dart';
 import '../features/calendar/presentation/screens/employee/company_calendar_screen.dart';
 import '../features/calendar/presentation/screens/employee/event_detail_screen.dart';
 import '../features/calendar/presentation/screens/employee/announcements_screen.dart';
@@ -136,6 +137,9 @@ final appRouter = GoRouter(
     GoRoute(
         path: '/app/attendance/check-out',
         builder: (_, __) => const FaceCheckInScreen(isCheckOut: true)),
+    GoRoute(
+        path: '/app/payroll/profile',
+        builder: (_, __) => const PayrollProfileScreen()),
     GoRoute(
         path: '/app/attendance/success',
         builder: (_, state) {

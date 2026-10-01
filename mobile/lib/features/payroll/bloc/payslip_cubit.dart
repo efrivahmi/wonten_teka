@@ -11,14 +11,22 @@ abstract class PayslipState extends Equatable {
 }
 
 class PayslipInitial extends PayslipState {}
+
 class PayslipLoading extends PayslipState {}
 
 class PayslipLoaded extends PayslipState {
   final List<PayslipModel> payslips;
-  final bool hasNextPage;
-  const PayslipLoaded(this.payslips, {this.hasNextPage = false});
+  final int currentPage;
+  final int lastPage;
+  const PayslipLoaded(
+    this.payslips, {
+    this.currentPage = 1,
+    this.lastPage = 1,
+  });
+  bool get hasNextPage => currentPage < lastPage;
+  bool get hasPreviousPage => currentPage > 1;
   @override
-  List<Object?> get props => [payslips];
+  List<Object?> get props => [payslips, currentPage, lastPage];
 }
 
 class PayslipDetailLoaded extends PayslipState {
@@ -53,7 +61,11 @@ class PayslipCubit extends Cubit<PayslipState> {
     emit(PayslipLoading());
     try {
       final result = await _repo.getHistory(page: page);
-      emit(PayslipLoaded(result.data, hasNextPage: result.hasNextPage));
+      emit(PayslipLoaded(
+        result.data,
+        currentPage: result.currentPage,
+        lastPage: result.lastPage,
+      ));
     } on ApiException catch (e) {
       emit(PayslipError(e.message));
     } catch (e) {

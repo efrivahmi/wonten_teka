@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Brand Colors
-  static const Color primary = Color(0xFF15803D);
-  static const Color primaryContainer = Color(0xFF15803D);
+  static const Color primary = Color(0xFF087A4B);
+  static const Color primaryContainer = Color(0xFF0B8F58);
   static const Color onPrimary = Color(0xFFFFFFFF);
   static const Color onPrimaryContainer = Color(0xFFFFFFFF);
-  static const Color primaryFixed = Color(0xFFE9FBCF);
-  static const Color primaryFixedDim = Color(0xFF84E000);
-  static const Color surfaceTint = Color(0xFF15803D);
+  static const Color primaryFixed = Color(0xFFD9FBE8);
+  static const Color primaryFixedDim = Color(0xFF72D69A);
+  static const Color surfaceTint = Color(0xFF087A4B);
 
-  static const Color secondary = Color(0xFF65A30D);
-  static const Color secondaryContainer = Color(0xFFE9FBCF);
+  static const Color secondary = Color(0xFF16A34A);
+  static const Color secondaryContainer = Color(0xFFDDF7E6);
   static const Color onSecondary = Color(0xFFFFFFFF);
-  static const Color onSecondaryContainer = Color(0xFF274E13);
+  static const Color onSecondaryContainer = Color(0xFF16452C);
   static const Color secondaryFixed = Color(0xFFFFDCBE);
 
   static const Color tertiary = Color(0xFF545F72);
@@ -21,19 +21,19 @@ class AppColors {
   static const Color tertiaryFixed = Color(0xFFD8E3FA);
 
   // Backgrounds & Surfaces
-  static const Color background = Color(0xDDF7F8F5);
+  static const Color background = Color(0xBFEAF7EE);
   static const Color onBackground = Color(0xFF172033);
 
-  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surface = Color(0xF4FFFFFF);
   static const Color onSurface = Color(0xFF172033);
   static const Color onSurfaceVariant = Color(0xFF586174);
 
-  static const Color surfaceContainerLowest = Color(0xFFFFFFFF);
-  static const Color surfaceContainerLow = Color(0xE6F3F6F1);
-  static const Color surfaceContainer = Color(0xFFEDF2EA);
-  static const Color surfaceContainerHigh = Color(0xFFE6ECE3);
-  static const Color surfaceContainerHighest = Color(0xFFDCE6D8);
-  static const Color surfaceVariant = Color(0xFFE6ECE3);
+  static const Color surfaceContainerLowest = Color(0xF0FFFFFF);
+  static const Color surfaceContainerLow = Color(0xE8F5FCF7);
+  static const Color surfaceContainer = Color(0xFFF0F8F3);
+  static const Color surfaceContainerHigh = Color(0xFFE5F2E9);
+  static const Color surfaceContainerHighest = Color(0xFFD8EBDD);
+  static const Color surfaceVariant = Color(0xFFE5F2E9);
 
   // Semantic / Feedback
   static const Color error = Color(0xFFBA1A1A);
@@ -56,7 +56,7 @@ class AppColors {
 
   // Outline
   static const Color outline = Color(0xFF778274);
-  static const Color outlineVariant = Color(0xFFDCE6D8);
+  static const Color outlineVariant = Color(0xFFC9E3D2);
 
   // Inverse
   static const Color inverseSurface = Color(0xFF30312F);

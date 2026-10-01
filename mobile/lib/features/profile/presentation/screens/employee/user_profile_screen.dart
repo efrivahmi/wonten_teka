@@ -183,6 +183,17 @@ class UserProfileScreen extends StatelessWidget {
                   onTap: () => context.push('/app/payslip'),
                 ),
                 SizedBox(height: 12.h),
+                if (user?.isAdmin != true) ...[
+                  _ProfileMenuItem(
+                    icon: Icons.account_balance_wallet_outlined,
+                    iconBgColor: AppColors.primaryFixed,
+                    iconColor: AppColors.primary,
+                    title: 'Data Penggajian',
+                    subtitle: 'NPWP, PTKP, BPJS, dan rekening',
+                    onTap: () => context.push('/app/payroll/profile'),
+                  ),
+                  SizedBox(height: 12.h),
+                ],
                 _ProfileMenuItem(
                   icon: Icons.face_retouching_natural,
                   iconBgColor: AppColors.primaryFixed,

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
@@ -15,23 +17,28 @@ class WontenCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: padding,
-      decoration: BoxDecoration(
-        color: backgroundColor ?? AppColors.surface,
-        border: Border.all(color: AppColors.outlineVariant),
-        borderRadius: BorderRadius.circular(
-            24.0), // Large containers have higher roundness
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(
-                alpha: 0.04), // Level 2: active cards soft diffused shadow
-            blurRadius: 20,
-            offset: const Offset(0, 4),
+    final radius = BorderRadius.circular(24);
+    return ClipRRect(
+      borderRadius: radius,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            color: backgroundColor ?? Colors.white.withValues(alpha: .82),
+            border: Border.all(color: Colors.white.withValues(alpha: .86)),
+            borderRadius: radius,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.07),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
+          child: child,
+        ),
       ),
-      child: child,
     );
   }
 }

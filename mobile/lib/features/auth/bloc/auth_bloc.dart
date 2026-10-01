@@ -31,6 +31,8 @@ class AuthCompleteProfileRequested extends AuthEvent {
 
 class AuthLogoutRequested extends AuthEvent {}
 
+class AuthRefreshUserRequested extends AuthEvent {}
+
 // ── States ─────────────────────────────────────────────────────────────────
 
 abstract class AuthState extends Equatable {
@@ -72,6 +74,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLoginRequested>(_onLogin);
     on<AuthCompleteProfileRequested>(_onCompleteProfile);
     on<AuthLogoutRequested>(_onLogout);
+    on<AuthRefreshUserRequested>(_onRefreshUser);
   }
 
   Future<void> _onCheckSession(
@@ -155,5 +158,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     await _authRepository.logout();
     emit(AuthUnauthenticated());
+  }
+
+  Future<void> _onRefreshUser(
+      AuthRefreshUserRequested event, Emitter<AuthState> emit) async {
+    try {
+      emit(AuthAuthenticated(await _authRepository.getMe()));
+    } catch (_) {
+      // Keep the current authenticated session when a background refresh fails.
+    }
   }
 }

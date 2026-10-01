@@ -15,6 +15,8 @@ import '../../../../../core/widgets/brand_panel.dart';
 import '../../../../../core/repositories/attendance_repository.dart';
 import '../../../../../core/widgets/app_brand_title.dart';
 import '../../../../../core/models/company_models.dart';
+import '../../../../../core/widgets/glass_dashboard.dart';
+import '../../../../../core/widgets/main_sidebar_drawer.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
   const HomeDashboardScreen({super.key});
@@ -24,6 +26,7 @@ class HomeDashboardScreen extends StatefulWidget {
 }
 
 class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
+  final _dashboardScaffoldKey = GlobalKey<ScaffoldState>();
   DateTime _selectedDate = DateTime.now();
   Map<String, dynamic>? _todayInfo;
   bool _loadingTodayInfo = true;
@@ -69,8 +72,10 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BrandPageBackground(
+    return DashboardCanvas(
         child: Scaffold(
+      key: _dashboardScaffoldKey,
+      drawer: const MainSidebarDrawer(),
       backgroundColor: Colors.transparent,
       body: SafeArea(
         child: RefreshIndicator(
@@ -89,7 +94,15 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             slivers: [
               SliverAppBar(
                   pinned: true,
-                  title: const AppBrandTitle(section: 'Ruang kerja karyawan'),
+                  backgroundColor: DashboardColors.magenta,
+                  foregroundColor: Colors.white,
+                  leading: IconButton(
+                    tooltip: 'Buka menu',
+                    icon: const Icon(Icons.menu_rounded),
+                    onPressed: () =>
+                        _dashboardScaffoldKey.currentState?.openDrawer(),
+                  ),
+                  title: const AppBrandTitle(section: 'Ruang kerja'),
                   actions: [
                     IconButton(
                         tooltip: 'Notifikasi',
@@ -97,50 +110,54 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                         icon: const Icon(Icons.notifications_none_rounded))
                   ]),
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.all(20.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ViewEntrance(child: _buildLocationGate(context)),
-                      SizedBox(height: 16.h),
-                      ViewEntrance(child: _buildHeroCard(context)),
-                      SizedBox(height: 24.h),
-                      ViewEntrance(
-                        delay: const Duration(milliseconds: 90),
-                        child: _buildPromoSection(),
-                      ),
-                      SizedBox(height: 24.h),
-                      ViewEntrance(
-                        delay: const Duration(milliseconds: 140),
-                        child: _buildTodayAttendanceSection(context),
-                      ),
-                      if (_hasAdditionalSchedule) ...[
-                        SizedBox(height: 24.h),
-                        ViewEntrance(
-                          delay: const Duration(milliseconds: 170),
-                          child: _buildAdditionalScheduleSection(),
-                        ),
-                      ],
-                      SizedBox(height: 24.h),
-                      ViewEntrance(
-                        delay: const Duration(milliseconds: 190),
-                        child: _buildWorkScheduleSection(context),
-                      ),
-                      SizedBox(height: 24.h),
-                      ViewEntrance(
-                        delay: const Duration(milliseconds: 240),
-                        child: _buildMonthlyStatsSection(),
-                      ),
-                      SizedBox(height: 24.h),
-                      ViewEntrance(
-                        delay: const Duration(milliseconds: 290),
-                        child: _buildFeaturesGrid(context),
-                      ),
-                      SizedBox(height: 40.h),
-                    ],
-                  ),
-                ),
+                child: LayoutBuilder(builder: (context, constraints) {
+                  final contentWidth = constraints.maxWidth > 1100
+                      ? 1100.0
+                      : constraints.maxWidth;
+                  return Center(
+                      child: SizedBox(
+                          width: contentWidth,
+                          child: Padding(
+                            padding: EdgeInsets.all(
+                                constraints.maxWidth < 380 ? 14 : 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                DashboardEntrance(
+                                    child: _buildHeroCard(context)),
+                                SizedBox(height: 16.h),
+                                DashboardEntrance(
+                                    child: _buildLocationGate(context)),
+                                SizedBox(height: 24.h),
+                                DashboardEntrance(
+                                  child: _buildWorkScheduleSection(context),
+                                ),
+                                SizedBox(height: 24.h),
+                                DashboardEntrance(
+                                  child: _buildTodayAttendanceSection(context),
+                                ),
+                                if (_hasAdditionalSchedule) ...[
+                                  SizedBox(height: 24.h),
+                                  DashboardEntrance(
+                                    child: _buildAdditionalScheduleSection(),
+                                  ),
+                                ],
+                                DashboardEntrance(
+                                  child: _buildMonthlyStatsSection(),
+                                ),
+                                SizedBox(height: 24.h),
+                                DashboardEntrance(
+                                  child: _buildPromoSection(),
+                                ),
+                                SizedBox(height: 24.h),
+                                DashboardEntrance(
+                                  child: _buildFeaturesGrid(context),
+                                ),
+                                SizedBox(height: 40.h),
+                              ],
+                            ),
+                          )));
+                }),
               ),
             ],
           ),
@@ -633,50 +650,91 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     return BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
       final user = state is AuthAuthenticated ? state.user : null;
       final employee = user?.employee;
-      return BrandPanel(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 54.w,
-              height: 54.w,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: .16),
-                borderRadius: BorderRadius.circular(18.r),
-              ),
-              child: const Icon(Icons.person_rounded, color: Colors.white),
-            ),
-            SizedBox(width: 14.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(employee?.fullName ?? user?.name ?? 'Karyawan',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.w800)),
-                  SizedBox(height: 5.h),
-                  Text(
-                    '${employee?.position ?? 'Posisi belum diatur'} • ${employee?.department ?? 'Unit belum diatur'}',
-                    style: TextStyle(
-                        color: Colors.white.withValues(alpha: .86),
-                        fontSize: 12.sp),
-                  ),
-                  SizedBox(height: 10.h),
-                  GestureDetector(
-                    onTap: () => context.push('/app/profile'),
-                    child: Text('Lihat profil lengkap  →',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w700)),
-                  ),
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: Stack(children: [
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(22.w),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  DashboardColors.cyanDeep,
+                  DashboardColors.cyan,
+                  Color(0xFF42C7C4)
                 ],
               ),
             ),
-          ],
-        ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 54.w,
+                  height: 54.w,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: .18),
+                    borderRadius: BorderRadius.circular(18.r),
+                  ),
+                  child: const Icon(Icons.person_rounded, color: Colors.white),
+                ),
+                SizedBox(width: 14.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(employee?.fullName ?? user?.name ?? 'Karyawan',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w800)),
+                      SizedBox(height: 5.h),
+                      Text(
+                        '${employee?.position ?? 'Posisi belum diatur'} • ${employee?.department ?? 'Unit belum diatur'}',
+                        style: TextStyle(
+                            color: Colors.white.withValues(alpha: .86),
+                            fontSize: 12.sp),
+                      ),
+                      SizedBox(height: 10.h),
+                      GestureDetector(
+                        onTap: () => context.push('/app/profile'),
+                        child: Text('Lihat profil lengkap  →',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w700)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+              right: -18,
+              top: -24,
+              child: IgnorePointer(
+                  child: Container(
+                width: 116,
+                height: 116,
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: .08)),
+              ))),
+          Positioned(
+              right: 34,
+              bottom: -58,
+              child: IgnorePointer(
+                  child: Container(
+                width: 132,
+                height: 132,
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                        color: Colors.white.withValues(alpha: .13), width: 18)),
+              ))),
+        ]),
       );
     });
   }
@@ -704,24 +762,25 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         _sectionTitle('Pencatatan Absensi Hari Ini',
             'Status dan durasi kerja diperbarui dari data absensi.'),
         SizedBox(height: 14.h),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          childAspectRatio: 1.65,
-          mainAxisSpacing: 12.h,
-          crossAxisSpacing: 12.w,
-          children: [
-            _summaryTile('Status', _statusLabel(status), Icons.verified_rounded,
-                statusColor),
-            _summaryTile('Durasi kerja', duration, Icons.timelapse_rounded,
-                AppColors.infoCerulean),
-            _summaryTile(
-                'Jam masuk', checkIn, Icons.login_rounded, AppColors.primary),
-            _summaryTile('Jam keluar', checkOut, Icons.logout_rounded,
-                AppColors.errorCrimson),
-          ],
-        ),
+        LayoutBuilder(
+            builder: (context, constraints) => GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: constraints.maxWidth >= 760 ? 4 : 2,
+                  childAspectRatio: constraints.maxWidth >= 760 ? 1.45 : 1.6,
+                  mainAxisSpacing: 12.h,
+                  crossAxisSpacing: 12.w,
+                  children: [
+                    _summaryTile('Status', _statusLabel(status),
+                        Icons.verified_rounded, statusColor),
+                    _summaryTile('Durasi kerja', duration,
+                        Icons.timelapse_rounded, AppColors.infoCerulean),
+                    _summaryTile('Jam masuk', checkIn, Icons.login_rounded,
+                        AppColors.primary),
+                    _summaryTile('Jam keluar', checkOut, Icons.logout_rounded,
+                        AppColors.errorCrimson),
+                  ],
+                )),
         SizedBox(height: 12.h),
         Row(
           children: [
@@ -773,27 +832,28 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             'Statistik Kehadiran ${stats['month_label'] ?? 'Bulan Ini'}',
             'Dihitung ulang dari nol setiap awal bulan. Bulan ini memiliki $daysInMonth hari kalender.'),
         SizedBox(height: 14.h),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          childAspectRatio: 1.55,
-          mainAxisSpacing: 12.h,
-          crossAxisSpacing: 12.w,
-          children: [
-            _summaryTile(
-                'Kehadiran bulan ini',
-                '$present dari $daysInMonth hari',
-                Icons.calendar_month_rounded,
-                AppColors.primary),
-            _summaryTile('Tepat waktu', '${stats['on_time'] ?? 0} hari',
-                Icons.check_circle_rounded, AppColors.successEmerald),
-            _summaryTile('Terlambat', '${stats['late'] ?? 0} hari',
-                Icons.schedule_rounded, AppColors.warningAmber),
-            _summaryTile('Alpha', '${stats['absent'] ?? 0} hari',
-                Icons.cancel_rounded, AppColors.errorCrimson),
-          ],
-        ),
+        LayoutBuilder(
+            builder: (context, constraints) => GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: constraints.maxWidth >= 760 ? 4 : 2,
+                  childAspectRatio: constraints.maxWidth >= 760 ? 1.45 : 1.55,
+                  mainAxisSpacing: 12.h,
+                  crossAxisSpacing: 12.w,
+                  children: [
+                    _summaryTile(
+                        'Kehadiran bulan ini',
+                        '$present dari $daysInMonth hari',
+                        Icons.calendar_month_rounded,
+                        AppColors.primary),
+                    _summaryTile('Tepat waktu', '${stats['on_time'] ?? 0} hari',
+                        Icons.check_circle_rounded, AppColors.successEmerald),
+                    _summaryTile('Terlambat', '${stats['late'] ?? 0} hari',
+                        Icons.schedule_rounded, AppColors.warningAmber),
+                    _summaryTile('Alpha', '${stats['absent'] ?? 0} hari',
+                        Icons.cancel_rounded, AppColors.errorCrimson),
+                  ],
+                )),
       ],
     );
   }
@@ -814,13 +874,10 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
       );
 
   Widget _summaryTile(String label, String value, IconData icon, Color color) =>
-      Container(
+      GlassDashboardPanel(
         padding: EdgeInsets.all(14.w),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18.r),
-          border: Border.all(color: AppColors.outlineVariant),
-        ),
+        radius: 18,
+        tint: Color.lerp(Colors.white, color, .07)!.withValues(alpha: .94),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

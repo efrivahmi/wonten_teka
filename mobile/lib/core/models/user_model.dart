@@ -78,6 +78,7 @@ class EmployeeModel extends Equatable {
   final String? ptkpStatus;
   final String? bankName;
   final String? bankAccount;
+  final String? bankAccountHolder;
 
   const EmployeeModel({
     required this.id,
@@ -100,6 +101,7 @@ class EmployeeModel extends Equatable {
     this.ptkpStatus,
     this.bankName,
     this.bankAccount,
+    this.bankAccountHolder,
   });
 
   bool get isProfileCompleted =>
@@ -142,6 +144,7 @@ class EmployeeModel extends Equatable {
       bankName: json['bank_name'] as String?,
       bankAccount:
           (json['bank_account_number'] ?? json['bank_account']) as String?,
+      bankAccountHolder: json['bank_account_holder'] as String?,
     );
   }
 
@@ -166,6 +169,7 @@ class EmployeeModel extends Equatable {
         'ptkp_status': ptkpStatus,
         'bank_name': bankName,
         'bank_account': bankAccount,
+        'bank_account_holder': bankAccountHolder,
       };
 
   @override
@@ -186,5 +190,6 @@ class EmployeeModel extends Equatable {
         ptkpStatus,
         bankName,
         bankAccount,
+        bankAccountHolder,
       ];
 }

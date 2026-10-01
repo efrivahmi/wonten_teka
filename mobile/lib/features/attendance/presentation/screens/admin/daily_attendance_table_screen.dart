@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../../core/api/api_client.dart';
+import '../../../../../core/api/api_exceptions.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/models/attendance_log_model.dart';
 
@@ -102,22 +103,31 @@ class _DailyAttendanceTableScreenState
           await _api.get('/admin/attendance', queryParameters: params);
       if (mounted) {
         final body = response.data;
-        final raw = body is Map ? body['data'] : null;
-        final List<dynamic> rawData = raw is List ? raw : const [];
+        final firstLevel = body is Map ? body['data'] : body;
+        final raw = firstLevel is Map ? firstLevel['data'] : firstLevel;
+        final rawData = raw is List ? raw.whereType<Map>().toList() : <Map>[];
+        final parsedLogs = <AttendanceLogModel>[];
+        for (final item in rawData) {
+          try {
+            parsedLogs.add(
+                AttendanceLogModel.fromJson(Map<String, dynamic>.from(item)));
+          } catch (_) {
+            // Ignore malformed rows so one old record cannot break the table.
+          }
+        }
         setState(() {
-          _logs = rawData.map((json) {
-            return AttendanceLogModel.fromJson(json as Map<String, dynamic>);
-          }).toList();
+          _logs = parsedLogs;
           _isLoading = false;
           _draftReady = true;
         });
       }
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage =
-              'Tabel absensi belum dapat dimuat. Periksa koneksi lalu coba lagi.';
+          _errorMessage = error is ApiException
+              ? error.message
+              : 'Tabel absensi belum dapat dimuat. Periksa koneksi lalu coba lagi.';
         });
       }
     }
@@ -414,16 +424,26 @@ class _DailyAttendanceTableScreenState
     return Scaffold(
       backgroundColor: AppColors.surfaceContainerLow,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
+        flexibleSpace: const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF064E3B), Color(0xFF15803D)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => context.pop(),
         ),
         title: Text(
           'Tabel Absensi Harian',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppColors.primary,
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
         ),
@@ -528,7 +548,47 @@ class _DailyAttendanceTableScreenState
                   ),
                 )
               : _logs.isEmpty
-                  ? const Center(child: Text('Belum ada data absensi.'))
+                  ? Center(
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0.85, end: 1),
+                        duration: const Duration(milliseconds: 450),
+                        curve: Curves.easeOutBack,
+                        builder: (context, scale, child) => Transform.scale(
+                          scale: scale,
+                          child: child,
+                        ),
+                        child: Container(
+                          margin: EdgeInsets.all(24.w),
+                          padding: EdgeInsets.all(28.w),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(24.r),
+                            border: Border.all(color: AppColors.outlineVariant),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x1206473A),
+                                blurRadius: 24,
+                                offset: Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child:
+                              Column(mainAxisSize: MainAxisSize.min, children: [
+                            const Icon(Icons.event_available_outlined,
+                                size: 52, color: AppColors.primary),
+                            SizedBox(height: 12.h),
+                            const Text('Belum ada data absensi.',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            SizedBox(height: 6.h),
+                            Text('Coba ubah periode atau filter karyawan.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: AppColors.onSurfaceVariant,
+                                    fontSize: 13.sp)),
+                          ]),
+                        ),
+                      ),
+                    )
                   : Column(children: [
                       Padding(
                           padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 0),
@@ -663,62 +723,80 @@ class _DailyAttendanceTableScreenState
       itemBuilder: (context, index) {
         final log = _logs[index];
         final isAbsent = log.status == 'absent';
-        return Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.r),
-            side: const BorderSide(color: AppColors.outlineVariant),
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: Duration(milliseconds: 300 + (index.clamp(0, 8) * 45)),
+          curve: Curves.easeOutCubic,
+          builder: (context, progress, child) => Opacity(
+            opacity: progress,
+            child: Transform.translate(
+              offset: Offset(0, 14 * (1 - progress)),
+              child: child,
+            ),
           ),
-          child: Padding(
-            padding: EdgeInsets.all(14.w),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Checkbox(
-                  value: _selectedEmployees.contains(log.employeeId),
-                  onChanged: (_) => setState(() {
-                    if (!_selectedEmployees.add(log.employeeId)) {
-                      _selectedEmployees.remove(log.employeeId);
-                    }
-                    _draftReady = false;
-                  }),
-                ),
-                Expanded(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(log.employeeName ?? 'Karyawan #${log.employeeId}',
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
-                        Text(
-                            DateFormat('EEEE, dd MMMM yyyy', 'id_ID')
-                                .format(log.checkInAt),
-                            style: TextStyle(
-                                color: AppColors.onSurfaceVariant,
-                                fontSize: 12.sp)),
-                      ]),
-                ),
-                _buildLogActions(log),
-              ]),
-              SizedBox(height: 8.h),
-              Wrap(spacing: 8.w, runSpacing: 8.h, children: [
-                _buildStatusChip(log.status),
-                _timeBadge(
-                    Icons.login,
-                    isAbsent
-                        ? '--:--'
-                        : DateFormat('HH:mm').format(log.checkInAt)),
-                _timeBadge(
-                    Icons.logout,
-                    log.checkOutAt == null
-                        ? '--:--'
-                        : DateFormat('HH:mm').format(log.checkOutAt!)),
-              ]),
-              if (log.flags?.values.any((value) => value == true) == true) ...[
-                SizedBox(height: 10.h),
-                _buildViolations(log),
-              ],
-            ]),
+          child: Card(
+            elevation: 0,
+            color: _statusColor(log.status).withValues(alpha: 0.035),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.r),
+              side: BorderSide(
+                  color: _statusColor(log.status).withValues(alpha: 0.28)),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(14.w),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      Checkbox(
+                        value: _selectedEmployees.contains(log.employeeId),
+                        onChanged: (_) => setState(() {
+                          if (!_selectedEmployees.add(log.employeeId)) {
+                            _selectedEmployees.remove(log.employeeId);
+                          }
+                          _draftReady = false;
+                        }),
+                      ),
+                      Expanded(
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                  log.employeeName ??
+                                      'Karyawan #${log.employeeId}',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
+                              Text(
+                                  DateFormat('EEEE, dd MMMM yyyy', 'id_ID')
+                                      .format(log.checkInAt),
+                                  style: TextStyle(
+                                      color: AppColors.onSurfaceVariant,
+                                      fontSize: 12.sp)),
+                            ]),
+                      ),
+                      _buildLogActions(log),
+                    ]),
+                    SizedBox(height: 8.h),
+                    Wrap(spacing: 8.w, runSpacing: 8.h, children: [
+                      _buildStatusChip(log.status),
+                      _timeBadge(
+                          Icons.login,
+                          isAbsent
+                              ? '--:--'
+                              : DateFormat('HH:mm').format(log.checkInAt)),
+                      _timeBadge(
+                          Icons.logout,
+                          log.checkOutAt == null
+                              ? '--:--'
+                              : DateFormat('HH:mm').format(log.checkOutAt!)),
+                    ]),
+                    if (log.flags?.values.any((value) => value == true) ==
+                        true) ...[
+                      SizedBox(height: 10.h),
+                      _buildViolations(log),
+                    ],
+                  ]),
+            ),
           ),
         );
       },
@@ -758,28 +836,23 @@ class _DailyAttendanceTableScreenState
   }
 
   Widget _buildStatusChip(String status) {
-    Color color;
+    final color = _statusColor(status);
     String label;
     switch (status) {
       case 'on_time':
       case 'present':
-        color = AppColors.successEmerald;
         label = 'Tepat Waktu';
         break;
       case 'late':
-        color = AppColors.warningAmber;
         label = 'Terlambat';
         break;
       case 'absent':
-        color = AppColors.errorCrimson;
         label = 'Alpha / Tidak Masuk';
         break;
       case 'flagged':
-        color = AppColors.warningAmber;
         label = 'Ditinjau';
         break;
       default:
-        color = Colors.grey;
         label = status;
     }
     return Container(
@@ -792,6 +865,21 @@ class _DailyAttendanceTableScreenState
           style: TextStyle(
               color: color, fontSize: 12.sp, fontWeight: FontWeight.bold)),
     );
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'on_time':
+      case 'present':
+        return AppColors.successEmerald;
+      case 'late':
+      case 'flagged':
+        return AppColors.warningAmber;
+      case 'absent':
+        return AppColors.errorCrimson;
+      default:
+        return AppColors.onSurfaceVariant;
+    }
   }
 
   Widget _buildViolations(AttendanceLogModel log) {

@@ -13,11 +13,18 @@ class BrandPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ClipRRect(
         borderRadius: BorderRadius.circular(28),
-        child: ColoredBox(
-          color: AppColors.primary,
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF087A4B), Color(0xFF12A765), Color(0xFF075B3D)],
+            ),
+          ),
           child: CustomPaint(
-              painter: _BrandLines(),
-              child: Padding(padding: padding, child: child)),
+            painter: _BrandLines(),
+            child: Padding(padding: padding, child: child),
+          ),
         ),
       );
 }
@@ -34,7 +41,7 @@ class BrandPageBackground extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFFE5F5E8), Color(0xFFF7F8F5), Color(0xFFEEF6E8)],
+            colors: [Color(0xFFC5F3D6), Color(0xFFE4F8EB), Color(0xFFB5EBC9)],
           ),
         ),
         child: CustomPaint(

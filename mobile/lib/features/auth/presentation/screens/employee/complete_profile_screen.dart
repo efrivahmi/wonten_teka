@@ -34,6 +34,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   final _ptkpController = TextEditingController();
   final _bankNameController = TextEditingController();
   final _bankAccountController = TextEditingController();
+  final _bankAccountHolderController = TextEditingController();
 
   String? _gender;
   String? _employmentStatus;
@@ -88,6 +89,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         if (emp.bankName != null) _bankNameController.text = emp.bankName!;
         if (emp.bankAccount != null) {
           _bankAccountController.text = emp.bankAccount!;
+        }
+        if (emp.bankAccountHolder != null) {
+          _bankAccountHolderController.text = emp.bankAccountHolder!;
         }
       }
     }
@@ -189,6 +193,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     _ptkpController.dispose();
     _bankNameController.dispose();
     _bankAccountController.dispose();
+    _bankAccountHolderController.dispose();
     super.dispose();
   }
 
@@ -212,6 +217,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         'ptkp_status': _ptkpController.text,
         'bank_name': _bankNameController.text,
         'bank_account_number': _bankAccountController.text,
+        'bank_account_holder': _bankAccountHolderController.text,
       };
 
       context.read<AuthBloc>().add(AuthCompleteProfileRequested(profileData));
@@ -485,10 +491,45 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                             keyboardType: TextInputType.number,
                           ),
                           SizedBox(height: 16.h),
-                          TextFormField(
-                            controller: _ptkpController,
-                            decoration: const InputDecoration(
-                                labelText: 'Status PTKP (Misal: TK/0, K/1)'),
+                          DropdownButtonFormField<String>(
+                            initialValue: const [
+                              'TK/0',
+                              'TK/1',
+                              'TK/2',
+                              'TK/3',
+                              'K/0',
+                              'K/1',
+                              'K/2',
+                              'K/3',
+                              'K/I/0',
+                              'K/I/1',
+                              'K/I/2',
+                              'K/I/3'
+                            ].contains(_ptkpController.text)
+                                ? _ptkpController.text
+                                : 'TK/0',
+                            decoration:
+                                const InputDecoration(labelText: 'Status PTKP'),
+                            items: const [
+                              'TK/0',
+                              'TK/1',
+                              'TK/2',
+                              'TK/3',
+                              'K/0',
+                              'K/1',
+                              'K/2',
+                              'K/3',
+                              'K/I/0',
+                              'K/I/1',
+                              'K/I/2',
+                              'K/I/3'
+                            ]
+                                .map((status) => DropdownMenuItem(
+                                    value: status, child: Text(status)))
+                                .toList(),
+                            onChanged: (value) {
+                              if (value != null) _ptkpController.text = value;
+                            },
                           ),
                           SizedBox(height: 16.h),
                           Row(
@@ -511,6 +552,13 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                                 ),
                               ),
                             ],
+                          ),
+                          SizedBox(height: 16.h),
+                          TextFormField(
+                            controller: _bankAccountHolderController,
+                            textCapitalization: TextCapitalization.words,
+                            decoration: const InputDecoration(
+                                labelText: 'Nama Pemilik Rekening'),
                           ),
                           SizedBox(height: 32.h),
                           SizedBox(

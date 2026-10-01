@@ -49,8 +49,8 @@ class AttendanceLogModel extends Equatable {
 
   factory AttendanceLogModel.fromJson(Map<String, dynamic> json) {
     return AttendanceLogModel(
-      id: json['id'] as int,
-      employeeId: json['employee_id'] as int,
+      id: _toInt(json['id']),
+      employeeId: _toInt(json['employee_id']),
 
       // Catatan alpha dibuat tanpa jam masuk. Tetap gunakan tanggal catatan
       // agar kalender/tabel admin dapat menampilkannya tanpa gagal parsing.
@@ -77,11 +77,11 @@ class AttendanceLogModel extends Equatable {
       faceMatchScore: json['check_in_face_score'] != null
           ? double.tryParse(json['check_in_face_score'].toString())
           : null,
-      checkInPhotoUrl: json['check_in_photo_url'] as String?,
-      checkOutPhotoUrl: json['check_out_photo_url'] as String?,
+      checkInPhotoUrl: json['check_in_photo_url']?.toString(),
+      checkOutPhotoUrl: json['check_out_photo_url']?.toString(),
       deviceId: json['device_id']?.toString(),
       flags: json['flags'] as Map<String, dynamic>?,
-      status: json['status'] as String? ?? 'present',
+      status: json['status']?.toString() ?? 'present',
       employeeName:
           (json['employee'] != null && json['employee']['full_name'] != null)
               ? json['employee']['full_name']
@@ -117,5 +117,10 @@ class AttendanceLogModel extends Equatable {
       }
     }
     return DateTime.parse(normalized).toLocal();
+  }
+
+  static int _toInt(dynamic value) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '') ?? 0;
   }
 }

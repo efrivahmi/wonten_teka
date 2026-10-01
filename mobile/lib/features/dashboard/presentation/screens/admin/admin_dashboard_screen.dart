@@ -1,482 +1,541 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../../core/widgets/brand_panel.dart';
-import '../../../../../core/widgets/app_brand_title.dart';
 import 'package:intl/intl.dart';
-import '../../../../../core/theme/app_colors.dart';
+
 import '../../../../../core/api/api_client.dart';
+import '../../../../../core/widgets/app_brand_title.dart';
+import '../../../../../core/widgets/glass_dashboard.dart';
+import '../../../../../core/widgets/main_sidebar_drawer.dart';
 import '../../../../auth/bloc/auth_bloc.dart';
 import '../../widgets/admin_dashboard_calendar.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
+
   @override
   State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
 }
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   late Future<dynamic> _stats;
+
   @override
   void initState() {
     super.initState();
     _stats = context.read<ApiClient>().get('/admin/dashboard');
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, authState) {
-        final user = authState is AuthAuthenticated ? authState.user : null;
-        final userName = user?.name ?? 'Admin';
+  Future<void> _reload() async {
+    setState(() => _stats = context.read<ApiClient>().get('/admin/dashboard'));
+    try {
+      await _stats;
+    } catch (_) {
+      // FutureBuilder below renders the API error and retry action.
+    }
+  }
 
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          body: NestedScrollView(
-            headerSliverBuilder: (context, innerScrolled) => [
-              SliverAppBar(
-                pinned: true,
-                expandedHeight: 260.h,
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                title: innerScrolled
-                    ? const AppBrandTitle(section: 'Panel admin', inverse: true)
-                    : null,
-                actions: [
-                  IconButton(
-                      icon: const Icon(Icons.notifications_none),
-                      onPressed: () => context.push('/app/notifications')),
-                  IconButton(
-                      icon: const Icon(Icons.logout),
-                      onPressed: () =>
-                          context.read<AuthBloc>().add(AuthLogoutRequested())),
-                ],
-                flexibleSpace: FlexibleSpaceBar(
-                  collapseMode: CollapseMode.parallax,
-                  background: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 88, 16, 16),
-                    child: BrandPanel(
-                        child: Align(
-                      alignment: Alignment.bottomLeft,
-                      child: ViewEntrance(
-                          child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                            Text('PUSAT KENDALI',
-                                style: TextStyle(
-                                    color: AppColors.primaryFixed,
-                                    fontSize: 11.sp,
-                                    letterSpacing: 2,
-                                    fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 8),
-                            Text('Halo, $userName',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 26.sp,
-                                    fontWeight: FontWeight.w800)),
-                            const SizedBox(height: 6),
-                            const Text('Tim terhubung. Kehadiran terpantau.',
-                                style: TextStyle(color: Colors.white)),
-                          ])),
-                    )),
+  @override
+  Widget build(BuildContext context) => BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, authState) {
+          final user = authState is AuthAuthenticated ? authState.user : null;
+          return DashboardCanvas(
+            child: Scaffold(
+              key: _scaffoldKey,
+              backgroundColor: Colors.transparent,
+              drawer: const MainSidebarDrawer(),
+              body: SafeArea(
+                bottom: false,
+                child: RefreshIndicator(
+                  color: DashboardColors.magenta,
+                  onRefresh: _reload,
+                  child: CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      SliverAppBar(
+                        pinned: true,
+                        backgroundColor: DashboardColors.magenta,
+                        foregroundColor: Colors.white,
+                        leading: IconButton(
+                          tooltip: 'Buka menu admin',
+                          icon: const Icon(Icons.menu_rounded),
+                          onPressed: () =>
+                              _scaffoldKey.currentState?.openDrawer(),
+                        ),
+                        title: const AppBrandTitle(
+                          section: 'Dasbor Admin',
+                          inverse: true,
+                        ),
+                        actions: [
+                          IconButton(
+                            tooltip: 'Notifikasi',
+                            onPressed: () => context.push('/app/notifications'),
+                            icon: const Icon(Icons.notifications_none_rounded),
+                          ),
+                          IconButton(
+                            tooltip: 'Keluar',
+                            onPressed: () => context
+                                .read<AuthBloc>()
+                                .add(AuthLogoutRequested()),
+                            icon: const Icon(Icons.logout_rounded),
+                          ),
+                        ],
+                      ),
+                      SliverToBoxAdapter(
+                        child: LayoutBuilder(builder: (context, constraints) {
+                          final width = constraints.maxWidth > 1120
+                              ? 1120.0
+                              : constraints.maxWidth;
+                          return Center(
+                            child: SizedBox(
+                              width: width,
+                              child: Padding(
+                                padding: EdgeInsets.all(
+                                    constraints.maxWidth < 380 ? 14 : 22),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _welcomeHeader(user?.name ?? 'Admin'),
+                                    const SizedBox(height: 20),
+                                    _buildQuickStats(context),
+                                    const SizedBox(height: 25),
+                                    const DashboardSectionHeading(
+                                      title: 'Akses cepat',
+                                      subtitle:
+                                          'Pilih modul yang ingin Anda kelola.',
+                                    ),
+                                    const SizedBox(height: 14),
+                                    _buildActionGrid(context),
+                                    const SizedBox(height: 25),
+                                    const DashboardSectionHeading(
+                                      title: 'Kalender perusahaan',
+                                      subtitle:
+                                          'Agenda dan hari penting dari kalender.',
+                                    ),
+                                    const SizedBox(height: 14),
+                                    const DashboardEntrance(
+                                        child: GlassDashboardPanel(
+                                            child: AdminDashboardCalendar())),
+                                    SizedBox(height: 36.h),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
-            body: SingleChildScrollView(
-              padding: EdgeInsets.all(20.w),
+              bottomNavigationBar: NavigationBar(
+                height: 70,
+                backgroundColor: const Color(0xF2F4FCF6),
+                indicatorColor: const Color(0x3316A34A),
+                selectedIndex: 0,
+                destinations: const [
+                  NavigationDestination(
+                      icon: Icon(Icons.space_dashboard_outlined),
+                      selectedIcon: Icon(Icons.space_dashboard_rounded),
+                      label: 'Dasbor'),
+                  NavigationDestination(
+                      icon: Icon(Icons.people_outline_rounded),
+                      selectedIcon: Icon(Icons.people_rounded),
+                      label: 'Karyawan'),
+                  NavigationDestination(
+                      icon: Icon(Icons.fact_check_outlined),
+                      selectedIcon: Icon(Icons.fact_check_rounded),
+                      label: 'Absensi'),
+                  NavigationDestination(
+                      icon: Icon(Icons.calendar_month_outlined),
+                      selectedIcon: Icon(Icons.calendar_month_rounded),
+                      label: 'Jadwal'),
+                  NavigationDestination(
+                      icon: Icon(Icons.grid_view_rounded),
+                      selectedIcon: Icon(Icons.grid_view_rounded),
+                      label: 'Menu'),
+                ],
+                onDestinationSelected: (index) {
+                  switch (index) {
+                    case 1:
+                      context.push('/admin/employees');
+                    case 2:
+                      context.push('/admin/attendance-daily');
+                    case 3:
+                      context.push('/admin/schedule');
+                    case 4:
+                      _scaffoldKey.currentState?.openDrawer();
+                  }
+                },
+              ),
+            ),
+          );
+        },
+      );
+
+  Widget _welcomeHeader(String name) => DashboardEntrance(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: Stack(children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(22),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    DashboardColors.magenta,
+                    DashboardColors.magentaDeep
+                  ],
+                ),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ViewEntrance(child: _buildQuickStats(context)),
-                  SizedBox(height: 24.h),
-
-                  // 2. Admin Features Grid
-                  // 2. Admin Features Grids (Categorized)
-                  _buildSectionHeader('Kepegawaian'),
-                  SizedBox(height: 12.h),
-                  ViewEntrance(
-                      delay: const Duration(milliseconds: 80),
-                      child: _buildKepegawaianGrid(context)),
-                  SizedBox(height: 24.h),
-
-                  _buildSectionHeader('Kehadiran & Jadwal'),
-                  SizedBox(height: 12.h),
-                  ViewEntrance(
-                      delay: const Duration(milliseconds: 140),
-                      child: _buildKehadiranGrid(context)),
-                  SizedBox(height: 24.h),
-
-                  _buildSectionHeader('Penggajian'),
-                  SizedBox(height: 12.h),
-                  ViewEntrance(
-                      delay: const Duration(milliseconds: 200),
-                      child: _buildPayrollGrid(context)),
-                  SizedBox(height: 24.h),
-
-                  _buildSectionHeader('Komunikasi & Informasi'),
-                  SizedBox(height: 12.h),
-                  ViewEntrance(
-                      delay: const Duration(milliseconds: 260),
-                      child: _buildKomunikasiGrid(context)),
-                  SizedBox(height: 24.h),
-
-                  _buildSectionHeader('Sistem & Data'),
-                  SizedBox(height: 12.h),
-                  ViewEntrance(
-                      delay: const Duration(milliseconds: 320),
-                      child: _buildSistemGrid(context)),
-                  SizedBox(height: 24.h),
-
-                  // 3. Admin Calendar Monitoring
+                  const Text('PUSAT KENDALI',
+                      style: TextStyle(
+                          color: Color(0xFFFFD6E9),
+                          fontSize: 11,
+                          letterSpacing: 1.8,
+                          fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 9),
+                  Text('Halo, $name',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 25,
+                          fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 5),
                   Text(
-                    'Kalender Kehadiran & Libur',
-                    style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.onSurface),
-                  ),
-                  SizedBox(height: 16.h),
-                  const ViewEntrance(
-                      delay: Duration(milliseconds: 380),
-                      child: AdminDashboardCalendar()),
-                  SizedBox(height: 60.h),
+                      DateFormat('EEEE, d MMMM y', 'id_ID')
+                          .format(DateTime.now()),
+                      style: TextStyle(
+                          color: Colors.white.withValues(alpha: .84),
+                          fontSize: 13)),
                 ],
               ),
             ),
-          ),
-        );
-      },
-    );
-  }
+            Positioned(
+              right: -28,
+              bottom: -68,
+              child: IgnorePointer(
+                child: Container(
+                  width: 160,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                        color: Colors.white.withValues(alpha: .15), width: 24),
+                  ),
+                ),
+              ),
+            ),
+          ]),
+        ),
+      );
 
-  Widget _buildQuickStats(BuildContext context) {
-    return FutureBuilder<dynamic>(
-      future: _stats,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError || !snapshot.hasData) {
-          return Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(20.w),
-            color: AppColors.surface,
-            child: Column(children: [
-              const Text('Ringkasan belum dapat dimuat.'),
-              TextButton(
-                  onPressed: () => setState(() {
-                        _stats =
-                            context.read<ApiClient>().get('/admin/dashboard');
-                      }),
-                  child: const Text('Coba lagi'))
-            ]),
-          );
-        }
-        final payload = snapshot.data!.data as Map<String, dynamic>;
-        return _buildQuickStatsContent(
-          context,
-          payload['data'] as Map<String, dynamic>? ?? const {},
-        );
-      },
-    );
-  }
-
-  Widget _buildQuickStatsContent(
-      BuildContext context, Map<String, dynamic> stats) {
-    final attendance =
-        stats['attendance_today'] as Map<String, dynamic>? ?? const {};
-    final departments = (stats['department_attendance'] as List? ?? const [])
-        .whereType<Map>()
-        .toList();
-    return Container(
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24.r),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 10))
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildQuickStats(BuildContext context) => FutureBuilder<dynamic>(
+        future: _stats,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const GlassDashboardPanel(
+              child: Center(
+                  child: Padding(
+                padding: EdgeInsets.all(18),
+                child:
+                    CircularProgressIndicator(color: DashboardColors.magenta),
+              )),
+            );
+          }
+          if (snapshot.hasError || !snapshot.hasData) {
+            return GlassDashboardPanel(
+              child: Column(
+                children: [
+                  const Icon(Icons.cloud_off_rounded,
+                      color: DashboardColors.magenta, size: 30),
+                  const SizedBox(height: 8),
+                  const Text('Ringkasan belum dapat dimuat dari server.'),
+                  TextButton.icon(
+                    onPressed: _reload,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Coba lagi'),
+                  ),
+                ],
+              ),
+            );
+          }
+          final stats = _unwrapMap(snapshot.data);
+          final employees = _asMap(stats['employees']);
+          final attendance = _asMap(stats['attendance_today']);
+          final pending = _asMap(stats['pending_approvals']);
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Ringkasan Hari Ini',
-                  style:
-                      TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp)),
-              Text(DateFormat('dd MMM yyyy').format(DateTime.now()),
-                  style: TextStyle(
-                      color: AppColors.onSurfaceVariant, fontSize: 14.sp)),
+              DashboardSectionHeading(
+                title: 'Ringkasan hari ini',
+                subtitle:
+                    DateFormat('d MMMM y', 'id_ID').format(DateTime.now()),
+                action: TextButton(
+                  onPressed: () => context.push('/admin/attendance-daily'),
+                  child: const Text('Detail'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              LayoutBuilder(builder: (context, constraints) {
+                final columns = constraints.maxWidth >= 760 ? 4 : 2;
+                final items = <Widget>[
+                  DashboardMetricCard(
+                      label: 'Karyawan',
+                      value: '${employees['total'] ?? '—'}',
+                      icon: Icons.people_alt_rounded,
+                      accent: DashboardColors.cyanDeep),
+                  DashboardMetricCard(
+                      label: 'Hadir',
+                      value: '${attendance['present'] ?? '—'}',
+                      icon: Icons.how_to_reg_rounded,
+                      accent: const Color(0xFF168B68)),
+                  DashboardMetricCard(
+                      label: 'Belum hadir',
+                      value: '${attendance['absent'] ?? '—'}',
+                      icon: Icons.person_off_rounded,
+                      accent: const Color(0xFFC34C5B)),
+                  DashboardMetricCard(
+                      label: 'Menunggu persetujuan',
+                      value: '${pending['total'] ?? '—'}',
+                      icon: Icons.pending_actions_rounded,
+                      accent: DashboardColors.magenta),
+                ];
+                return GridView.count(
+                  crossAxisCount: columns,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: constraints.maxWidth >= 760 ? 1.65 : 1.4,
+                  children: items,
+                );
+              }),
+              const SizedBox(height: 12),
+              _departmentAttendance(stats['department_attendance']),
             ],
-          ),
-          if (departments.isNotEmpty) ...[
-            SizedBox(height: 24.h),
-            const Divider(),
-            SizedBox(height: 12.h),
-            Align(
-                alignment: Alignment.centerLeft,
-                child: Text('Kehadiran per departemen',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w700, fontSize: 14.sp))),
-            SizedBox(height: 14.h),
-            ...departments.map((item) {
-              final rate = ((item['attendance_rate'] as num?) ?? 0).toDouble();
+          );
+        },
+      );
+
+  Widget _departmentAttendance(dynamic raw) {
+    final departments = raw is List ? raw.whereType<Map>().toList() : const [];
+    if (departments.isEmpty) return const SizedBox.shrink();
+    return DashboardEntrance(
+      child: GlassDashboardPanel(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Kehadiran per departemen',
+                style: TextStyle(
+                    color: DashboardColors.ink,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15)),
+            const SizedBox(height: 14),
+            ...departments.take(5).map((item) {
+              final rate = ((item['attendance_rate'] as num?) ?? 0)
+                  .toDouble()
+                  .clamp(0, 100);
               return Padding(
-                  padding: EdgeInsets.only(bottom: 12.h),
-                  child: Column(children: [
-                    Row(children: [
-                      Expanded(
-                          child: Text(
-                              item['department']?.toString() ??
-                                  'Tanpa departemen',
-                              style: TextStyle(
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w600))),
-                      Text('${rate.toStringAsFixed(1)}%',
-                          style: TextStyle(
-                              fontSize: 12.sp,
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w800))
-                    ]),
-                    SizedBox(height: 6.h),
-                    TweenAnimationBuilder<double>(
-                        tween: Tween(begin: 0, end: rate / 100),
-                        duration: const Duration(milliseconds: 700),
-                        curve: Curves.easeOutCubic,
-                        builder: (_, value, __) => LinearProgressIndicator(
-                            value: value.clamp(0, 1),
-                            minHeight: 9.h,
-                            borderRadius: BorderRadius.circular(8.r),
-                            backgroundColor: AppColors.surfaceContainerHigh,
-                            color: AppColors.primary)),
-                  ]));
+                padding: const EdgeInsets.only(bottom: 13),
+                child: Column(children: [
+                  Row(children: [
+                    Expanded(
+                      child: Text(
+                          item['department']?.toString() ?? 'Departemen',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              color: DashboardColors.ink,
+                              fontWeight: FontWeight.w600)),
+                    ),
+                    Text('${rate.toStringAsFixed(1)}%',
+                        style: const TextStyle(
+                            color: DashboardColors.cyanDeep,
+                            fontWeight: FontWeight.w800)),
+                  ]),
+                  const SizedBox(height: 6),
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: rate / 100),
+                    duration: const Duration(milliseconds: 650),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, _) => ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: value,
+                        minHeight: 8,
+                        backgroundColor: const Color(0xFFE1F1F4),
+                        color: DashboardColors.cyan,
+                      ),
+                    ),
+                  ),
+                ]),
+              );
             }),
           ],
-          SizedBox(height: 20.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildStatItem('Hadir', '${attendance['present'] ?? 0}',
-                  AppColors.successEmerald, Icons.how_to_reg),
-              _buildStatItem('Alpha', '${attendance['absent'] ?? 0}',
-                  AppColors.errorCrimson, Icons.person_off),
-              _buildStatItem('Cuti/Sakit', '${attendance['on_leave'] ?? 0}',
-                  AppColors.warningAmber, Icons.sick),
-            ],
-          ),
-          SizedBox(height: 20.h),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                context.push('/admin/attendance-daily');
-              },
-              icon: const Icon(Icons.table_chart),
-              label: const Text('Buka Tabel Absensi Harian'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 12.h),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r)),
-              ),
-            ),
-          )
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildStatItem(
-      String label, String value, Color color, IconData icon) {
+  Map<String, dynamic> _unwrapMap(dynamic response) {
+    dynamic payload = response.data;
+    if (payload is Map && payload['data'] is Map) payload = payload['data'];
+    return payload is Map
+        ? Map<String, dynamic>.from(payload)
+        : <String, dynamic>{};
+  }
+
+  Map<String, dynamic> _asMap(dynamic value) =>
+      value is Map ? Map<String, dynamic>.from(value) : <String, dynamic>{};
+
+  Widget _buildActionGrid(BuildContext context) {
+    const groups = <_AdminActionGroup>[
+      _AdminActionGroup('Karyawan & persetujuan', [
+        _AdminAction(
+            'Data karyawan', Icons.people_alt_rounded, '/admin/employees'),
+        _AdminAction(
+            'Persetujuan', Icons.fact_check_rounded, '/admin/approvals'),
+        _AdminAction('Permohonan cuti', Icons.event_busy_rounded,
+            '/admin/leave-requests'),
+        _AdminAction(
+            'Klaim karyawan', Icons.receipt_long_rounded, '/admin/claims'),
+      ]),
+      _AdminActionGroup('Absensi & jadwal', [
+        _AdminAction(
+            'Absensi harian', Icons.today_rounded, '/admin/attendance-daily'),
+        _AdminAction(
+            'Laporan absensi', Icons.summarize_rounded, '/admin/reports'),
+        _AdminAction(
+            'Jadwal & shift', Icons.calendar_month_rounded, '/admin/schedule'),
+        _AdminAction('Penugasan shift', Icons.assignment_ind_rounded,
+            '/admin/shift-assignments'),
+        _AdminAction('Keamanan GPS', Icons.gps_off_rounded,
+            '/admin/attendance-security-events'),
+      ]),
+      _AdminActionGroup('Operasional', [
+        _AdminAction('Payroll', Icons.payments_rounded, '/admin/payroll'),
+        _AdminAction('Pengaturan payroll', Icons.request_quote_rounded,
+            '/admin/payroll-config'),
+        _AdminAction('Kalender event', Icons.event_rounded, '/admin/events'),
+        _AdminAction(
+            'Pengumuman', Icons.campaign_rounded, '/admin/announcements'),
+        _AdminAction(
+            'Jenis cuti', Icons.flight_takeoff_rounded, '/admin/leave-types'),
+        _AdminAction(
+            'Perangkat', Icons.phonelink_lock_rounded, '/admin/devices'),
+        _AdminAction('Pengaturan organisasi', Icons.business_rounded,
+            '/admin/org-settings'),
+        _AdminAction(
+            'Pengaturan admin', Icons.settings_rounded, '/admin/settings'),
+        _AdminAction('Analitik departemen', Icons.analytics_rounded,
+            '/admin/department-analytics'),
+        _AdminAction('Ekspor data', Icons.download_rounded, '/admin/export'),
+        _AdminAction('Audit log', Icons.history_rounded, '/admin/audit-logs'),
+      ]),
+    ];
+
     return Column(
-      children: [
-        Container(
-          padding: EdgeInsets.all(12.w),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Icon(icon, color: color, size: 28.w),
-        ),
-        SizedBox(height: 8.h),
-        Text(value,
-            style: TextStyle(
-                fontSize: 24.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.onSurface)),
-        Text(label,
-            style:
-                TextStyle(fontSize: 12.sp, color: AppColors.onSurfaceVariant)),
-      ],
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: groups
+          .map((group) => Padding(
+                padding: const EdgeInsets.only(bottom: 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(group.title,
+                        style: const TextStyle(
+                            color: DashboardColors.ink,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14)),
+                    const SizedBox(height: 10),
+                    LayoutBuilder(builder: (context, constraints) {
+                      final columns = constraints.maxWidth >= 900
+                          ? 4
+                          : constraints.maxWidth >= 520
+                              ? 3
+                              : 2;
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: group.actions.length,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: columns,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 1.55,
+                        ),
+                        itemBuilder: (context, index) {
+                          final action = group.actions[index];
+                          return Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(21),
+                              onTap: () => context.push(action.route),
+                              child: GlassDashboardPanel(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 13, vertical: 12),
+                                radius: 21,
+                                tint: const Color(0xEFFFFFFF),
+                                child: Row(children: [
+                                  Container(
+                                    width: 42,
+                                    height: 42,
+                                    decoration: BoxDecoration(
+                                      color: DashboardColors.cyan
+                                          .withValues(alpha: .14),
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: Icon(action.icon,
+                                        color: DashboardColors.cyanDeep,
+                                        size: 22),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(action.title,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          color: DashboardColors.ink,
+                                          fontSize: 12,
+                                          height: 1.2,
+                                          fontWeight: FontWeight.w800,
+                                        )),
+                                  ),
+                                  const Icon(Icons.chevron_right_rounded,
+                                      color: DashboardColors.muted, size: 20),
+                                ]),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    }),
+                  ],
+                ),
+              ))
+          .toList(),
     );
   }
+}
 
-  Widget _buildSectionHeader(String title) {
-    return Row(
-      children: [
-        Container(
-          width: 4.w,
-          height: 16.h,
-          decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(4.r)),
-        ),
-        SizedBox(width: 8.w),
-        Text(
-          title,
-          style: TextStyle(
-              fontSize: 16.sp,
-              fontWeight: FontWeight.bold,
-              color: AppColors.onSurface),
-        ),
-      ],
-    );
-  }
+class _AdminAction {
+  final String title;
+  final IconData icon;
+  final String route;
+  const _AdminAction(this.title, this.icon, this.route);
+}
 
-  Widget _buildKepegawaianGrid(BuildContext context) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 3,
-      mainAxisSpacing: 16.h,
-      crossAxisSpacing: 16.w,
-      children: [
-        _buildActionCard(context, 'Data Karyawan', Icons.people,
-            () => context.push('/admin/employees')),
-        _buildActionCard(context, 'Persetujuan', Icons.fact_check,
-            () => context.push('/admin/approvals')),
-      ],
-    );
-  }
-
-  Widget _buildKehadiranGrid(BuildContext context) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 3,
-      mainAxisSpacing: 16.h,
-      crossAxisSpacing: 16.w,
-      children: [
-        _buildActionCard(context, 'Laporan Harian', Icons.event_note,
-            () => context.push('/admin/attendance-daily')),
-        _buildActionCard(context, 'Rekap Absen', Icons.summarize,
-            () => context.push('/admin/reports')),
-        _buildActionCard(context, 'Deteksi Fake GPS', Icons.gps_off,
-            () => context.push('/admin/attendance-security-events')),
-        _buildActionCard(context, 'Template Shift', Icons.event_available,
-            () => context.push('/admin/shifts')),
-        _buildActionCard(context, 'Penugasan Shift', Icons.assignment_ind,
-            () => context.push('/admin/shift-assignments')),
-      ],
-    );
-  }
-
-  Widget _buildPayrollGrid(BuildContext context) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 3,
-      mainAxisSpacing: 16.h,
-      crossAxisSpacing: 16.w,
-      children: [
-        _buildActionCard(context, 'Konfigurasi', Icons.request_quote,
-            () => context.push('/admin/payroll-config')),
-        _buildActionCard(context, 'Proses Penggajian', Icons.point_of_sale,
-            () => context.push('/admin/payroll')),
-      ],
-    );
-  }
-
-  Widget _buildKomunikasiGrid(BuildContext context) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 3,
-      mainAxisSpacing: 16.h,
-      crossAxisSpacing: 16.w,
-      children: [
-        _buildActionCard(context, 'Kalender Acara', Icons.event,
-            () => context.push('/admin/events')),
-        _buildActionCard(context, 'Buat Pengumuman', Icons.campaign,
-            () => context.push('/admin/announcements/new')),
-      ],
-    );
-  }
-
-  Widget _buildSistemGrid(BuildContext context) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 3,
-      mainAxisSpacing: 16.h,
-      crossAxisSpacing: 16.w,
-      children: [
-        _buildActionCard(context, 'Tipe Cuti', Icons.flight_takeoff,
-            () => context.push('/admin/leave-types')),
-        _buildActionCard(context, 'Sistem Organisasi', Icons.settings,
-            () => context.push('/admin/org-settings')),
-        _buildActionCard(context, 'Export Data', Icons.download,
-            () => context.push('/admin/export')),
-        _buildActionCard(context, 'Audit Logs', Icons.history,
-            () => context.push('/admin/audit-logs')),
-        _buildActionCard(context, 'Perangkat', Icons.phonelink_lock,
-            () => context.push('/admin/devices')),
-        _buildActionCard(context, 'Pengaturan Admin', Icons.manage_accounts,
-            () => context.push('/admin/settings')),
-      ],
-    );
-  }
-
-  Widget _buildActionCard(
-      BuildContext context, String title, IconData icon, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16.r),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          border: Border.all(
-              color: AppColors.outlineVariant.withValues(alpha: 0.5)),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(
-                color: AppColors.secondaryContainer,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(icon, color: AppColors.primary, size: 26.sp),
-            ),
-            SizedBox(height: 12.h),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.onSurface),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+class _AdminActionGroup {
+  final String title;
+  final List<_AdminAction> actions;
+  const _AdminActionGroup(this.title, this.actions);
 }
